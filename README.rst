@@ -5,6 +5,18 @@ django-flasky
 Write a Django site which looks like Flask, then turn it into a proper Django site when
 it starts to get complicated.
 
+.. image:: https://img.shields.io/pypi/v/django-flasky.svg
+    :target: https://pypi.org/project/django-flasky/
+    :alt: PyPI
+
+.. image:: https://github.com/radiac/django-flasky/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/radiac/django-flasky/actions/workflows/ci.yml
+    :alt: Tests
+
+.. image:: https://codecov.io/gh/radiac/django-flasky/branch/main/graph/badge.svg?token=BCNM45T6GI
+    :target: https://codecov.io/gh/radiac/django-flasky
+    :alt: Test coverage
+
 
 Quickstart
 ==========
