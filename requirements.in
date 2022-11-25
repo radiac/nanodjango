@@ -1,0 +1,4 @@
+pip-tools
+
+click
+django>=3.2.0
