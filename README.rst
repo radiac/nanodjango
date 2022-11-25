@@ -27,9 +27,7 @@ Write a Django app in the same style as you would a Flask app:
 
     from django_flasky import Django
 
-
     app = Django(__name__)
-
 
     @app.route("/")
     def hello_world(request):
@@ -44,7 +42,7 @@ Just save the above file as ``hello_world.py`` and run it with:
 
 .. code-block:: sh
 
-    django-flasky run hello.py
+    django-flasky hello.py run
 
 Your site will now be running on http://localhost:8000.
 
@@ -73,8 +71,8 @@ Save that as ``counter.py`` and run it with:
 
 .. code-block:: sh
 
-    django-flasky run counter.py migrate
-    django-flasky run counter.py
+    django-flasky counter.py run migrate
+    django-flasky counter.py run
 
 It will create your database in a ``db.sqlite3`` file next to your ``counter.py``.
 
@@ -136,7 +134,7 @@ One day you will be able to run:
 
 .. code-block:: sh
 
-    django-flasky upgrade hello.py
+    django-flasky hello.py upgrade
 
 This will do its best to break up your ``hello_world.py`` into a proper Django project
 under ``hello_world``.
