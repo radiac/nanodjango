@@ -27,7 +27,7 @@ Write a Django app in the same style as you would a Flask app:
 
     from django_flasky import Django
 
-    app = Django(__name__)
+    app = Django()
 
     @app.route("/")
     def hello_world(request):
