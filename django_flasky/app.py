@@ -102,5 +102,5 @@ class Django:
 
         if not args:
             args = ["runserver", "0:8000"]
-        args = ["django_flasky"] + args
+        args = ["django_flasky"] + list(args)
         execute_from_command_line(args)

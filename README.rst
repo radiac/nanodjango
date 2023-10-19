@@ -21,36 +21,12 @@ it starts to get complicated.
 Quickstart
 ==========
 
-Write a Django app in the same style as you would a Flask app:
+Install django-flasky::
 
-.. code-block:: python
-
-    from django_flasky import Django
-
-    app = Django()
-
-    @app.route("/")
-    def hello_world(request):
-        return "<p>Hello, World!</p>"
+    pip install django-flasky
 
 
-
-This is almost exactly a simplistic as Flask, but the ``request`` object is passed into
-the view instead of being a global.
-
-Just save the above file as ``hello_world.py`` and run it with:
-
-.. code-block:: sh
-
-    django-flasky hello.py run
-
-Your site will now be running on http://localhost:8000.
-
-
-But I want a database
----------------------
-
-No problem, this is Django, just not how you know it:
+Write a Django app in the same style as you would a Flask app, but using models and other Django goodness:
 
 .. code-block:: python
 
@@ -139,4 +115,5 @@ One day you will be able to run:
 This will do its best to break up your ``hello_world.py`` into a proper Django project
 under ``hello_world``.
 
-Right now though, this is not implemented, so you'll just need to do it yourself.
+Right now though, this is not implemented, so you'll just need to do it yourself - put
+your models in your ``models.py``, your views in ``views.py`` and routes in ``urls.py``.
