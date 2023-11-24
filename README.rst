@@ -57,12 +57,9 @@ Why would you do this? Why?
 ===========================
 
 Developers often begin projects with Flask because it looks easier to get started with
-than Django, but as the project grows it's easy for it to become an unmaintainable
-mashup of third party libraries and hand-rolled bodges just to begin to get close to
+than Django, but as the project grows it's easy for it to become a poorly-structured
+mashup of third party libraries and hand-rolled bodges, just to begin to get close to
 what Django offers out of the box.
-
-As someone who has often been brought in to try to rescue these projects, I decided that
-enough is enough - it is time to eliminate that excuse for picking Flask over Django.
 
 Django-Flasky makes it as easy to start a Django project as it is to start a Flask
 project, but because it's using Django from the start you'll be able to take advantage
