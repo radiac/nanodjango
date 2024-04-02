@@ -2,8 +2,7 @@
 django-flasky
 =============
 
-Write a Django site which looks like Flask, then turn it into a proper Django site when
-it starts to get complicated.
+Write Django in a single file, using views, models and admin.
 
 .. image:: https://img.shields.io/pypi/v/django-flasky.svg
     :target: https://pypi.org/project/django-flasky/
@@ -26,15 +25,17 @@ Install django-flasky::
     pip install django-flasky
 
 
-Write a Django app in the same style as you would a Flask app, but using models and other Django goodness:
+Write a Django app in the same style as you would a Flask app, but using models, admin,
+and other Django goodness:
 
 .. code-block:: python
 
     from django.db import models
     from django_flasky import Django
 
-    app = Django()
+    app = Django(ADMIN_URL="admin/")
 
+    @app.admin
     class CountLog(models.Model):
         timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -48,23 +49,10 @@ Save that as ``counter.py`` and run it with:
 .. code-block:: sh
 
     django-flasky counter.py run migrate
+    django_flasky counter.py run createsuperuser
     django-flasky counter.py run
 
 It will create your database in a ``db.sqlite3`` file next to your ``counter.py``.
-
-
-Why would you do this? Why?
-===========================
-
-Developers often begin projects with Flask because it looks easier to get started with
-than Django, but as the project grows it's easy for it to become a poorly-structured
-mashup of third party libraries and hand-rolled bodges, just to begin to get close to
-what Django offers out of the box.
-
-Django-Flasky makes it as easy to start a Django project as it is to start a Flask
-project, but because it's using Django from the start you'll be able to take advantage
-of everything that Django has to offer - models, admin, forms, and the rest - and then
-switch to a normal Django site structure when you're ready to do things properly.
 
 
 Using django-flasky
@@ -78,6 +66,12 @@ Override settings by passing them into your ``Django(..)`` object constructor, e
 .. code-block:: python
 
     app = Django(SECRET_KEY="some-secret", ALLOWED_HOSTS=["lol.example.com"])
+
+To enable the admin site, add ``ADMIN_URL``:
+
+.. code-block:: python
+
+    app = Django(SECRET_KEY="some-secret", ADMIN_URL="/admin/")
 
 
 Templates and static files
@@ -93,7 +87,8 @@ Limitations
 Django really doesn't like running from a single file, so measures were taken during the
 development of Django-Flasky which may lead to problems as your project grows.
 
-It is strongly recommended that this project is not used for anything serious.
+It is strongly recommended that this project is not used beyond its intended scope -
+when your project grows past one file, convert it to a full application.
 
 
 Converting to a sensible Django project

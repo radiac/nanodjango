@@ -1,5 +1,4 @@
 # Will be populated at runtime
-from django.urls.resolvers import URLPattern
+from django.urls.resolvers import URLPattern, URLResolver
 
-
-urlpatterns: list[URLPattern] = []
+urlpatterns: list[URLPattern | URLResolver] = []

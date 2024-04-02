@@ -7,7 +7,6 @@ from types import ModuleType
 
 from django_flasky.app_meta import get_app_module
 
-
 # Find paths
 DF_APP_MODULE: ModuleType = get_app_module()
 if not DF_APP_MODULE or not DF_APP_MODULE.__file__:
@@ -89,3 +88,7 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+
+# Django-flasky specific config
+ADMIN_URL = None
