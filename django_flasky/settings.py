@@ -5,7 +5,9 @@ from os import getenv
 from pathlib import Path
 from types import ModuleType
 
-from django_flasky.app_meta import get_app_module
+from django_flasky.app_meta import get_app_conf, get_app_module
+
+app_conf = get_app_conf()
 
 # Find paths
 DF_APP_MODULE: ModuleType = get_app_module()
@@ -15,8 +17,9 @@ DF_FILEPATH: Path = Path(DF_APP_MODULE.__file__).absolute()
 DF_APP_NAME: str = DF_FILEPATH.stem
 BASE_DIR: Path = DF_FILEPATH.parent
 
-MIGRATION_MODULES = {DF_APP_NAME: "migrations"}
+MIGRATION_MODULES = {DF_APP_NAME: app_conf.get("MIGRATIONS_DIR", "migrations")}
 
+# Standard Django settings
 SECRET_KEY = getenv("DJANGO_SECRET_KEY", "not-a-secret")
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
@@ -29,7 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-]
+] + app_conf.get("EXTRA_APPS", [])
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -62,7 +65,10 @@ TEMPLATES = [
 WSGI_APPLICATION = "django_flasky.wsgi.application"
 
 DATABASES = {
-    "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / app_conf.get("SQLITE_DATABASE", "db.sqlite3"),
+    }
 }
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

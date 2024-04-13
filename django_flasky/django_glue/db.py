@@ -43,7 +43,7 @@ def patch_migrations(app_name):
             return old_basedir(self)
 
         # Ensure
-        migrations_dir = settings.BASE_DIR / "migrations"
+        migrations_dir = settings.BASE_DIR / settings.MIGRATION_MODULES[app_name]
         migrations_dir.mkdir(parents=True, exist_ok=True)
         return str(migrations_dir)
 

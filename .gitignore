@@ -18,5 +18,5 @@ htmlcov
 Vagrantfile
 
 # Examples
-examples/db.sqlite3
-examples/migrations/*
+examples/*.sqlite3
+examples/*migrations*

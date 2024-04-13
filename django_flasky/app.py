@@ -3,19 +3,22 @@ from __future__ import annotations
 import inspect
 import os
 import sys
+from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 from django import setup
 from django.contrib import admin
 from django.urls import path as url_path
 
 from . import app_meta
-from .exceptions import ConfigurationError
+from .exceptions import ConfigurationError, UsageError
 from .urls import urlpatterns
 from .views import flask_view
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from django.db.models import Model
 
 
@@ -30,7 +33,12 @@ class Django:
     #: Reference to the app script's module
     app_module: ModuleType
 
-    _admin_site: admin.sites.AdminSite | None = None
+    #: Path of app script
+    app_path: Path
+
+    # Caches to aid ``convert``
+    _settings: dict[str, Any] = {}
+    _routes: dict[str, Callable] = {}
 
     def __new__(cls, *args, **kwargs):
         instance = super().__new__(cls)
@@ -55,6 +63,7 @@ class Django:
         """
         Configure settings and patch Django ready for model definitions
         """
+        self._settings = app_meta._app_conf = _settings
 
         # Settings
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_flasky.settings")
@@ -67,6 +76,7 @@ class Django:
 
         self.app_name = settings.DF_APP_NAME
         self.app_module = app_meta.get_app_module()
+        self.app_path = Path(inspect.getfile(self.app_module))
 
         # Import and apply glue after django.conf has its settings
         from .django_glue.apps import prepare_apps
@@ -115,6 +125,7 @@ class Django:
             urlpatterns.append(
                 url_path(pattern.removeprefix("/"), flask_view(fn), name=fn.__name__)
             )
+            self._routes[pattern] = fn
             return fn
 
         return wrapped
@@ -139,12 +150,15 @@ class Django:
             return model
 
         if model is None:
+            # Called with arguments, @admin(attr=val)
             return wrap
+
+        # Called without arguments, @admin - call wrapped immediately
         return wrap(model)
 
     def run(self, args: list[str]):
         """
-        Run a Django management command
+        Run a Django management command, passing all arguments
 
         Defaults to:
             runserver 0:8000
@@ -156,3 +170,19 @@ class Django:
             args = ["runserver", "0:8000"]
         args = ["django_flasky"] + list(args)
         execute_from_command_line(args)
+
+    def convert(self, path: Path, name: str):
+        from .convert import Converter
+
+        if path.exists():
+            raise UsageError("Upgrade path is not empty - path cannot exist")
+        path.mkdir()
+
+        converter = Converter(app=self, path=path, name=name)
+        converter.write()
+
+    def __call__(self, *args, **kwargs):
+        from django.core.wsgi import get_wsgi_application
+
+        application = get_wsgi_application()
+        return application(*args, **kwargs)

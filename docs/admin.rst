@@ -29,8 +29,8 @@ You can pass ``ModelAdmin`` attributes as arguments to the decorator::
         timestamp = models.DateTimeField(auto_now_add=True)
 
 
-Defining a ModelAdmin
-=====================
+Custom ModelAdmin
+=================
 
 To define a custom ``ModelAdmin``, use standard Django syntax::
 
