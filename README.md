@@ -1,6 +1,7 @@
 # nanodjango
 
 [![PyPI](https://img.shields.io/pypi/v/nanodjango.svg)](https://pypi.org/project/nanodjango/)
+[![Documentation](https://readthedocs.org/projects/nanodjango/badge/?version=latest)](https://nanodjango.readthedocs.io/en/latest/)
 [![Tests](https://github.com/radiac/nanodjango/actions/workflows/ci.yml/badge.svg)](https://github.com/radiac/nanodjango/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/radiac/nanodjango/branch/main/graph/badge.svg?token=BCNM45T6GI)](https://codecov.io/gh/radiac/nanodjango)
 
@@ -66,6 +67,7 @@ nanodjango counter.py convert /path/to/project --name=myproject
 
 For more details, see
 
-* Getting started
-* Tutorial
-* Documentation
+* [Getting started](https://nanodjango.readthedocs.io/en/latest/get_started.html)
+* [Tutorial](https://nanodjango.readthedocs.io/en/latest/tutorial.html)
+* [Full Documentation](https://nanodjango.readthedocs.io/en/latest/index.html)
+* [Changelog](https://nanodjango.readthedocs.io/en/latest/changelog.html)
