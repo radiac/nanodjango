@@ -9,7 +9,7 @@ Check out your fork and install its dependencies in a virtualenv:
 
 .. code-block:: bash
 
-    git clone git@github.com:USERNAME/django-flasky.git repo
+    git clone git@github.com:USERNAME/nanodjango.git repo
     python -mvenv venv
     . venv/bin/activate
     cd repo
@@ -20,7 +20,7 @@ Then run examples by adding your ``repo`` dir to the ``PYTHONPATH``, and call
 the repo module directly::
 
     cd examples
-    PYTHONPATH=.. python -mdjango_flasky counter.py run migrate
+    PYTHONPATH=.. python -m nanodjango counter.py run migrate
 
 
 Tests

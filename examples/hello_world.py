@@ -1,5 +1,4 @@
-from django_flasky import Django
-
+from nanodjango import Django
 
 app = Django()
 

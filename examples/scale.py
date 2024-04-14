@@ -1,5 +1,5 @@
 """
-Django-flasky - Django models, views and admin in a single file
+nanodjango - Django models, views and admin in a single file
 
 A example project which we want to scale using ``convert``
 
@@ -8,21 +8,21 @@ supported convertible features.
 
 Usage::
 
-    django-flasky counter.py convert /path/to/site
-    cp db.sqlite3 /path/to/site
+    nanodjango scale.py convert /path/to/site --name=myproject
     cd /path/to/site
     ./manage.py runserver 0:8000
 """
 import os
 
 from django.db import models
-from django_flasky import Django
+from django.http import HttpResponseRedirect
+from nanodjango import Django
 
 domain = "scale.example.com"
 
 app = Django(
     ADMIN_URL="secret-admin/",
-    ALLOWED_HOSTS=["localhost", domain],
+    ALLOWED_HOSTS=["localhost", "127.0.0.", domain],
     SECRET_KEY=os.environ.get("SECRET_KEY", "unset"),
     SQLITE_DATABASE="scale.sqlite3",
     MIGRATIONS_DIR="scale_migrations",
@@ -61,6 +61,11 @@ def count(request):
     CountLog.objects.create()
 
     return f"<p>Number of page loads: {CountLog.objects.count()}</p>"
+
+
+@app.route("/author/")
+def redirect(request) -> HttpResponseRedirect:
+    return HttpResponseRedirect("https://radiac.net/")
 
 
 # Some unused definitions

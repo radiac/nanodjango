@@ -1,6 +1,5 @@
 from click.testing import CliRunner
-
-from django_flasky.commands import cli
+from nanodjango.commands import cli
 
 
 def test_run_check():

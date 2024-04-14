@@ -7,7 +7,7 @@ from typing import Callable, cast
 from django.http import HttpResponse
 
 from .utils import (
-    applied_response_decorator,
+    applied_ensure_http_response,
     collect_references,
     is_admin_decorator,
     is_view_decorator,
@@ -64,7 +64,7 @@ class AppView(ConverterObject):
 
     def fix_return_value(self):
         """
-        Django-flasky allows string return values; this method tries to ensure the views
+        nanodjango allows string return values; this method tries to ensure the views
         that we generate for Django return an HttpResponse
         """
         # Find annotation
@@ -78,7 +78,7 @@ class AppView(ConverterObject):
 
         # We could be returning a string - add the decorator
         self.ast = cast(ast.FunctionDef, self.ast)
-        self.ast.decorator_list.append(applied_response_decorator)
+        self.ast.decorator_list.append(applied_ensure_http_response)
         self.src = ast.unparse(self.ast)
 
     def make_url(self) -> str:

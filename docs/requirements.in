@@ -1,0 +1,6 @@
+# Core build requirements
+sphinx
+-e git+https://github.com/radiac/sphinx_radiac_theme.git#egg=sphinx_radiac_theme
+
+# Optional
+# sphinx-autobuild

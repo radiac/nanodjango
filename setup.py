@@ -16,4 +16,4 @@ def find_version(*paths):
 
 # Setup unless this is being imported by Sphinx, which just wants find_version
 if "sphinx" not in sys.modules:
-    setup(version=find_version("django_flasky", "__init__.py"))
+    setup(version=find_version("nanodjango", "__init__.py"))

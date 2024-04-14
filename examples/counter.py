@@ -1,17 +1,17 @@
 """
-Django-flasky - Django models, views and admin in a single file
+nanodjango - Django models, views and admin in a single file
 
 Counter example
 
 Usage::
 
-    django-flasky counter.py run migrate
-    django_flasky counter.py run createsuperuser
-    django-flasky counter.py run
+    nanodjango counter.py run migrate
+    nanodjango counter.py run createsuperuser
+    nanodjango counter.py run
 """
 
 from django.db import models
-from django_flasky import Django
+from nanodjango import Django
 
 app = Django(ADMIN_URL="admin/")
 

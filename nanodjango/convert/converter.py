@@ -14,7 +14,7 @@ from django.db.models import Model
 
 from ..exceptions import ConversionError
 from .objects import AppModel, AppView
-from .utils import collect_references, import_from_path, response_decorator
+from .utils import collect_references, ensure_http_response, import_from_path
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -149,7 +149,7 @@ class Converter:
         """
         resolver = Resolver(self, f"{self.project_name}.settings")
 
-        # Collect from app definition and remove flasky-specific settings
+        # Collect from app definition and remove nanodjango-specific settings
         app_settings = {}
         for node in self.ast.body:
             # Look for app = Django(..)
@@ -169,7 +169,7 @@ class Converter:
                 for keyword in node.value.keywords:
                     name: str = cast(str, keyword.arg)
                     if name.isupper():
-                        # Exclude flasky-specific settings
+                        # Exclude nanodjango-specific settings
                         if name in [
                             "ADMIN_URL",
                             "EXTRA_APPS",
@@ -183,7 +183,7 @@ class Converter:
 
         # Load settings file
         filename = self.root_path / self.project_name / "settings.py"
-        settings = import_from_path("django_flasky.convert.tmp_settings", filename)
+        settings = import_from_path("nanodjango.convert.tmp_settings", filename)
         settings_src = inspect.getsource(settings)
         settings_ast = ast.parse(settings_src)
 
@@ -318,10 +318,10 @@ class Converter:
         """
         Collect a definition of a module top-level scope object
         """
-        if obj_name == "response_decorator":
+        if obj_name == "ensure_http_response":
             # Inject its dependencies
-            self.imports.update(getattr(response_decorator, "_dependencies", {}))
-            obj_src = inspect.getsource(response_decorator)
+            self.imports.update(getattr(ensure_http_response, "_dependencies", {}))
+            obj_src = inspect.getsource(ensure_http_response)
             obj_ast = ast.parse(obj_src)
             references = collect_references(obj_ast.body[0])
             return obj_src, references
@@ -460,8 +460,10 @@ class Converter:
 
         self.write_file(
             self.root_path / self.project_name / self.app.app_name / "unused.py",
-            "# Definitions that were not used by the django-flasky converter",
+            "# Definitions that were not used by the nanodjango converter",
             "# These will need to be merged into the rest of the app manually",
             resolver.gen_src(),
             "\n".join([src for src in all_src]),
         )
+
+        print(f"Unused code detected, see {self.app.app_name}/unused.py")

@@ -1,11 +1,11 @@
 """
-Django settings for django-flasky project
+Django settings for nanodjango project
 """
 from os import getenv
 from pathlib import Path
 from types import ModuleType
 
-from django_flasky.app_meta import get_app_conf, get_app_module
+from nanodjango.app_meta import get_app_conf, get_app_module
 
 app_conf = get_app_conf()
 
@@ -44,7 +44,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "django_flasky.urls"
+ROOT_URLCONF = "nanodjango.urls"
 
 TEMPLATES = [
     {
@@ -62,7 +62,7 @@ TEMPLATES = [
     }
 ]
 
-WSGI_APPLICATION = "django_flasky.wsgi.application"
+WSGI_APPLICATION = "nanodjango.wsgi.application"
 
 DATABASES = {
     "default": {
@@ -96,5 +96,5 @@ STATICFILES_DIRS = [
 ]
 
 
-# Django-flasky specific config
+# nanodjango specific config
 ADMIN_URL = None

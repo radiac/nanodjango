@@ -3,10 +3,10 @@ from types import ModuleType
 from django.apps.config import AppConfig
 from django.apps.registry import apps as apps_registry
 
-from django_flasky import settings
+from .. import settings
 
 
-class FlaskyAppConfig(AppConfig):
+class NanodjangoAppConfig(AppConfig):
     """
     AppConfig with a hard-coded path
     """
@@ -24,7 +24,7 @@ def prepare_apps(app_name: str, app_module: ModuleType):
     loaded and doesn't try to import it again. Our models will get registered when the
     module finishes importing.
     """
-    app_config = FlaskyAppConfig(app_name=app_name, app_module=app_module)
+    app_config = NanodjangoAppConfig(app_name=app_name, app_module=app_module)
     apps_registry.app_configs[app_config.label] = app_config
     app_config.apps = apps_registry
     app_config.models = {}

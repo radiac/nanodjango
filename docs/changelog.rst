@@ -2,9 +2,6 @@
 Changelog
 =========
 
-Changes
-=======
-
 0.3.0 - 2024-04-14
 ------------------
 
@@ -13,6 +10,7 @@ Feature:
 * Add ``convert`` command to turn a single file app into a full Django project
 * Add settings ``EXTRA_APPS``, ``SQLITE_DATABASE`` and ``MIGRATIONS_DIR``
 * Add WSGI support
+* Rename project from ``django-flasky``
 
 
 0.2.0 - 2024-04-01
@@ -53,4 +51,4 @@ Docs:
 0.1.0 - 2022-11-25
 ------------------
 
-Initial release
+Initial release as ``django-flasky``

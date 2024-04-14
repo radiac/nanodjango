@@ -103,7 +103,11 @@ def is_view_decorator(obj_ast: ast.AST) -> bool:
     return False
 
 
-def response_decorator(view_fn):
+def ensure_http_response(view_fn):
+    """
+    If a view returns a plain string value, convert it into an HttpResponse
+    """
+
     @wraps(view_fn)
     def wrapped(*args, **kwargs):
         response = view_fn(*args, **kwargs)
@@ -114,9 +118,9 @@ def response_decorator(view_fn):
     return wrapped
 
 
-# Dependencies for ReverenceVisitor to find
+# Dependencies for ReferenceVisitor to find
 setattr(
-    response_decorator,
+    ensure_http_response,
     "_dependencies",
     {
         "wraps": "from functools import wraps",
@@ -125,11 +129,11 @@ setattr(
 )
 
 
-@response_decorator
+@ensure_http_response
 def decorated():
     pass
 
 
-applied_response_decorator = cast(
+applied_ensure_http_response = cast(
     ast.FunctionDef, obj_to_ast(inspect.getsource(decorated))
 ).decorator_list[0]

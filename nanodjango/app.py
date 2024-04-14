@@ -14,7 +14,7 @@ from django.urls import path as url_path
 from . import app_meta
 from .exceptions import ConfigurationError, UsageError
 from .urls import urlpatterns
-from .views import flask_view
+from .views import string_view
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -66,7 +66,7 @@ class Django:
         self._settings = app_meta._app_conf = _settings
 
         # Settings
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_flasky.settings")
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nanodjango.settings")
         from django.conf import settings
 
         self.settings = settings
@@ -117,13 +117,14 @@ class Django:
 
         All paths are relative to the root URL, leading slashes will be ignored.
         """
-        # Flask likes leading / in its patterns, Django does not
+        # We want to support Flask-like patterns which have leading / in its patterns.
+        # Django does not use these, so strip them out.
         if pattern.startswith("/"):
             pattern = pattern[1:]
 
         def wrapped(fn):
             urlpatterns.append(
-                url_path(pattern.removeprefix("/"), flask_view(fn), name=fn.__name__)
+                url_path(pattern.removeprefix("/"), string_view(fn), name=fn.__name__)
             )
             self._routes[pattern] = fn
             return fn
@@ -168,7 +169,7 @@ class Django:
 
         if not args:
             args = ["runserver", "0:8000"]
-        args = ["django_flasky"] + list(args)
+        args = ["nanodjango"] + list(args)
         execute_from_command_line(args)
 
     def convert(self, path: Path, name: str):
