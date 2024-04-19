@@ -59,7 +59,7 @@ Run it in production using WSGI:
 gunicorn -w 4 counter:app
 ```
 
-or convert it to a full Django project:
+or automatically convert it to a full Django project:
 
 ```sh
 nanodjango counter.py convert /path/to/project --name=myproject

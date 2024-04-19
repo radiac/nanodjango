@@ -12,10 +12,13 @@ Usage::
     cd /path/to/site
     ./manage.py runserver 0:8000
 """
+
 import os
 
 from django.db import models
 from django.http import HttpResponseRedirect
+from django.views.generic import ListView
+
 from nanodjango import Django
 
 domain = "scale.example.com"
@@ -66,6 +69,11 @@ def count(request):
 @app.route("/author/")
 def redirect(request) -> HttpResponseRedirect:
     return HttpResponseRedirect("https://radiac.net/")
+
+
+@app.route("/counts/")
+class Counts(ListView):
+    model = CountLog
 
 
 # Some unused definitions

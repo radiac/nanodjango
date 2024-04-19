@@ -2,6 +2,20 @@
 Changelog
 =========
 
+
+0.3.1 - 2024-??-??
+------------------
+
+Feature:
+
+* Add support for CBVs
+* WSGI mode runs with `DEBUG=False` by default
+
+Bugfix
+
+* Fix template path
+
+
 0.3.0 - 2024-04-14
 ------------------
 

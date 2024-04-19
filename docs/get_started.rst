@@ -50,7 +50,7 @@ Run it in production using WSGI:
     gunicorn -w 4 counter:app
 
 
-or convert it to a full Django app:
+or automatically convert it to a full Django app:
 
 .. code-block:: bash
 

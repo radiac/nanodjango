@@ -10,11 +10,13 @@ from typing import TYPE_CHECKING, Any, Callable
 from django import setup
 from django.contrib import admin
 from django.urls import path as url_path
+from django.views import View
 
 from . import app_meta
 from .exceptions import ConfigurationError, UsageError
 from .urls import urlpatterns
 from .views import string_view
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -123,10 +125,17 @@ class Django:
             pattern = pattern[1:]
 
         def wrapped(fn):
+            # Store route for convert lookup
+            self._routes[pattern] = fn
+
+            # Prepare CBVs
+            if inspect.isclass(fn) and issubclass(fn, View):
+                fn = fn.as_view()
+
+            # Register URL
             urlpatterns.append(
                 url_path(pattern.removeprefix("/"), string_view(fn), name=fn.__name__)
             )
-            self._routes[pattern] = fn
             return fn
 
         return wrapped
@@ -184,6 +193,11 @@ class Django:
 
     def __call__(self, *args, **kwargs):
         from django.core.wsgi import get_wsgi_application
+
+        if "DEBUG" not in self._settings:
+            from django.conf import settings
+
+            settings.DEBUG = False
 
         application = get_wsgi_application()
         return application(*args, **kwargs)

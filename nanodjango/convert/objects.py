@@ -67,6 +67,10 @@ class AppView(ConverterObject):
         nanodjango allows string return values; this method tries to ensure the views
         that we generate for Django return an HttpResponse
         """
+        # We don't decorate CBVs
+        if inspect.isclass(self.obj):
+            return
+
         # Find annotation
         if not callable(self.obj):
             raise ValueError("Unrecognised object registered as a view route")

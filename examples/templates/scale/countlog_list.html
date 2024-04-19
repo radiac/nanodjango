@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Count log</title>
+</head>
+<body>
+<ul>
+{% for count in object_list.all %}
+  <li>{{ count.timestamp }}</li>
+{% endfor %}
+</ul>
+</body>
+</html>
