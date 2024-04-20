@@ -88,7 +88,10 @@ class AppView(ConverterObject):
     def make_url(self) -> str:
         # TODO: We should probably escape self.pattern, but it's an extreme edge case
         # that doesn't seem worth the effort at the moment. Contributions welcome.
-        return f'    path("{self.pattern}", views.{self.name}),'
+        view_fn = f"views.{self.name}"
+        if inspect.isclass(self.obj):
+            view_fn = f"{view_fn}.as_view()"
+        return f'    path("{self.pattern}", {view_fn}),'
 
 
 class AppModel(ConverterObject):

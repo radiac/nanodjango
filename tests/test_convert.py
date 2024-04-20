@@ -1,6 +1,6 @@
 import urllib.request
 
-from .utils import cmd, nanodjango_process, runserver
+from .utils import cmd, converted_process, runserver
 
 
 TEST_APP = "scale"
@@ -10,12 +10,13 @@ TEST_HTTP = f"http://{TEST_BIND}/"
 TIMEOUT = 10
 
 
-def test_runserver__fbv_with_model():
+def test_runserver__fbv_with_model(tmp_path):
     cmd(TEST_SCRIPT, "run", "makemigrations", TEST_APP)
     cmd(TEST_SCRIPT, "run", "migrate")
+    cmd(TEST_SCRIPT, "convert", str(tmp_path), "--name=converted", "--delete")
 
     with (
-        nanodjango_process(TEST_SCRIPT, "run", "runserver", TEST_BIND) as handle,
+        converted_process(tmp_path, "runserver", TEST_BIND) as handle,
         runserver(handle),
     ):
         response = urllib.request.urlopen(TEST_HTTP, timeout=TIMEOUT)
