@@ -8,6 +8,8 @@ asgiref==3.8.1
     # via
     #   -r ../requirements.txt
     #   django
+black==24.3.0
+    # via -r ../requirements.txt
 build==1.2.1
     # via
     #   -r ../requirements.txt
@@ -15,6 +17,7 @@ build==1.2.1
 click==8.1.7
     # via
     #   -r ../requirements.txt
+    #   black
     #   pip-tools
 coverage[toml]==7.4.4
     # via pytest-cov
@@ -22,13 +25,28 @@ django==5.0.3
     # via -r ../requirements.txt
 iniconfig==2.0.0
     # via pytest
+isort==5.13.2
+    # via -r ../requirements.txt
+mypy-extensions==1.0.0
+    # via
+    #   -r ../requirements.txt
+    #   black
 packaging==24.0
     # via
     #   -r ../requirements.txt
+    #   black
     #   build
     #   pytest
+pathspec==0.12.1
+    # via
+    #   -r ../requirements.txt
+    #   black
 pip-tools==7.4.1
     # via -r ../requirements.txt
+platformdirs==4.2.0
+    # via
+    #   -r ../requirements.txt
+    #   black
 pluggy==1.4.0
     # via pytest
 pyproject-hooks==1.0.0
