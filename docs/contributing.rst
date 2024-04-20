@@ -33,3 +33,9 @@ To run the tests, still in your virtual environment:
     cd repo
     pip install -r tests/requirements.txt
     pytest
+
+
+Thanks
+======
+
+Thanks to `Remix Icon <https://remixicon.com/>`_ for the example icon.
