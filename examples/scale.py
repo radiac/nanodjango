@@ -21,11 +21,12 @@ from django.views.generic import ListView
 
 from nanodjango import Django
 
+
 domain = "scale.example.com"
 
 app = Django(
     ADMIN_URL="secret-admin/",
-    ALLOWED_HOSTS=["localhost", "127.0.0.", domain],
+    ALLOWED_HOSTS=["localhost", "127.0.0.1", domain],
     SECRET_KEY=os.environ.get("SECRET_KEY", "unset"),
     SQLITE_DATABASE="scale.sqlite3",
     MIGRATIONS_DIR="scale_migrations",

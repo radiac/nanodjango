@@ -82,14 +82,12 @@ ignore-path = ["*.txt"]
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F"]
-ignore = [
+lint.select = ["E", "F"]
+lint.ignore = [
     "E501",  # line length
 ]
 exclude = [
     ".git",
     "docs",
-    "tests",
-    "src",
     "dist",
 ]

@@ -1,9 +1,11 @@
-from click.testing import CliRunner
-from nanodjango.commands import cli
+from .utils import cmd
 
 
-def test_run_check():
-    runner = CliRunner()
-    result = runner.invoke(cli, ["run", "../examples/counter.py", "check"])
-    assert result.exit_code == 0
-    print(result.output)
+def test_run_check__counter():
+    result = cmd("../examples/counter.py", "run", "check")
+    assert result.stdout.strip() == "System check identified no issues (0 silenced)."
+
+
+def test_run_check__scale():
+    result = cmd("../examples/scale.py", "run", "check")
+    assert result.stdout.strip() == "System check identified no issues (0 silenced)."

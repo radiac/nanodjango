@@ -8,13 +8,15 @@ import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
+from django.db.models import Model
+
 import isort
 from black import FileMode, format_str
-from django.db.models import Model
 
 from ..exceptions import ConversionError
 from .objects import AppModel, AppView
 from .utils import collect_references, ensure_http_response, import_from_path
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -71,9 +73,9 @@ class Resolver:
             self.local_refs.add(global_ref)
 
             # Tell other modules where to find it
-            self.converter.imports[
-                global_ref
-            ] = f"from {self.module_name} import {global_ref}"
+            self.converter.imports[global_ref] = (
+                f"from {self.module_name} import {global_ref}"
+            )
 
         # Restore global refs
         self.global_refs = global_refs

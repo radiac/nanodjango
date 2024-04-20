@@ -7,6 +7,7 @@
 from types import ModuleType
 from typing import Any
 
+
 #: Reference to app module
 #:
 #: Available after the app is imported, before app.run() is called

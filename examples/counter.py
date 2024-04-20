@@ -11,7 +11,9 @@ Usage::
 """
 
 from django.db import models
+
 from nanodjango import Django
+
 
 app = Django(ADMIN_URL="admin/")
 

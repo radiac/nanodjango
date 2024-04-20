@@ -1,5 +1,6 @@
 from nanodjango import Django
 
+
 app = Django()
 
 

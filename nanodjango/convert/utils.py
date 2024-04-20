@@ -3,7 +3,6 @@ from __future__ import annotations
 import ast
 import importlib.util
 import inspect
-import sys
 from functools import wraps
 from pathlib import Path
 from types import ModuleType

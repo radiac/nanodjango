@@ -1,4 +1,3 @@
-import os
 import shutil
 import sys
 from importlib.machinery import SourceFileLoader
