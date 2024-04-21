@@ -3,13 +3,15 @@ Changelog
 =========
 
 
-0.3.1 - 2024-??-??
+0.4.0 - 2024-??-??
 ------------------
 
 Feature:
 
 * Add support for CBVs
-* WSGI mode runs with `DEBUG=False` by default
+* Add support for running management commands from within a script
+* WSGI mode now runs with ``DEBUG=False`` by default
+* Document usage with ``pipx run``
 
 Bugfix
 

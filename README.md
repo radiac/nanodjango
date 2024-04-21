@@ -65,6 +65,18 @@ or automatically convert it to a full Django project:
 nanodjango counter.py convert /path/to/project --name=myproject
 ```
 
+and with a [couple of extra
+lines](https://nanodjango.readthedocs.io/en/latest/management.html#run-script), run the
+development server as a standalone script using ``python``, or use ``pipx run`` to run
+it and automatically install dependencies to a temporary virtual environment:
+
+```sh
+# Either
+python script.py
+# or
+pipx run ./script.py
+```
+
 For more details, see
 
 * [Getting started](https://nanodjango.readthedocs.io/en/latest/get_started.html)
