@@ -51,7 +51,7 @@ bottom of your script, eg:
 You can then run the script directly to launch the Django development server. This will
 also automatically collect any arguments you may have passed on the command line::
 
-    python hello.py run runserver 0:8004
+    python hello.py runserver 0:8000
 
 
 Running it as a standalone script
