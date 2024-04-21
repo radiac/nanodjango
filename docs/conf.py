@@ -6,10 +6,27 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import re
+from pathlib import Path
+
+
 project = "nanodjango"
 copyright = "2024, Richard Terry"
 author = "Richard Terry"
-release = "0.3.0"
+
+
+def find_version(*paths):
+    path = Path(*paths)
+    content = path.read_text()
+    match = re.search(r"^__version__\s*=\s*['\"]([^'\"]*)['\"]", content, re.M)
+    if match:
+        return match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
+
+# The full version, including alpha/beta/rc tags
+release = find_version("..", "nanodjango", "__init__.py")
+
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

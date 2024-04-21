@@ -88,6 +88,5 @@ lint.ignore = [
 ]
 exclude = [
     ".git",
-    "docs",
     "dist",
 ]
