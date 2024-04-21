@@ -57,7 +57,7 @@ also automatically collect any arguments you may have passed on the command line
 Running it as a standalone script
 ---------------------------------
 
-You can take it a step further and add a [PEP 723](https://peps.python.org/pep-0723/)
+You can take it a step further and add a `PEP 723 <https://peps.python.org/pep-0723/>`_
 comment to the top to specify ``nanodjango`` as a dependency:
 
 .. code-block:: python
