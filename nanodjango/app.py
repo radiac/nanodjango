@@ -166,13 +166,31 @@ class Django:
         # Called without arguments, @admin - call wrapped immediately
         return wrap(model)
 
-    def run(self, args: list[str]):
+    def run(self, args: list[str] | None = None):
         """
         Run a Django management command, passing all arguments
 
         Defaults to:
             runserver 0:8000
         """
+        # Check if this is being called from click commands or directly
+        if self.app_name not in sys.modules:
+            # Hasn't been run through the ``nanodjango`` command
+            if (
+                "__main__" not in sys.modules
+                or getattr(sys.modules["__main__"], "app") != self
+            ):
+                # Doesn't look like it was run directly either
+                raise UsageError("App module not initialised")
+
+            # Run directly, so register app module so Django won't try to load it again
+            sys.modules[self.app_name] = sys.modules["__main__"]
+
+        # Be helpful and check sys.argv for args. This will almost certainly be because
+        # it's running directly.
+        if args is None:
+            args = sys.argv[1:]
+
         self._prepare()
         from django.core.management import execute_from_command_line
 

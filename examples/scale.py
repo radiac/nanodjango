@@ -12,6 +12,9 @@ Usage::
     cd /path/to/site
     ./manage.py runserver 0:8000
 """
+# /// script
+# dependencies = ["nanodjango"]
+# ///
 
 import os
 
@@ -83,3 +86,7 @@ CONSTANT = 1
 
 def something(name):
     return os.getenv(name)
+
+
+if __name__ == "__main__":
+    app.run()

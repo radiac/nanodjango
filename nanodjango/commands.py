@@ -40,11 +40,11 @@ def run(ctx, args: tuple[str]):
 )
 @click.pass_context
 def convert(ctx, path: click.Path, name: str, can_delete: bool = False):
-    path: Path = Path(str(path)).resolve()
-    if can_delete and path.exists():
-        shutil.rmtree(str(path))
+    target_path: Path = Path(str(path)).resolve()
+    if can_delete and target_path.exists():
+        shutil.rmtree(str(target_path))
 
-    ctx.obj["app"].convert(path, name)
+    ctx.obj["app"].convert(target_path, name)
 
 
 def invoke():
