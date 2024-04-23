@@ -121,8 +121,7 @@ class Django:
         """
         # We want to support Flask-like patterns which have leading / in its patterns.
         # Django does not use these, so strip them out.
-        if pattern.startswith("/"):
-            pattern = pattern[1:]
+        pattern = pattern.removeprefix("/")
 
         def wrapped(fn):
             # Store route for convert lookup
@@ -134,7 +133,7 @@ class Django:
 
             # Register URL
             urlpatterns.append(
-                url_path(pattern.removeprefix("/"), string_view(fn), name=fn.__name__)
+                url_path(pattern, string_view(fn), name=fn.__name__)
             )
             return fn
 
