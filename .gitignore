@@ -2,6 +2,7 @@
 *.egg-info
 *.log
 __pycache__
+.venv/
 
 
 # Docs
@@ -20,3 +21,6 @@ Vagrantfile
 # Examples
 examples/*.sqlite3
 examples/*migrations*
+
+# OS-specific
+.DS_Store
