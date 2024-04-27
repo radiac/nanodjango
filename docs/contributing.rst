@@ -10,16 +10,19 @@ First, fork the ``nanodjango`` project on GitHub. If you haven't done this befor
 Next, clone your new repository (replace ``<username>`` with your username) to your local machine:
 
 .. code-block:: bash
+
     $ git clone git@github.com:<username>/nanodjango.git
 
 If this doesn't work, try this alternative:
 
 .. code-block:: bash
+
     $ git clone https://github.com/<username>/nanodjango.git
 
-Add an ``upstream`` remote, then configure ``git`` to pull ``main`` from ``upstream`` and always push to ``origin`:
+Add an ``upstream`` remote, then configure ``git`` to pull ``main`` from ``upstream`` and always push to ``origin``:
 
 .. code-block:: bash
+
     $ cd nanodjango
     nanodjango$ git remote add upstream https://github.com/radiac/nanodjango
     nanodjango$ git config branch.main.remote upstream
@@ -30,11 +33,13 @@ This makes sure you'll be able to pull changes from the upstream nanodjango proj
 You can verify that ``git`` is configured correctly by running:
 
 .. code-block:: bash
+
     nanodjango$ git remote -v
     origin  git@github.com:<username>/nanodjango.git (fetch)
     origin  git@github.com:<username>/nanodjango.git (push)
     upstream        https://github.com/radiac/nanodjango (fetch)
     upstream        git@github.com:<username>/nanodjango.git (push)
+
     nanodjango$ git config branch.main.remote
     upstream
 
@@ -45,6 +50,7 @@ Now create a virtual environment and install the necessary dependencies:
 For macOS and Linux:
 
 .. code-block:: bash
+
     nanodjango$ python -m venv .venv
     nanodjango$ source .venv/bin/activate
     (.venv) nanodjango$ pip install --upgrade pip
@@ -52,7 +58,8 @@ For macOS and Linux:
 
 For Windows:
 
-.. code-block: bash
+.. code-block::
+
     nanodjango> python -m venv .venv
     nanodjango> .venv\Scripts\activate
     (.venv) nanodjango> pip install --upgrade pip
@@ -75,6 +82,7 @@ Running tests
 Install dependencies that are only required for tests, and run tests:
 
 .. code-block:: bash
+
     (.venv) nanodjango$ pip install -r tests/requirements.txt
     (.venv) nanodjango$ pytest
 
@@ -100,6 +108,7 @@ Merging upstream changes to your fork
 The upstream project is going to get ahead of your fork. Take these steps to pull changes from the main upstream repository to your fork:
 
 .. code-block:: bash
+
     $ git checkout main
     $ git fetch upstream
     $ git merge upstream/main
@@ -113,6 +122,7 @@ Building documentation
 To build a local copy of the documentation:
 
 .. code-block:: bash
+
     (.venv) nanodjango$ pip install -r docs/requirements.txt
     (.venv) nanodjango$ cd docs
     (.venv) docs$ make html
