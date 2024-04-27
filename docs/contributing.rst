@@ -98,9 +98,10 @@ Assuming you've set up your fork as described above, use the following workflow 
 * Commit your changes on your fork.
 * Push your branch to your fork.
 * Open a PR:
+
     * If you see a button to submit a PR based on this fork on the main page of your fork, you can click that button.
-    * If you don't see that button on your fork's main page, click the branches dropdown and click on the relevant branch.
-* Fill out the pull request, making sure it's going to submit your fork to the upstream repository.
+    * If you don't see that button on your fork's main page, click the dropdown showing all your branches and click on the relevant branch.
+* Fill out the pull request, making sure it's going to submit your fork's branch to the upstream repository.
 
 Merging upstream changes to your fork
 =====================================
@@ -114,7 +115,7 @@ The upstream project is going to get ahead of your fork. Take these steps to pul
     $ git merge upstream/main
     $ git push origin main
 
-This first makes sure you're on your fork's main branch. It then fetches the latest changes from the upstream project. It merges those changes into your main branch, and finally pushes those updates back to your fork.
+This makes sure you're on your fork's main branch. It then fetches the latest changes from the upstream project. It merges those changes into your main branch, and finally pushes those updates back to your fork's repository.
 
 Building documentation
 ======================
@@ -127,7 +128,7 @@ To build a local copy of the documentation:
     (.venv) nanodjango$ cd docs
     (.venv) docs$ make html
 
-You'll find a set of freshly-generated HTML files in `docs/_build/html/`.
+You'll find a set of freshly-generated HTML files in ``docs/_build/html/``.
 
 Getting help
 ============
