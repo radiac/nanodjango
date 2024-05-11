@@ -2,6 +2,12 @@
 Views
 =====
 
+Registering routes
+==================
+
+Routes with ``path()``
+----------------------
+
 Once you create your ``app = Django()``, you can use the ``@app.route`` decorator to
 define routes and views:
 
@@ -21,8 +27,39 @@ __ https://docs.djangoproject.com/en/5.0/ref/urls/#django.urls.path
 .. code-block:: python
 
     @app.route("articles/<int:year>/<int:month>/<slug:slug>/")
-    def article_detail(request):
+    def article_detail(request, year, month, slug):
         ...
+
+
+Routes with ``re_path()``
+-------------------------
+
+The ``@app.route(..)`` decorator can take ``re=True`` to specify that this is a regular
+expression path:
+
+.. code-block:: python
+
+    @app.route("authors/(?P<slug>[a-z]{3,})/", re=True)
+    def author_detail(request, slug):
+        ...
+
+
+Including other urlconfs
+------------------------
+
+Call ``app_route(..)`` directly with ``include=urlconf`` to include another urlconf in
+your urls:
+
+.. code-block:: python
+
+    # Add a django-ninja API
+    from ninja import NinjaAPI
+    api = NinjaAPI()
+    app.route("api/", api.urls)
+
+    # Add a django-fastview viewgroup
+    from fastview.viewgroups.auth import AuthViewGroup
+    app.route("accounts/", AuthViewGroup().include())
 
 
 Return values

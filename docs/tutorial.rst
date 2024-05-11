@@ -55,7 +55,8 @@ From there we can do anything we would in a normal Django view - eg add more dec
 process the request, use Django forms. We then either return a standard Django
 ``HttpResponse``, or nanodjango also lets you return a plain string for convenience.
 
-For full details on the ``@app.route`` decorator, see :doc:`views`.
+For full details on ``app.route``, including how to specify regular expression paths and
+include other urlconfs, see :doc:`views`.
 
 
 Create a model

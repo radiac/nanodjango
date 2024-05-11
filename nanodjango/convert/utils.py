@@ -44,10 +44,15 @@ def obj_to_ast(obj_src: str) -> ast.AST:
     return obj_ast
 
 
-def collect_references(node: ast.AST):
+def collect_references(node: ast.AST) -> set[str]:
     visitor = ReferenceVisitor()
     visitor.visit(node)
     return visitor.globals_ref
+
+
+def get_decorators(obj_ast: ast.AST) -> list[ast.AST]:
+    all_decorators = getattr(obj_ast, "decorator_list", [])
+    return all_decorators
 
 
 def parse_admin_decorator(obj_ast: ast.AST) -> dict[str, Any]:
@@ -136,3 +141,16 @@ def decorated():
 applied_ensure_http_response = cast(
     ast.FunctionDef, obj_to_ast(inspect.getsource(decorated))
 ).decorator_list[0]
+
+
+# Generate a line for an url_patterns
+def make_url(pattern, view_fn, re=False, include=None, **url_config):
+    # TODO: We should probably escape self.pattern, but it's an extreme edge case
+    # that doesn't seem worth the effort at the moment. Contributions welcome.
+    if re:
+        path_fn = "re_path"
+        r = "r"
+    else:
+        path_fn = "path"
+        r = ""
+    return f'    {path_fn}({r}"{pattern}", {view_fn}),'

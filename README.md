@@ -8,7 +8,12 @@
 Write a Django site in a single file, using views, models and admin, then automatically
 convert it to a full Django project when you're ready for it to grow.
 
-Perfect for experiments, prototypes, tutorials, and small applications.
+An alternative to Flask (see example below) and FastAPI (see our django-ninja example) -
+similar simple syntax, but with full access to Django's features such as the ORM, auth
+and admin site.
+
+Perfect for experiments, prototypes, sharing working code samples, and deploying small
+production applications.
 
 
 ## Quickstart
@@ -83,3 +88,5 @@ For more details, see
 * [Tutorial](https://nanodjango.readthedocs.io/en/latest/tutorial.html)
 * [Full Documentation](https://nanodjango.readthedocs.io/en/latest/index.html)
 * [Changelog](https://nanodjango.readthedocs.io/en/latest/changelog.html)
+* [Examples](https://github.com/radiac/nanodjango/tree/main/examples) including how to
+  use nanodjango with Django Ninja

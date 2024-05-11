@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import ast
 import inspect
-from typing import Callable, cast
+from typing import Any, Callable, cast
 
 from django.http import HttpResponse
 
 from .utils import (
     applied_ensure_http_response,
     collect_references,
+    get_decorators,
     is_admin_decorator,
     is_view_decorator,
+    make_url,
     obj_to_ast,
     parse_admin_decorator,
 )
@@ -29,13 +31,13 @@ class ConverterObject:
         Remove certain decorators from the object, update self.src and self.ast, and
         return a list of removed decorators.
         """
-        all_decorators = getattr(self.ast, "decorator_list", [])
-        filtered_decorators = []
+        all_decorators = get_decorators(self.ast)
         if not all_decorators:
             return []
 
         self.ast = cast(ast.FunctionDef | ast.ClassDef, self.ast)
         self.ast.decorator_list = []
+        filtered_decorators = []
         for decorator in all_decorators:
             if filter_fn(decorator):
                 filtered_decorators.append(decorator)
@@ -51,10 +53,12 @@ class ConverterObject:
 
 class AppView(ConverterObject):
     pattern: str
+    url_config: dict[str, Any]
 
-    def __init__(self, pattern, obj):
+    def __init__(self, obj: Callable, pattern: str, url_config: dict[str, Any]):
         super().__init__(obj.__name__, obj)
         self.pattern = pattern
+        self.url_config = url_config
 
         # Clear all route decorators
         self.remove_decorators(is_view_decorator)
@@ -86,12 +90,11 @@ class AppView(ConverterObject):
         self.src = ast.unparse(self.ast)
 
     def make_url(self) -> str:
-        # TODO: We should probably escape self.pattern, but it's an extreme edge case
-        # that doesn't seem worth the effort at the moment. Contributions welcome.
         view_fn = f"views.{self.name}"
         if inspect.isclass(self.obj):
             view_fn = f"{view_fn}.as_view()"
-        return f'    path("{self.pattern}", {view_fn}),'
+
+        return make_url(self.pattern, view_fn, **self.url_config)
 
 
 class AppModel(ConverterObject):

@@ -8,8 +8,8 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable
 
 from django import setup
+from django import urls as django_urls
 from django.contrib import admin
-from django.urls import path as url_path
 from django.views import View
 
 from . import app_meta
@@ -38,9 +38,12 @@ class Django:
     #: Path of app script
     app_path: Path
 
-    # Caches to aid ``convert``
+    # Settings cache to aid ``convert``
     _settings: dict[str, Any] = {}
-    _routes: dict[str, Callable] = {}
+
+    # URL cache to aid ``convert``
+    # {pattern:
+    _routes: dict[str, tuple(Callable | None, dict[str, Any])] = {}
 
     def __new__(cls, *args, **kwargs):
         instance = super().__new__(cls)
@@ -102,9 +105,11 @@ class Django:
                 raise ConfigurationError(
                     "settings.ADMIN_URL must be a string path ending in /"
                 )
-            urlpatterns.append(url_path(admin_url.removeprefix("/"), admin.site.urls))
+            urlpatterns.append(
+                django_urls.path(admin_url.removeprefix("/"), admin.site.urls)
+            )
 
-    def route(self, pattern: str):
+    def route(self, pattern: str, *, re=False, include=None):
         """
         Decorator to add a view to the urls
 
@@ -113,9 +118,25 @@ class Django:
 
         Usage::
 
+            # No parameters
             @app.route("/")
             def view(request):
                 return "Hello"
+
+            # path() parameters
+            @app.route("/<int:pk>/")
+            def view(request, pk):
+                return f"Hello {pk}"
+
+            # re_path() parameters
+            @app.route("/(?P<slug>[a-z]/", re=True)
+            def view(request, char):
+                return f"Hello {char}"
+
+            # Include another urlconf
+            # Note this is called as a function, not a decorator
+            # If this is a list not an include()
+            app.route("/api/", include=api.urls)
 
         All paths are relative to the root URL, leading slashes will be ignored.
         """
@@ -123,18 +144,39 @@ class Django:
         # Django does not use these, so strip them out.
         pattern = pattern.removeprefix("/")
 
+        # Find if it's a path() or re_path()
+        path_fn = django_urls.re_path if re else django_urls.path
+
+        if include is not None:
+            # Being called directly with an include
+            urlpatterns.append(path_fn(pattern, include))
+
+            # If we're converting, we're going to need the source
+            caller = inspect.currentframe().f_back  # type: ignore
+            source = inspect.getframeinfo(caller).code_context[0]  # type: ignore
+            self._routes[pattern] = (
+                None,
+                {"re": re, "include": True, "source": source},
+            )
+
+            # Make sure this isn't being used as a decorator, that wouldn't make sense
+            def invalid(fn):
+                raise UsageError(
+                    "app.route(path, include=urlconf) cannot be used as a decorator"
+                )
+
+            return invalid
+
         def wrapped(fn):
             # Store route for convert lookup
-            self._routes[pattern] = fn
+            self._routes[pattern] = (fn, {"re": re, "include": False})
 
             # Prepare CBVs
             if inspect.isclass(fn) and issubclass(fn, View):
                 fn = fn.as_view()
 
             # Register URL
-            urlpatterns.append(
-                url_path(pattern, string_view(fn), name=fn.__name__)
-            )
+            urlpatterns.append(path_fn(pattern, string_view(fn), name=fn.__name__))
             return fn
 
         return wrapped
@@ -206,7 +248,7 @@ class Django:
         path.mkdir()
 
         converter = Converter(app=self, path=path, name=name)
-        converter.write()
+        converter.build()
 
     def __call__(self, *args, **kwargs):
         from django.core.wsgi import get_wsgi_application

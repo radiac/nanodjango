@@ -9,7 +9,10 @@ class ReferenceVisitor(ast.NodeVisitor):
     objects outside its scope
     """
 
-    # This is likely incomplete. Contributions welcome.
+    # This class is likely incomplete. Contributions welcome.
+
+    #: Set of global names referenced
+    globals_ref: set[str]
 
     def __init__(self):
         self.locals_stack = [set()]

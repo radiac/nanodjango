@@ -4,7 +4,8 @@ nanodjango - Django models, views and admin in a single file
 A example project which we want to scale using ``convert``
 
 This is the project used to test that convert works as intended, so aims to use all
-supported convertible features.
+supported convertible features. As a result this is a good example of when a project
+should be converted.
 
 Usage::
 
@@ -20,6 +21,7 @@ import os
 
 from django.db import models
 from django.http import HttpResponseRedirect
+from django.urls import include
 from django.views.generic import ListView
 
 from nanodjango import Django
@@ -33,7 +35,7 @@ app = Django(
     SECRET_KEY=os.environ.get("SECRET_KEY", "unset"),
     SQLITE_DATABASE="scale.sqlite3",
     MIGRATIONS_DIR="scale_migrations",
-    EXTRA_APPS=["django.contrib.humanize"],
+    EXTRA_APPS=["django.contrib.sites", "django.contrib.flatpages"],
 )
 
 
@@ -79,6 +81,9 @@ def redirect(request) -> HttpResponseRedirect:
 class Counts(ListView):
     model = CountLog
 
+
+# Contrived test of regex url and include
+app.route(r"^flatpages-\d+/", re=True, include=include("django.contrib.flatpages.urls"))
 
 # Some unused definitions
 CONSTANT = 1

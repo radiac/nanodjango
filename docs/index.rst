@@ -18,5 +18,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     admin
     management
     convert
+    convert_plugin
+    troubleshooting
     contributing
     changelog

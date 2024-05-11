@@ -56,20 +56,21 @@ For example::
 How it works
 ============
 
-At a high level, nanodjango will:
+At a high level, ``nanodjango convert``:
 
-#. Run ``django-admin startproject`` to create a base project template
-#. Create an app within that project, using the name of your app script
-#. Copy across any templates, static files and migrations, and your sqlite database if
+#. runs ``django-admin startproject`` to create a base project template
+#. creates an app within that project, using the name of your app script
+#. copies across any templates, static files and migrations, and your sqlite database if
    you have one
-#. Extract your models and any objects they reference, and move them into ``models.py``
-   in the app
-#. Extract your ``@app.route`` decorated views and move them into ``views.py``
-#. Use your routes to build ``urls.py``
-#. Create an ``admin.py`` with your ``ModelAdmin`` definitions, if necessary
-#. Any code which hasn't been referenced and used in the above files will be put in
+#. extracts your models and any objects they reference, and moves them into
+   ``models.py`` in the app
+#. extracts your ``@app.route`` decorated views and moves them into ``views.py``
+#. uses your routes to build ``urls.py``
+#. creates an ``admin.py`` with your ``ModelAdmin`` definitions, if necessary
+#. collects any code which hasn't been used in the above files, and puts it in
    ``unused.py``. This code will not be used, it is for you to manually integrate into
    your new code structure.
+
 
 Edge cases
 ==========
@@ -97,6 +98,9 @@ eg::
     @app.route("/author/")
     def redirect(request) -> HttpResponseRedirect:
         return HttpResponseRedirect("https://radiac.net/")
+
+If you prefer, you can always remove the ``ensure_http_response`` decorator and code
+manually after conversion.
 
 
 Admin site

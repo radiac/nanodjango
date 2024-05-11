@@ -2,6 +2,26 @@
 Changelog
 =========
 
+0.5.0 - ???
+-----------
+
+Feature:
+
+* Support regular expression paths and path includes
+* Add plugin system to the converter for third-party extensions
+* Add django-ninja converter plugin for ``NinjaAPI`` and example
+* Add docs for writing converter plugins
+
+Internal:
+
+* Remove redundant cleaning of leading slash in paths
+* Improved gitignore
+
+Thanks to:
+
+* Eric Matthes (ehmatthes) for removing the redundant cleaning of the leading slash,
+  improving the gitignore, and rewriting the contributor docs
+
 
 0.4.0 - 2024-04-21
 ------------------
