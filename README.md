@@ -34,7 +34,7 @@ are:
 from django.db import models
 from nanodjango import Django
 
-app = Django(ADMIN_URL="admin/")
+app = Django()
 
 @app.admin
 class CountLog(models.Model):

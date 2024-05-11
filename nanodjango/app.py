@@ -62,6 +62,7 @@ class Django:
             app = Django()
             app = Django(SECRET_KEY="some-secret", ALLOWED_HOSTS=["my.example.com"])
         """
+        self.has_admin = False
         self._config(_settings)
 
     def _config(self, _settings):
@@ -100,7 +101,9 @@ class Django:
         * register the admin site
         """
         admin_url = self.settings.ADMIN_URL
-        if admin_url:
+        if admin_url or self.has_admin:
+            if admin_url is None:
+                admin_url = "admin/"
             if not isinstance(admin_url, str) or not admin_url.endswith("/"):
                 raise ConfigurationError(
                     "settings.ADMIN_URL must be a string path ending in /"
@@ -181,20 +184,13 @@ class Django:
 
         return wrapped
 
-    @property
-    def has_admin(self):
-        return isinstance(self.settings.ADMIN_URL, str)
-
     def admin(self, model: type[Model] | None = None, **options):
         """
         Decorator to add a model to the admin site
 
         The admin site must be added using ``settings.ADMIN_URL``.
         """
-        if not self.has_admin:
-            raise ConfigurationError(
-                "Cannot register ModelAdmin - settings.ADMIN_URL is not set"
-            )
+        self.has_admin = True
 
         def wrap(model: type[Model]):
             admin.site.register(model, **options)

@@ -38,9 +38,9 @@ Distributing the plugin
 If you are distributing the plugin yourself, you can have nanodjango detect it
 automatically by adding an entry point for it.
 
-If your project is called ``myproject``, put the plugin in a file in your project (it
-recommended name is ``nanodjango.py``, but could be anything), then specify its dot path
-in the entry point.
+If your project is called ``myproject``, put the plugin in a file in your project (the
+recommended name is ``nanodjango.py``, but it could be anything), then specify its
+module dot path in the entry point.
 
 
 setup.py::
@@ -108,14 +108,16 @@ know that it references ``api``, which in turns references ``NinjaAPI``, and the
 go into ``urls.py`` where they're needed for the url path.
 
 However, the converter won't be sure what to do with the ``@api.get(..)`` decorator,
-because that's not required by the route definition. That will end up in ``unused.py``
-in our new app, but we want it all in ``api.py``, as is Django Ninja convention.
+because that's not required by the route definition, so that will end up in
+``unused.py`` in our new app.
 
+However, we want all ninja-related code in ``api.py``, as is Django Ninja convention.
 For that we need to write a plugin.
 
 Lets create a new plugin file, ``django_ninja.py``, and subclass the
-``ConverterPlugin``. Building our ``api.py`` after we've built ``models.py`` seems like
-a sensible time, so we'll use the ``build_app_models_done`` hook::
+``ConverterPlugin``. We may need models but are unlikely to need views, so we'll build
+our ``api.py`` right after we've built ``models.py`` using the ``build_app_models_done``
+hook::
 
     class NinjaConverter(ConverterPlugin):
         def build_app_models_done(self, converter: Converter):
@@ -229,7 +231,7 @@ Using ``pp_ast`` again, the AST object for a decorated function will look like t
 You will notice it's an ``ast.FunctionDef``, and that it has a ``decorator_list`` which
 mentions ``api``, one of the ``NinjaAPI`` instances we found previously. That should be
 enough to add to our loop. Lets also use the ``get_decorators`` helper from
-``nanodjango.convert.utils``:
+``nanodjango.convert.utils``::
 
     from nanodjango.convert.utils import get_decorators
     ...
@@ -265,7 +267,6 @@ Write the file
 ~~~~~~~~~~~~~~
 
 Now we've collected all the necessary references and source, we can generate our file::
-
 
         def build_app_models_done(self, converter: Converter):
             ...

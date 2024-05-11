@@ -15,7 +15,7 @@ from django.db import models
 from nanodjango import Django
 
 
-app = Django(ADMIN_URL="admin/")
+app = Django()
 
 
 @app.admin(list_display=["id", "timestamp"], readonly_fields=["timestamp"])

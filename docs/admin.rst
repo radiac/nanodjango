@@ -5,14 +5,14 @@ Admin
 Enable the admin site
 =====================
 
-In nanodjango the admin site is opt-in. To enable it, provide an ``ADMIN_URL`` in
-your settings with the path to serve the admin site::
+In nanodjango the admin site will only be enabled if you decorate one or more models
+with ``@app.admin``, or provide an ``ADMIN_URL`` in your settings::
 
     app = Django(ADMIN_URL="admin/")
 
 Note that ``nanodjango convert`` builds on top of the standard ``django-admin
 startproject`` template, so the admin site will always be enabled after conversion,
-using ``"admin/"`` if ``ADMIN_URL`` was not set.
+using ``"admin/"`` if no models are decorated or if ``ADMIN_URL`` was not set.
 
 
 Set up the database

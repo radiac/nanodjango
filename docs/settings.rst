@@ -19,8 +19,8 @@ In addition to the standard Django settings, nanodjango provides some special se
 to configure itself and to simplify configuring Django:
 
 ``ADMIN_URL``
-  The URL to serve the admin site from. If not set, the admin site will **not** be
-  served.
+  The URL to serve the admin site from. If not set, the admin site will only be served
+  if there are models registered with ``@app.admin``.
 
 ``EXTRA_APPS``
   List of apps to be appended to the standard ``INSTALLED_APPS`` setting.

@@ -12,6 +12,11 @@ Feature:
 * Add django-ninja converter plugin for ``NinjaAPI`` and example
 * Add docs for writing converter plugins
 
+Changes:
+
+* ``ADMIN_URL`` is now optional - the admin site will be enabled if there are any admin
+  decorators present
+
 Internal:
 
 * Remove redundant cleaning of leading slash in paths

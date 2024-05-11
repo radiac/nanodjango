@@ -14,21 +14,19 @@ First we import ``nanodjango`` and create a ``Django`` instance:
 
     from nanodjango import Django
 
-    app = Django(ADMIN_URL="admin/")
+    app = Django()
 
 The ``Django`` instance, along with the ``nanodjango`` command, performs the magic
 needed to make everything work in one file.
 
-We can pass any Django settings into the constructor as named keywords. Above we pass a
-special nanodjango setting ``ADMIN_URL``, which tells nanodjango where to serve the
-admin site.
-
-We could also configure other aspects of Django, for example:
+We can pass Django settings into the constructor as named keywords. We don't do it above
+as nanodjango has sensible defaults, but you can pass in any standard Django setting,
+plus some extra ones that nanodjango uses, like ``ADMIN_URL``:
 
 .. code-block:: python
 
     app = Django(
-        ADMIN_URL="admin/",
+        ADMIN_URL="secret_admin/",
         SECRET_KEY=os.environ["DJANGO_SECRET_KEY"],
         ALLOWED_HOSTS=["localhost", "my.example.com"],
         DEBUG=False,
@@ -69,7 +67,7 @@ file, and they must be defined after ``app = Django()``:
 
     from django.db import models
 
-    app = Django(ADMIN_URL="admin/")
+    app = Django()
 
     class CountLog(models.Model):
         timestamp = models.DateTimeField(auto_now_add=True)
@@ -129,16 +127,12 @@ A more complicated example could look like this:
 Use the admin site
 ==================
 
-First enable the admin site by providing an ``ADMIN_URL`` setting, then decorate your
-models with the ``app.admin`` decorator:
-
-.. code-block:: python
-
-    app = Django(ADMIN_URL="admin/")
+To add a model to the admin site, decorate your models with the ``app.admin`` decorator:
 
     @app.admin
     class CountLog(models.Model):
         ...
+
 
 This decorator also lets you configure your ``ModelAdmin`` by passing class attributes:
 
@@ -150,6 +144,15 @@ This decorator also lets you configure your ``ModelAdmin`` by passing class attr
     )
     class CountLog(models.Model):
         ...
+
+
+Using the decorator anywhere in your script will automatically enable the admin site.
+You can customise the url with ``ADMIN_SITE``, or use the setting to force the admin
+site to be active even if you're not using the decorator anywhere.::
+
+.. code-block:: python
+
+    app = Django(ADMIN_URL="admin/")
 
 
 Deploy to production
