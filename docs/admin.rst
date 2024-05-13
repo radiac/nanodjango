@@ -20,8 +20,8 @@ Set up the database
 
 You will need to ``migrate`` before use, and you will want to add a superuser::
 
-    nanodjango myapp.py run migrate
-    nanodjango myapp.py run createsuperuser
+    nanodjango run myapp.py migrate
+    nanodjango run myapp.py createsuperuser
 
 
 

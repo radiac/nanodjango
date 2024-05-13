@@ -49,10 +49,10 @@ def count(request):
 Save that as ``counter.py``, then set up your database and run it locally with:
 
 ```sh
-nanodjango counter.py run makemigrations counter
-nanodjango counter.py run migrate
-nanodjango counter.py run createsuperuser
-nanodjango counter.py run
+nanodjango run counter.py makemigrations counter
+nanodjango run counter.py migrate
+nanodjango run counter.py createsuperuser
+nanodjango run counter.py
 ```
 
 It will create your database in a ``db.sqlite3`` file next to your ``counter.py``, with

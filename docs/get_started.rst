@@ -38,10 +38,10 @@ Now create the migrations, apply them, and run your project:
 
 .. code-block:: bash
 
-    nanodjango counter.py run makemigrations counter
-    nanodjango counter.py run migrate
-    nanodjango counter.py run createsuperuser
-    nanodjango counter.py run
+    nanodjango run counter.py makemigrations counter
+    nanodjango run counter.py migrate
+    nanodjango run counter.py createsuperuser
+    nanodjango run counter.py
 
 Run it in production using WSGI:
 

@@ -14,6 +14,11 @@ Feature:
 
 Changes:
 
+* Command line argument order has changed from ``<script> <cmd>`` to ``<cmd> <script>``
+* Script can now be specified as a module, eg ``foo`` instead of ``foo.py``
+* Django instance no longer needs to be ``app`` - its name can be specified as
+  ``<script>:<name>`` (eg ``counter:myapp`` or ``counter.py:myapp``), or can be
+  auto-detected.
 * ``ADMIN_URL`` is now optional - the admin site will be enabled if there are any admin
   decorators present
 
@@ -25,7 +30,8 @@ Internal:
 Thanks to:
 
 * Eric Matthes (ehmatthes) for removing the redundant cleaning of the leading slash,
-  improving the gitignore, and rewriting the contributor docs
+  improving the gitignore (#2), and rewriting the contributor docs (#3)
+* Chris Beaven (SmileyChris) for suggesting the command line changes (#5)
 
 
 0.4.0 - 2024-04-21

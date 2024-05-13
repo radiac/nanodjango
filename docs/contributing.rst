@@ -20,7 +20,7 @@ Then run examples by adding your ``repo`` dir to the ``PYTHONPATH``, and call
 the repo module directly::
 
     cd examples
-    PYTHONPATH=.. python -m nanodjango counter.py run migrate
+    PYTHONPATH=.. python -m nanodjango run counter.py migrate
 
 
 Tests

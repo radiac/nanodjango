@@ -5,9 +5,9 @@ Counter example
 
 Usage::
 
-    nanodjango counter.py run migrate
-    nanodjango counter.py run createsuperuser
-    nanodjango counter.py run
+    nanodjango run counter.py migrate
+    nanodjango run counter.py createsuperuser
+    nanodjango run counter.py
 """
 
 from django.db import models

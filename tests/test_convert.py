@@ -11,9 +11,9 @@ TIMEOUT = 10
 
 
 def test_runserver__fbv_with_model(tmp_path):
-    cmd(TEST_SCRIPT, "run", "makemigrations", TEST_APP)
-    cmd(TEST_SCRIPT, "run", "migrate")
-    cmd(TEST_SCRIPT, "convert", str(tmp_path), "--name=converted", "--delete")
+    cmd("run", TEST_SCRIPT, "makemigrations", TEST_APP)
+    cmd("run", TEST_SCRIPT, "migrate")
+    cmd("convert", TEST_SCRIPT, str(tmp_path), "--name=converted", "--delete")
 
     with (
         converted_process(tmp_path, "runserver", TEST_BIND) as handle,

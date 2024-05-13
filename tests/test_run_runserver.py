@@ -11,11 +11,11 @@ TIMEOUT = 10
 
 
 def test_runserver__fbv_with_model():
-    cmd(TEST_SCRIPT, "run", "makemigrations", TEST_APP)
-    cmd(TEST_SCRIPT, "run", "migrate")
+    cmd("run", TEST_SCRIPT, "makemigrations", TEST_APP)
+    cmd("run", TEST_SCRIPT, "migrate")
 
     with (
-        nanodjango_process(TEST_SCRIPT, "run", "runserver", TEST_BIND) as handle,
+        nanodjango_process("run", TEST_SCRIPT, "runserver", TEST_BIND) as handle,
         runserver(handle),
     ):
         response = urllib.request.urlopen(TEST_HTTP, timeout=TIMEOUT)

@@ -3,7 +3,7 @@ nanodjango - Django models, views and admin in a single file
 
 A example app using django-ninja to provide an API
 
-    nanodjango ninja-api.py run
+    nanodjango run ninja-api.py
 
 See it working at http://localhost:8000/api/add?a=1&b=2
 """

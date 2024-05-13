@@ -321,7 +321,7 @@ class Converter:
                 isinstance(node, ast.Assign)
                 and any(
                     [
-                        target.id == "app"
+                        target.id == self.app._instance_name
                         for target in node.targets
                         if isinstance(target, ast.Name)
                     ]
@@ -430,17 +430,18 @@ class Converter:
         if db_file.exists():
             shutil.copy(db_file, self.root_path / "db.sqlite3")
 
+        # List of (source, dest)
         dir_names = [
-            "static",
-            "templates",
-            self.app._settings.get("MIGRATIONS_DIR", "migrations"),
+            ("static", "static"),
+            ("templates", "templates"),
+            (self.app._settings.get("MIGRATIONS_DIR", "migrations"), "migrations"),
         ]
-        for dir_name in dir_names:
-            src_dir = script_dir / dir_name
+        for source_name, dest_name in dir_names:
+            src_dir = script_dir / source_name
             if src_dir.exists() and src_dir.is_dir():
                 shutil.copytree(
                     src_dir,
-                    self.app_path / dir_name,
+                    self.app_path / dest_name,
                 )
 
         plugins.copy_assets(self)
@@ -665,7 +666,7 @@ class Converter:
         self.used.update(self.imports.keys())
 
         # Also going to ignore the app
-        self.used.add("app")
+        self.used.add(self.app._instance_name)
 
         unused = set(self.module.__dict__.keys()) - self.used
         all_src = []

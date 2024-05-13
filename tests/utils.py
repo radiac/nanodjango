@@ -13,16 +13,19 @@ import pytest
 TIMEOUT = 10  # seconds
 
 
-def cmd(script, *args, fail_ok=False):
+def cmd(script, *args, fail_ok=False, cwd=None, **kwargs):
     """
     Execute a command, and check it was ok (optional)
     """
+    if cwd is None:
+        cwd = Path(__file__).parent.parent
     cmd = [sys.executable, "-mnanodjango", script, *args]
     result = subprocess.run(
         cmd,
         capture_output=True,
         text=True,
-        cwd=Path(__file__).parent.parent,
+        cwd=cwd,
+        **kwargs,
     )
 
     if fail_ok:

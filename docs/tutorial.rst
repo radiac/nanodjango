@@ -77,8 +77,8 @@ We can now create migrations for the app and apply them:
 
 .. code-block:: bash
 
-    nanodjango counter.py run makemigrations counter
-    nanodjango counter.py run migrate
+    nanodjango run counter.py makemigrations counter
+    nanodjango run counter.py migrate
 
 For full details on how to use Django management commands with nanodjango, see
 :doc:`management`.

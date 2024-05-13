@@ -29,6 +29,9 @@ class Django:
     The main Django app
     """
 
+    # Class variable to ensure there can be only one
+    _instantiated = False
+
     #: Name of the app script
     app_name: str
 
@@ -38,14 +41,25 @@ class Django:
     #: Path of app script
     app_path: Path
 
+    #: Whether this app has defined an @app.admin
+    has_admin: bool = False
+
+    #: Variable name for this current app
+    _instance_name: str
+
     # Settings cache to aid ``convert``
-    _settings: dict[str, Any] = {}
+    _settings: dict[str, Any]
 
     # URL cache to aid ``convert``
     # {pattern:
-    _routes: dict[str, tuple(Callable | None, dict[str, Any])] = {}
+    _routes: dict[str, tuple[Callable | None, dict[str, Any]]]
 
     def __new__(cls, *args, **kwargs):
+        # Enforce only one Django() per script, otherwise everything will get confused
+        if cls._instantiated:
+            raise ConfigurationError("An app can only have one Django() instance")
+        cls._instantiated = True
+
         instance = super().__new__(cls)
 
         # Set app meta
@@ -63,6 +77,8 @@ class Django:
             app = Django(SECRET_KEY="some-secret", ALLOWED_HOSTS=["my.example.com"])
         """
         self.has_admin = False
+        self._settings = {}
+        self._routes = {}
         self._config(_settings)
 
     def _config(self, _settings):
@@ -203,7 +219,7 @@ class Django:
         # Called without arguments, @admin - call wrapped immediately
         return wrap(model)
 
-    def run(self, args: list[str] | None = None):
+    def run(self, args: list[str] | tuple[str] | None = None):
         """
         Run a Django management command, passing all arguments
 
@@ -215,7 +231,7 @@ class Django:
             # Hasn't been run through the ``nanodjango`` command
             if (
                 "__main__" not in sys.modules
-                or getattr(sys.modules["__main__"], "app") != self
+                or getattr(sys.modules["__main__"], self._instance_name) != self
             ):
                 # Doesn't look like it was run directly either
                 raise UsageError("App module not initialised")
