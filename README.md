@@ -49,14 +49,13 @@ def count(request):
 Save that as ``counter.py``, then set up your database and run it locally with:
 
 ```sh
-nanodjango run counter.py makemigrations counter
-nanodjango run counter.py migrate
-nanodjango run counter.py createsuperuser
-nanodjango run counter.py
+nanodjango start counter.py
 ```
 
 It will create your database in a ``db.sqlite3`` file next to your ``counter.py``, with
-the appropriate migrations in ``migrations/``.
+the appropriate migrations in ``migrations/``. Alternatively you could run each of these
+commands manually with the ``run`` command, eg
+``nanodjango run counter.py runserver 0:8000``
 
 Run it in production using WSGI:
 
@@ -67,7 +66,7 @@ gunicorn -w 4 counter:app
 or automatically convert it to a full Django project:
 
 ```sh
-nanodjango counter.py convert /path/to/project --name=myproject
+nanodjango convert counter.py /path/to/project --name=myproject
 ```
 
 and with a [couple of extra

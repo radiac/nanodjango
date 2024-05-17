@@ -68,7 +68,29 @@ def cli():
 @click.argument("app", type=str, required=True, callback=load_app)
 @click.argument("args", type=str, required=False, nargs=-1)
 def run(app: Django, args: tuple[str]):
+    """
+    Run a management command.
+
+    If no command is specified, it will run runserver 0:8000
+    """
     app.run(args)
+
+
+@cli.command()
+@click.argument("app", type=str, required=True, callback=load_app)
+@click.argument("host", type=str, required=False, default="")
+def start(app: Django, host: str):
+    """
+    Start the app on the specified IP and port
+
+    This will perform a series of setup commands:
+
+        makemigrations <app>
+        migrate
+        createsuperuser
+        runserver HOST
+    """
+    app.start(host)
 
 
 @cli.command()

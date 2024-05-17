@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, Any, Callable
 from django import setup
 from django import urls as django_urls
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.db.models import Model
 from django.views import View
 
 from . import app_meta
@@ -21,7 +23,12 @@ from .views import string_view
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from django.db.models import Model
+
+def exec_manage(*args):
+    from django.core.management import execute_from_command_line
+
+    args = ["nanodjango"] + list(args)
+    execute_from_command_line(args)
 
 
 class Django:
@@ -109,24 +116,6 @@ class Django:
 
         # Ready for Django's standard setup
         setup()
-
-    def _prepare(self):
-        """
-        Perform any final setup for this project after it has been imported:
-
-        * register the admin site
-        """
-        admin_url = self.settings.ADMIN_URL
-        if admin_url or self.has_admin:
-            if admin_url is None:
-                admin_url = "admin/"
-            if not isinstance(admin_url, str) or not admin_url.endswith("/"):
-                raise ConfigurationError(
-                    "settings.ADMIN_URL must be a string path ending in /"
-                )
-            urlpatterns.append(
-                django_urls.path(admin_url.removeprefix("/"), admin.site.urls)
-            )
 
     def route(self, pattern: str, *, re=False, include=None):
         """
@@ -219,13 +208,14 @@ class Django:
         # Called without arguments, @admin - call wrapped immediately
         return wrap(model)
 
-    def run(self, args: list[str] | tuple[str] | None = None):
+    def _prepare(self):
         """
-        Run a Django management command, passing all arguments
+        Perform any final setup for this project after it has been imported:
 
-        Defaults to:
-            runserver 0:8000
+        * detect if it has been run directly; if so, register it as an app
+        * register the admin site
         """
+
         # Check if this is being called from click commands or directly
         if self.app_name not in sys.modules:
             # Hasn't been run through the ``nanodjango`` command
@@ -239,18 +229,58 @@ class Django:
             # Run directly, so register app module so Django won't try to load it again
             sys.modules[self.app_name] = sys.modules["__main__"]
 
+        # Register the admin site
+        admin_url = self.settings.ADMIN_URL
+        if admin_url or self.has_admin:
+            if admin_url is None:
+                admin_url = "admin/"
+            if not isinstance(admin_url, str) or not admin_url.endswith("/"):
+                raise ConfigurationError(
+                    "settings.ADMIN_URL must be a string path ending in /"
+                )
+            urlpatterns.append(
+                django_urls.path(admin_url.removeprefix("/"), admin.site.urls)
+            )
+
+    def run(self, args: list[str] | tuple[str] | None = None):
+        """
+        Run a Django management command, passing all arguments
+
+        Defaults to:
+            runserver 0:8000
+        """
         # Be helpful and check sys.argv for args. This will almost certainly be because
         # it's running directly.
         if args is None:
             args = sys.argv[1:]
 
         self._prepare()
-        from django.core.management import execute_from_command_line
+        if args:
+            exec_manage(*args)
+        else:
+            exec_manage("runserver", "0:8000")
 
-        if not args:
-            args = ["runserver", "0:8000"]
-        args = ["nanodjango"] + list(args)
-        execute_from_command_line(args)
+    def start(self, host: str | None = None):
+        """
+        Perform app setup commands and run the server
+        """
+        # Be helpful and check sys.argv for the host
+        if host is None:
+            print(sys.argv)
+            if len(sys.argv) > 2:
+                raise UsageError("Usage: start [HOST]")
+            elif len(sys.argv) == 2:
+                host = sys.argv[1]
+        if not host:
+            host = "0:8000"
+
+        self._prepare()
+        exec_manage("makemigrations", self.app_name)
+        exec_manage("migrate")
+        User = get_user_model()
+        if User.objects.count() == 0:
+            exec_manage("createsuperuser")
+        exec_manage("runserver", host)
 
     def convert(self, path: Path, name: str):
         from .convert import Converter

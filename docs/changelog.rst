@@ -2,6 +2,19 @@
 Changelog
 =========
 
+0.6.0 - 2024-05-17
+------------------
+
+Feature:
+
+* Add ``start`` command to create and initialise the database
+
+Thanks to:
+
+* Chris Beaven (SmileyChris) for suggesting a lower effort start (#4)
+* Lincoln Loop for supporting this release
+
+
 0.5.0 - 2024-05-14
 ------------------
 

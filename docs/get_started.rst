@@ -34,10 +34,16 @@ Create a new file, ``counter.py`` with the following:
         CountLog.objects.create()
         return f"<p>Number of page loads: {CountLog.objects.count()}</p>"
 
-Now create the migrations, apply them, and run your project:
+Now use the ``start`` command to create the migrations, apply them, and run your
+project:
 
 .. code-block:: bash
 
+    nanodjango start counter.py
+
+or you could run each step manually:
+
+.. code-block:: bash
     nanodjango run counter.py makemigrations counter
     nanodjango run counter.py migrate
     nanodjango run counter.py createsuperuser
