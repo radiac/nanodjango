@@ -29,7 +29,7 @@ from nanodjango import Django
 
 domain = "scale.example.com"
 
-app = Django(
+django = Django(
     ADMIN_URL="secret-admin/",
     ALLOWED_HOSTS=["localhost", "127.0.0.1", domain],
     SECRET_KEY=os.environ.get("SECRET_KEY", "unset"),
@@ -43,7 +43,7 @@ class CountLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
-@app.admin
+@django.admin
 class Author(models.Model):
     name = models.CharField(max_length=100)
     birth_date = models.DateField(blank=True, null=True)
@@ -58,32 +58,36 @@ BOOK_GENRES = (
 )
 
 
-@app.admin(list_display=["name"], readonly_fields=["id"])
+@django.admin(list_display=["name"], readonly_fields=["id"])
 class Book(models.Model):
     name = models.CharField(max_length=100)
     authors = models.ManyToManyField(Author)
     genre = models.CharField(max_length=100, choices=BOOK_GENRES)
 
 
-@app.route("/")
+@django.route("/")
 def count(request):
     CountLog.objects.create()
 
     return f"<p>Number of page loads: {CountLog.objects.count()}</p>"
 
 
-@app.route("/author/")
+@django.route("/author/")
 def redirect(request) -> HttpResponseRedirect:
     return HttpResponseRedirect("https://radiac.net/")
 
 
-@app.route("/counts/")
+@django.route("/counts/")
 class Counts(ListView):
     model = CountLog
 
 
 # Contrived test of regex url and include
-app.route(r"^flatpages-\d+/", re=True, include=include("django.contrib.flatpages.urls"))
+django.route(
+    r"^flatpages-\d+/",
+    re=True,
+    include=include("django.contrib.flatpages.urls"),
+)
 
 # Some unused definitions
 CONSTANT = 1
@@ -94,4 +98,4 @@ def something(name):
 
 
 if __name__ == "__main__":
-    app.run()
+    django.run()

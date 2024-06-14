@@ -55,7 +55,7 @@ def get_decorators(obj_ast: ast.AST) -> list[ast.AST]:
     return all_decorators
 
 
-def parse_admin_decorator(obj_ast: ast.AST) -> dict[str, Any]:
+def parse_admin_decorator(obj_ast: ast.AST, app_name: str) -> dict[str, Any]:
     keywords: dict[str, Any] = {}
     if isinstance(obj_ast, ast.Call):
         keywords = {}
@@ -63,7 +63,7 @@ def parse_admin_decorator(obj_ast: ast.AST) -> dict[str, Any]:
         for keyword in obj_ast.keywords:
             if not isinstance(keyword.arg, str):
                 raise ValueError(
-                    f"Unrecognised @app.admin argument: {ast.unparse(keyword)}"
+                    f"Unrecognised @{app_name}.admin argument: {ast.unparse(keyword)}"
                 )
             keywords[keyword.arg] = ast.unparse(keyword.value)
         obj_ast = obj_ast.func
@@ -71,36 +71,38 @@ def parse_admin_decorator(obj_ast: ast.AST) -> dict[str, Any]:
     if (
         isinstance(obj_ast, ast.Attribute)
         and isinstance(obj_ast.value, ast.Name)
-        and obj_ast.value.id == "app"
+        and obj_ast.value.id == app_name
         and obj_ast.attr == "admin"
     ):
         return keywords
 
-    raise ValueError(f"Unrecognised @app.admin definition: {ast.unparse(obj_ast)}")
+    raise ValueError(
+        f"Unrecognised @{app_name}.admin definition: {ast.unparse(obj_ast)}"
+    )
 
 
-def is_admin_decorator(obj_ast: ast.AST) -> bool:
+def is_admin_decorator(obj_ast: ast.AST, app_name: str) -> bool:
     if isinstance(obj_ast, ast.Call):
         obj_ast = obj_ast.func
 
     if (
         isinstance(obj_ast, ast.Attribute)
         and isinstance(obj_ast.value, ast.Name)
-        and obj_ast.value.id == "app"
+        and obj_ast.value.id == app_name
         and obj_ast.attr == "admin"
     ):
         return True
     return False
 
 
-def is_view_decorator(obj_ast: ast.AST) -> bool:
+def is_view_decorator(obj_ast: ast.AST, app_name: str) -> bool:
     if not isinstance(obj_ast, ast.Call):
         return False
 
     if (
         isinstance(obj_ast.func, ast.Attribute)
         and isinstance(obj_ast.func.value, ast.Name)
-        and obj_ast.func.value.id == "app"
+        and obj_ast.func.value.id == app_name
         and obj_ast.func.attr == "route"
     ):
         return True

@@ -2,6 +2,15 @@
 Changelog
 =========
 
+0.6.1 - 2024-06-14
+------------------
+
+Bugfix:
+
+* Fix remaining hard-coded references to ``app`` in user source, update ``scale.py`` to
+  use ``django`` instead of ``app`` to test. (#8)
+
+
 0.6.0 - 2024-05-17
 ------------------
 

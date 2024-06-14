@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import inspect
 import os
 import sys
@@ -159,9 +160,21 @@ class Django:
             # Being called directly with an include
             urlpatterns.append(path_fn(pattern, include))
 
-            # If we're converting, we're going to need the source
-            caller = inspect.currentframe().f_back  # type: ignore
-            source = inspect.getframeinfo(caller).code_context[0]  # type: ignore
+            # If we're converting, we're going to need the source AST node
+            # Get the full source code, then fine the expression by line number
+            caller_frame = inspect.currentframe().f_back
+            caller_lineno = caller_frame.f_lineno
+            caller_source_lines, _ = inspect.findsource(caller_frame)
+            caller_source = "".join(caller_source_lines)
+            caller_ast = ast.parse(caller_source)
+
+            # Find the node corresponding to the line that called the function
+            source = None
+            for node in ast.walk(caller_ast):
+                if isinstance(node, ast.Expr) and node.lineno == caller_lineno:
+                    source = node
+                    break
+
             self._routes[pattern] = (
                 None,
                 {"re": re, "include": True, "source": source},

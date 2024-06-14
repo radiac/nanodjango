@@ -460,7 +460,7 @@ class Converter:
 
         for name, obj in self.module.__dict__.items():
             if inspect.isclass(obj) and issubclass(obj, Model):
-                app_model = AppModel(name, obj)
+                app_model = AppModel(self, name, obj)
                 self.models.append(app_model)
                 resolver.add(name, app_model.references)
 
@@ -492,7 +492,7 @@ class Converter:
             if view is None:
                 # An include
                 continue
-            app_view = AppView(view, pattern, url_config)
+            app_view = AppView(self, view, pattern, url_config)
             self.views.append(app_view)
             resolver.add(view.__name__, app_view.references)
 
@@ -529,11 +529,10 @@ class Converter:
             else:
                 # path(pattern, include)
                 # Extract the ``include`` reference
-                route_ast = ast.parse(url_config["source"])
+                route_ast = url_config["source"]
                 if (
-                    (body := route_ast.body[0])
-                    and isinstance(body, ast.Expr)
-                    and (call := getattr(body, "value"))
+                    isinstance(route_ast, ast.Expr)
+                    and (call := getattr(route_ast, "value"))
                     and isinstance(call, ast.Call)
                     and call.keywords
                     and (

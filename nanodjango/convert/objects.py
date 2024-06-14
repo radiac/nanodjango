@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import ast
 import inspect
-from typing import Any, Callable, cast
+from typing import TYPE_CHECKING, Any, Callable, cast
 
 from django.http import HttpResponse
 
@@ -18,8 +18,13 @@ from .utils import (
 )
 
 
+if TYPE_CHECKING:
+    from .converter import Converter
+
+
 class ConverterObject:
-    def __init__(self, name: str, obj):
+    def __init__(self, converter: Converter, name: str, obj):
+        self.converter = converter
         self.name = name
         self.obj = obj
         self.src = self.src_orig = inspect.getsource(obj)
@@ -39,7 +44,7 @@ class ConverterObject:
         self.ast.decorator_list = []
         filtered_decorators = []
         for decorator in all_decorators:
-            if filter_fn(decorator):
+            if filter_fn(decorator, app_name=self.converter.app._instance_name):
                 filtered_decorators.append(decorator)
             else:
                 self.ast.decorator_list.append(decorator)
@@ -55,8 +60,14 @@ class AppView(ConverterObject):
     pattern: str
     url_config: dict[str, Any]
 
-    def __init__(self, obj: Callable, pattern: str, url_config: dict[str, Any]):
-        super().__init__(obj.__name__, obj)
+    def __init__(
+        self,
+        converter: Converter,
+        obj: Callable,
+        pattern: str,
+        url_config: dict[str, Any],
+    ):
+        super().__init__(converter, obj.__name__, obj)
         self.pattern = pattern
         self.url_config = url_config
 
@@ -100,8 +111,8 @@ class AppView(ConverterObject):
 class AppModel(ConverterObject):
     admin_decorator: ast.AST | None
 
-    def __init__(self, name, obj):
-        super().__init__(name, obj)
+    def __init__(self, converter: Converter, name, obj):
+        super().__init__(converter, name, obj)
 
         # Find any admin decorator
         admin_decorators = self.remove_decorators(is_admin_decorator)
@@ -118,7 +129,10 @@ class AppModel(ConverterObject):
 
     def make_model_admin(self) -> str:
         if not self.admin_decorator or not (
-            options := parse_admin_decorator(self.admin_decorator)
+            options := parse_admin_decorator(
+                self.admin_decorator,
+                app_name=self.converter.app._instance_name,
+            )
         ):
             return f"admin.site.register({self.name})"
 
