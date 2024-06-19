@@ -31,13 +31,13 @@ Create a new file, ``counter.py`` with the following:
 
     @app.route("/")
     def count(request):
-        """Standard Django function view"""
+        # Standard Django function view
         CountLog.objects.create()
         return f"<p>Number of requests: {CountLog.objects.count()}</p>"
 
     @app.api.get("/add")
     def count(request):
-        """Django Ninja API"""
+        # Django Ninja API
         CountLog.objects.create()
         return {"count": CountLog.objects.count()}
 

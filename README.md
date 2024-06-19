@@ -8,9 +8,9 @@
 Write a Django site in a single file, using views, models and admin, then automatically
 convert it to a full Django project when you're ready for it to grow.
 
-An alternative to Flask (see example below) and FastAPI (see our django-ninja example) -
-similar simple syntax, but with full access to Django's features such as the ORM, auth
-and admin site.
+An alternative to Flask (see example below) and FastAPI (with django-ninja support built
+in) - similar simple syntax, but with full access to Django's features such as the ORM,
+auth and admin site.
 
 Perfect for experiments, prototypes, sharing working code samples, and deploying small
 production applications.
@@ -38,18 +38,18 @@ app = Django()
 
 @app.admin
 class CountLog(models.Model):
-    """Standard Django model, registered with the admin site"""
+    # Standard Django model, registered with the admin site
     timestamp = models.DateTimeField(auto_now_add=True)
 
 @app.route("/")
 def count(request):
-    """Standard Django function view"""
+    # Standard Django function view
     CountLog.objects.create()
     return f"<p>Number of page loads: {CountLog.objects.count()}</p>"
 
 @app.api.get("/add")
 def count(request):
-    """Django Ninja API"""
+    # Django Ninja API
     CountLog.objects.create()
     return {"count": CountLog.objects.count()}
 ```
