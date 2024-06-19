@@ -4,6 +4,10 @@
 #
 #    pip-compile
 #
+annotated-types==0.7.0
+    # via
+    #   -r ../requirements.txt
+    #   pydantic
 asgiref==3.8.1
     # via
     #   -r ../requirements.txt
@@ -22,6 +26,10 @@ click==8.1.7
 coverage[toml]==7.4.4
     # via pytest-cov
 django==5.0.3
+    # via
+    #   -r ../requirements.txt
+    #   django-ninja
+django-ninja==1.1.0
     # via -r ../requirements.txt
 iniconfig==2.0.0
     # via pytest
@@ -49,6 +57,14 @@ platformdirs==4.2.0
     #   black
 pluggy==1.4.0
     # via pytest
+pydantic==2.7.4
+    # via
+    #   -r ../requirements.txt
+    #   django-ninja
+pydantic-core==2.18.4
+    # via
+    #   -r ../requirements.txt
+    #   pydantic
 pyproject-hooks==1.0.0
     # via
     #   -r ../requirements.txt
@@ -64,6 +80,11 @@ sqlparse==0.4.4
     # via
     #   -r ../requirements.txt
     #   django
+typing-extensions==4.12.2
+    # via
+    #   -r ../requirements.txt
+    #   pydantic
+    #   pydantic-core
 wheel==0.43.0
     # via
     #   -r ../requirements.txt

@@ -2,5 +2,6 @@ pip-tools
 
 black
 click
-django>=3.2.0
 isort
+django>=3.2.0
+django-ninja
