@@ -100,3 +100,4 @@ STATICFILES_DIRS = [
 
 # nanodjango specific config
 ADMIN_URL = None
+API_URL = "api/"

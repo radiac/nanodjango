@@ -9,8 +9,9 @@ from django.http import HttpResponse
 from .utils import (
     applied_ensure_http_response,
     collect_references,
-    get_decorators,
+    filter_decorators,
     is_admin_decorator,
+    is_api_decorator,
     is_view_decorator,
     make_url,
     obj_to_ast,
@@ -36,18 +37,14 @@ class ConverterObject:
         Remove certain decorators from the object, update self.src and self.ast, and
         return a list of removed decorators.
         """
-        all_decorators = get_decorators(self.ast)
-        if not all_decorators:
-            return []
-
         self.ast = cast(ast.FunctionDef | ast.ClassDef, self.ast)
-        self.ast.decorator_list = []
-        filtered_decorators = []
-        for decorator in all_decorators:
-            if filter_fn(decorator, app_name=self.converter.app._instance_name):
-                filtered_decorators.append(decorator)
-            else:
-                self.ast.decorator_list.append(decorator)
+        filtered_decorators, other_decorators = filter_decorators(
+            self.ast,
+            filter_fn,
+            app_name=self.converter.app._instance_name,
+        )
+
+        self.ast.decorator_list = other_decorators
         self.src = ast.unparse(self.ast)
 
         return filtered_decorators
@@ -143,3 +140,48 @@ class AppModel(ConverterObject):
         lines.extend([f"    {key} = {value}" for key, value in options.items()])
 
         return "\n".join(lines)
+
+
+class AppApiView(ConverterObject):
+    def __init__(
+        self,
+        converter: Converter,
+        name: str,
+        obj: Any,
+        obj_src: str,
+        obj_ast: ast.AST,
+    ):
+        self.converter = converter
+        self.name = name
+        self.obj = obj
+        self.src = self.src_orig = obj_src
+        self.ast: ast.AST = obj_ast
+        self.references: set[str] = set()
+
+        # Process
+        self.fix_return_value()
+        self.collect_references()
+
+    def fix_return_value(self):
+        """
+        Rewrite @app.api.method to @api.method
+
+        AST structure is:
+
+            Call(
+                func=Attribute(
+                    value=Attribute(
+                        value=Name(id='app'),
+                        attr='api',
+                    ),
+                    attr='get',
+                args=[Constant(value='/add')],
+                keywords=[]
+            )
+        """
+        for decorator in self.ast.decorator_list:
+            if is_api_decorator(decorator, app_name=self.converter.app._instance_name):
+                decorator.func.value = decorator.func.value.value
+                decorator.func.value.id = "api"
+
+        self.src = ast.unparse(self.ast)

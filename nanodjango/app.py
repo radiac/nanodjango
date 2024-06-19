@@ -24,6 +24,8 @@ from .views import string_view
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from ninja import NinjaAPI
+
 
 def exec_manage(*args):
     from django.core.management import execute_from_command_line
@@ -61,6 +63,9 @@ class Django:
     # URL cache to aid ``convert``
     # {pattern:
     _routes: dict[str, tuple[Callable | None, dict[str, Any]]]
+
+    # NinjaAPI instance for @app.api
+    _api: NinjaAPI | None = None
 
     def __new__(cls, *args, **kwargs):
         # Enforce only one Django() per script, otherwise everything will get confused
@@ -221,6 +226,31 @@ class Django:
         # Called without arguments, @admin - call wrapped immediately
         return wrap(model)
 
+    @property
+    def ninja(self):
+        """
+        Make django-ninja available without needing to import - work around
+        https://github.com/vitalik/django-ninja/issues/1169
+        """
+        try:
+            import ninja
+        except ImportError as e:
+            raise ImportError(
+                "Could not find django-ninja - try: pip install django-ninja"
+            ) from e
+        return ninja
+
+    @property
+    def api(self):
+        """
+        Ninja integration
+        """
+        if not self._api:
+            api = self.ninja.NinjaAPI()
+            self._api = api
+
+        return self._api
+
     def _prepare(self):
         """
         Perform any final setup for this project after it has been imported:
@@ -254,6 +284,10 @@ class Django:
             urlpatterns.append(
                 django_urls.path(admin_url.removeprefix("/"), admin.site.urls)
             )
+
+        # Register the API, if defined
+        if self._api:
+            self.route(self.settings.API_URL, include=self._api.urls)
 
     def run(self, args: list[str] | tuple[str] | None = None):
         """

@@ -135,6 +135,40 @@ class BaseConverterPlugin:
             converter (Converter): The current converter instance.
         """
 
+    def build_app_api(
+        self,
+        converter: Converter,
+        resolver: Resolver,
+        extra_src: list[str],
+    ) -> tuple[Resolver, list[str]]:
+        """
+        Extend ``app/api.py``
+
+        API endpoints have been collected on ``converter.api_views`` (wrapped in
+        ``AppAPIView`` instances) and are about to be written into ``app/api.py``
+
+        Args:
+            converter (Converter): The current converter instance.
+            resolver (Resolver): The current resolver instance for ``app/admin.py``.
+            admins (list[str]): Lines of Python code for model admin definitions.
+            extra_src (list[str]): Lines of Python code to insert at the end.
+
+        Returns:
+            resolver (Resolver): The current resolver instance.
+            admins (list[str]): Lines of Python code for model admin definitions.
+            extra_src (list[str]): Lines of Python code to insert at the end.
+        """
+        return resolver, extra_src
+
+    def build_app_api_done(self, converter: Converter):
+        """
+        The ``app/api.py`` has been written (or not if there were no APIs defined), and
+        the unused objects are about to be built.
+
+        Args:
+            converter (Converter): The current converter instance.
+        """
+
     def build_app_urls(
         self,
         converter: Converter,
@@ -203,24 +237,26 @@ class BaseConverterPlugin:
         """
         Extend ``app/admin.py``
 
-        The
+        ModelAdmin definitions have been built into ``admins``. This hook can modify
+        this list, or add some extra lines of source code to add to the end of the file.
 
         Args:
-            converter (Converter): The current converter instance.
-            resolver (Resolver): The current resolver instance for ``app/admin.py``.
-            admins (list[str]): Lines of Python code for model admin definitions.
-            extra_src (list[str]): Lines of Python code to insert at the end.
+            converter (Converter): The current converter instance. resolver (Resolver):
+            The current resolver instance for ``app/admin.py``. admins (list[str]):
+            Lines of Python code for model admin definitions. extra_src (list[str]):
+            Lines of Python code to insert at the end.
 
         Returns:
-            resolver (Resolver): The current resolver instance.
-            admins (list[str]): Lines of Python code for model admin definitions.
-            extra_src (list[str]): Lines of Python code to insert at the end.
+            resolver (Resolver): The current resolver instance. admins (list[str]):
+            Lines of Python code for model admin definitions. extra_src (list[str]):
+            Lines of Python code to insert at the end.
         """
         return resolver, admins, extra_src
 
     def build_app_admin_done(self, converter: Converter):
         """
-        The ``app/admin.py`` has been written, the unused objects are about to be built.
+        The ``app/admin.py`` has been written, the unused code is about to be written
+        out.
 
         Args:
             converter (Converter): The current converter instance.

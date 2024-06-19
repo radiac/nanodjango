@@ -6,7 +6,7 @@ import inspect
 from functools import wraps
 from pathlib import Path
 from types import ModuleType
-from typing import Any, cast
+from typing import Any, Callable, cast
 
 from django.http import HttpResponse
 
@@ -55,6 +55,19 @@ def get_decorators(obj_ast: ast.AST) -> list[ast.AST]:
     return all_decorators
 
 
+def filter_decorators(
+    obj_ast: ast.FunctionDef | ast.ClassDef, filter_fn: Callable, app_name: str
+) -> tuple[list[ast.AST], list[ast.AST]]:
+    matches = []
+    others = []
+    for decorator in get_decorators(obj_ast):
+        if filter_fn(decorator, app_name=app_name):
+            matches.append(decorator)
+        else:
+            others.append(decorator)
+    return matches, others
+
+
 def parse_admin_decorator(obj_ast: ast.AST, app_name: str) -> dict[str, Any]:
     keywords: dict[str, Any] = {}
     if isinstance(obj_ast, ast.Call):
@@ -81,32 +94,23 @@ def parse_admin_decorator(obj_ast: ast.AST, app_name: str) -> dict[str, Any]:
     )
 
 
-def is_admin_decorator(obj_ast: ast.AST, app_name: str) -> bool:
-    if isinstance(obj_ast, ast.Call):
-        obj_ast = obj_ast.func
-
-    if (
-        isinstance(obj_ast, ast.Attribute)
-        and isinstance(obj_ast.value, ast.Name)
-        and obj_ast.value.id == app_name
-        and obj_ast.attr == "admin"
-    ):
-        return True
-    return False
-
-
-def is_view_decorator(obj_ast: ast.AST, app_name: str) -> bool:
-    if not isinstance(obj_ast, ast.Call):
+def mk_app_decorator_filter(attr_name: str) -> Callable:
+    def filter_fn(obj_ast: ast.AST, app_name: str) -> bool:
+        # Match by string - avoids having to deal with AST complexities caused by
+        # * calls, eg @app.route(...)
+        # * nested decorators, eg @app.api.get(...)
+        src = ast.unparse(obj_ast).strip()
+        seek = f"{app_name}.{attr_name}"
+        if src.startswith(seek) and (len(src) == len(seek) or src[len(seek)] in ".("):
+            return True
         return False
 
-    if (
-        isinstance(obj_ast.func, ast.Attribute)
-        and isinstance(obj_ast.func.value, ast.Name)
-        and obj_ast.func.value.id == app_name
-        and obj_ast.func.attr == "route"
-    ):
-        return True
-    return False
+    return filter_fn
+
+
+is_admin_decorator = mk_app_decorator_filter("admin")
+is_view_decorator = mk_app_decorator_filter("route")
+is_api_decorator = mk_app_decorator_filter("api")
 
 
 def ensure_http_response(view_fn):

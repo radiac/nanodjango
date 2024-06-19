@@ -38,7 +38,7 @@ For a full list of special nanodjango settings, see :doc:`settings`.
 Create a view
 =============
 
-In nanodjango a view is a function which is decorated with ``app.route``:
+In nanodjango a view is a function which is decorated with ``@app.route``:
 
 .. code-block:: python
 
@@ -55,6 +55,22 @@ process the request, use Django forms. We then either return a standard Django
 
 For full details on ``app.route``, including how to specify regular expression paths and
 include other urlconfs, see :doc:`views`.
+
+
+Create an API endpoint
+======================
+
+We use `Django Ninja <https://django-ninja.dev/>`_ to provide a simple syntax for
+defining APIs - nanodjango provides a convenient ``@app.api`` decorator which
+initialises and registers a ``NinjaAPI`` instance::
+
+.. code-block:: python
+
+    @app.api.get("/hello")
+    def hello(request):
+        return {"message": "Hello!"}
+
+For more details on working with Django Ninja in nanodjango, see :doc:`apis`.
 
 
 Create a model

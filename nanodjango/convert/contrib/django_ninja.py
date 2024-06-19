@@ -1,3 +1,10 @@
+"""
+Support direct use of django-ninja
+
+This plugin extends nanodjango's built-in support for django-ninja by detecting direct
+import and initialisation of NinjaAPI in your code, and moving it into api.py.
+"""
+
 from __future__ import annotations
 
 import ast
@@ -8,13 +15,13 @@ from ..utils import collect_references, get_decorators
 
 
 class NinjaConverter(ConverterPlugin):
-    def build_app_models_done(self, converter: Converter) -> None:
+    def build_app_api(
+        self, converter: Converter, resolver: Resolver, extra_src: list[str]
+    ) -> tuple[Resolver, list[str]]:
         """
         Find uses of NinjaAPI instances and move them into api.py
         """
-        resolver = Resolver(converter, ".api")
         api_objs = set()
-        code = []
 
         for obj_ast in converter.ast.body:
             is_ninja = False
@@ -51,13 +58,6 @@ class NinjaConverter(ConverterPlugin):
                 src = ast.unparse(obj_ast)
                 references = collect_references(obj_ast)
                 resolver.add_references(references)
-                code.append(src)
+                extra_src.append(src)
 
-        if not api_objs:
-            return
-
-        converter.write_file(
-            converter.app_path / "api.py",
-            resolver.gen_src(),
-            "\n".join(code),
-        )
+        return resolver, extra_src

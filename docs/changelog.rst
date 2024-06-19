@@ -2,6 +2,18 @@
 Changelog
 =========
 
+0.7.0 - TBC
+-----------
+
+Feature:
+
+* Embed support for django-ninja through the ``@app.api`` decorator.
+
+Changes:
+
+* New ``build_app_api`` and ``build_app_api_done`` plugin hooks
+
+
 0.6.1 - 2024-06-14
 ------------------
 

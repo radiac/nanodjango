@@ -31,8 +31,15 @@ Create a new file, ``counter.py`` with the following:
 
     @app.route("/")
     def count(request):
+        """Standard Django function view"""
         CountLog.objects.create()
-        return f"<p>Number of page loads: {CountLog.objects.count()}</p>"
+        return f"<p>Number of requests: {CountLog.objects.count()}</p>"
+
+    @app.api.get("/add")
+    def count(request):
+        """Django Ninja API"""
+        CountLog.objects.create()
+        return {"count": CountLog.objects.count()}
 
 Now use the ``start`` command to create the migrations, apply them, and run your
 project:

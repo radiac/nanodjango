@@ -22,7 +22,6 @@ Using locally
 During development, or if you don't plan on distributing your plugin, you can tell
 nanodjango about plugin modules with the ``convert --plugin=<path>`` argument::
 
-
     nanodjango app.py convert project --name=example --plugin=myplugin.py
 
 This will import ``app.py``, then ``myplugin .py`` to register any plugins, then start
@@ -88,11 +87,15 @@ Tutorial
 nanodjango comes with plugins for common third-party libraries, including
 ``django-ninja``. We'll build that again to see how it's done.
 
+Note that this is for direct use of django-ninja; the ``@app.api`` uses a different
+mechanism.
+
 
 Create the plugin
 ~~~~~~~~~~~~~~~~~
 
-Using Ninja with nanodjango looks something like this::
+Importing djano-ninja and working with it directly in nanodjango would look something
+like this::
 
     from ninja import NinjaAPI
     api = NinjaAPI()

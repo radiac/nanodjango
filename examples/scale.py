@@ -72,6 +72,12 @@ def count(request):
     return f"<p>Number of page loads: {CountLog.objects.count()}</p>"
 
 
+@django.api.get("/add")
+def count_api(request):
+    CountLog.objects.create()
+    return {"count": CountLog.objects.count()}
+
+
 @django.route("/author/")
 def redirect(request) -> HttpResponseRedirect:
     return HttpResponseRedirect("https://radiac.net/")

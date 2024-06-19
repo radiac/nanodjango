@@ -15,9 +15,17 @@ import isort
 from black import FileMode, format_str
 
 from ..exceptions import ConversionError
-from .objects import AppModel, AppView
+from .objects import AppApiView, AppModel, AppView
 from .plugin import plugins
-from .utils import collect_references, ensure_http_response, import_from_path, make_url
+from .utils import (
+    collect_references,
+    ensure_http_response,
+    filter_decorators,
+    import_from_path,
+    is_api_decorator,
+    make_url,
+    obj_to_ast,
+)
 
 
 if TYPE_CHECKING:
@@ -28,7 +36,7 @@ if TYPE_CHECKING:
 
 class Resolver:
     """
-    Resolve names and references within the scope of a generated Python file
+    Resolve names and references within the scope of the Python module we are generating
     """
 
     imports: set[str]
@@ -57,14 +65,15 @@ class Resolver:
 
     def add_object(self, name: str):
         """
-        Register an object definition
+        Register an object that is defined in the current module we're building
         """
         self.converter.imports[name] = f"from {self.module_name} import {name}"
         self.local_refs.add(name)
 
     def add_references(self, references: set[str]):
         """
-        Collect references to imports and globals
+        Register references to symbols needed in this module - objects which will either
+        need to be imported from other modules, or their source added to this module
         """
         for ref in references:
             # Most of the time this will be either an object or an imported symbol,
@@ -153,6 +162,8 @@ class Converter:
 
         self.models = []
         self.views = []
+        self.api_views = []
+        self.extra_urls = []
         self.imports = {}
         self.used = set()
 
@@ -192,7 +203,7 @@ class Converter:
             return obj_src, references
 
         if obj_name not in self.module.__dict__:
-            raise ConversionError(f"Reference to unknown symbol {obj_name}")
+            raise ValueError(f"Reference to unknown symbol {obj_name}")
         obj = self.module.__dict__[obj_name]
 
         # Try to build src from the object
@@ -219,7 +230,7 @@ class Converter:
                         return obj_src, references
 
         # TODO: We could have more exhaustive definition collection
-        raise ConversionError(f"Reference to undetermined symbol {obj_name}")
+        raise ValueError(f"Reference to undetermined symbol {obj_name}")
 
     def build(self) -> None:
         """
@@ -246,6 +257,9 @@ class Converter:
 
         self.build_app_views()
         plugins.build_app_views_done(self)
+
+        self.build_app_api()
+        plugins.build_app_api_done(self)
 
         self.app_has_urls = False
         self.build_app_urls()
@@ -508,6 +522,56 @@ class Converter:
             "\n".join(extra_src),
         )
 
+    def build_app_api(self) -> None:
+        # TODO #7
+        self.api_views = []
+        resolver = Resolver(self, ".api")
+
+        # API definitions will be rewritten from @app.api to @api, and we'll hard-code
+        # the ``api`` definition when writing this module at the end of this method,
+        # so tell the resolver we already know about ``api``
+        resolver.add_object("api")
+
+        for name, obj in self.module.__dict__.items():
+            # Look at locally-defined functions
+            if (
+                inspect.isfunction(obj)
+                and inspect.getsourcefile(obj) == self.module.__file__
+            ):
+                obj_src = inspect.getsource(obj)
+                obj_ast = cast(ast.FunctionDef, obj_to_ast(obj_src))
+                api_decorators, _ = filter_decorators(
+                    obj_ast,
+                    is_api_decorator,
+                    self.app._instance_name,
+                )
+                if not api_decorators:
+                    continue
+
+                api_view = AppApiView(
+                    self,
+                    name=name,
+                    obj=obj,
+                    obj_src=obj_src,
+                    obj_ast=obj_ast,
+                )
+                self.api_views.append(api_view)
+                resolver.add(name, api_view.references)
+
+        resolver, extra_src = plugins.build_app_api(self, resolver, [])
+        if not self.api_views and not extra_src:
+            return
+
+        self.app_has_urls = True
+        self.write_file(
+            self.app_path / "api.py",
+            "from ninja import NinjaAPI",
+            resolver.gen_src(),
+            "api = NinjaAPI()",
+            "\n".join([api_view.src for api_view in self.api_views]),
+            "\n".join(extra_src),
+        )
+
     def build_app_urls(self) -> None:
         """
         Build ``app/urls.py``
@@ -520,6 +584,12 @@ class Converter:
         urls = []
         resolver = Resolver(self, ".urls")
 
+        # Add API url - this is a special case which never makes it into app._routes
+        if self.api_views:
+            urls.append(make_url(self.app.settings.API_URL, "api.urls"))
+            resolver.add_references(["api"])
+
+        # Add view urls
         app_views = self.views.copy()
         for pattern, (view, url_config) in self.app._routes.items():
             if app_views and app_views[0].pattern == pattern:
@@ -576,6 +646,7 @@ class Converter:
             views_import,
             resolver.gen_src(),
             "urlpatterns = [",
+            "\n".join(self.extra_urls),
             "\n".join(urls),
             "]",
             "\n".join(extra_src),
