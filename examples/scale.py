@@ -27,7 +27,6 @@ from django.views.generic import ListView
 
 from nanodjango import Django
 
-
 domain = "scale.example.com"
 
 django = Django(
@@ -72,7 +71,7 @@ def index(request):
     return render(request, "scale/index.html", {"books": Book.objects.all()})
 
 
-@django.route("/count/")
+@django.route("/count/", name="counter")
 def count(request):
     CountLog.objects.create()
 

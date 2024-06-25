@@ -5,15 +5,11 @@ repos:
   hooks:
   - id: check-merge-conflict
   - id: trailing-whitespace
-- repo: https://github.com/pycqa/isort
-  rev: 5.13.2
-  hooks:
-  - id: isort
-    name: isort (python)
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.4.10
   hooks:
-  # Run the linter.
+  # Run the linter with import sorting
   - id: ruff
-  # Run the formatter.
+    args: ["check", "--select", "I", "--fix"]
+  # Run the formatter
   - id: ruff-format

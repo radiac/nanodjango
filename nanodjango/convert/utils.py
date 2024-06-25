@@ -150,7 +150,7 @@ applied_ensure_http_response = cast(
 
 
 # Generate a line for an url_patterns
-def make_url(pattern, view_fn, re=False, include=None, **url_config):
+def make_url(pattern, view_fn, re=False, include=None, name=None, **url_config):
     # TODO: We should probably escape self.pattern, but it's an extreme edge case
     # that doesn't seem worth the effort at the moment. Contributions welcome.
     if re:
@@ -159,4 +159,10 @@ def make_url(pattern, view_fn, re=False, include=None, **url_config):
     else:
         path_fn = "path"
         r = ""
-    return f'    {path_fn}({r}"{pattern}", {view_fn}),'
+
+    if name is not None:
+        name_arg = f', name="{name}"'
+    else:
+        name_arg = ""
+
+    return f'    {path_fn}({r}"{pattern}", {view_fn}{name_arg}),'

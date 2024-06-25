@@ -20,7 +20,6 @@ from .exceptions import ConfigurationError, UsageError
 from .urls import urlpatterns
 from .views import string_view
 
-
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -123,7 +122,7 @@ class Django:
         # Ready for Django's standard setup
         setup()
 
-    def route(self, pattern: str, *, re=False, include=None):
+    def route(self, pattern: str, *, re=False, include=None, name=None):
         """
         Decorator to add a view to the urls
 
@@ -195,14 +194,19 @@ class Django:
 
         def wrapped(fn):
             # Store route for convert lookup
-            self._routes[pattern] = (fn, {"re": re, "include": False})
+            self._routes[pattern] = (
+                fn,
+                {"re": re, "include": False, "name": name or fn.__name__.lower()},
+            )
 
             # Prepare CBVs
             if inspect.isclass(fn) and issubclass(fn, View):
                 fn = fn.as_view()
 
             # Register URL
-            urlpatterns.append(path_fn(pattern, string_view(fn), name=fn.__name__))
+            urlpatterns.append(
+                path_fn(pattern, string_view(fn), name=name or fn.__name__.lower())
+            )
             return fn
 
         return wrapped
