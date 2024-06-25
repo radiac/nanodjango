@@ -2,12 +2,13 @@
 Changelog
 =========
 
-0.7.1 - TBC
------------
+0.7.1 - 2024-06-25
+------------------
 
 Feature:
 
-* Serve static and media by default
+* Serve static and media by default (#9)
+* Support ``name`` argument in ``@app.route`` (#11)
 
 
 0.7.0 - 2024-06-19
@@ -15,7 +16,7 @@ Feature:
 
 Feature:
 
-* Embed support for django-ninja through the ``@app.api`` decorator.
+* Embed support for django-ninja through the ``@app.api`` decorator. (#7)
 
 Changes:
 
