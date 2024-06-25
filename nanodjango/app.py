@@ -304,7 +304,6 @@ class Django:
                     )
                 )
             if self.settings.MEDIA_ROOT and Path(self.settings.MEDIA_ROOT).exists():
-                print("EXISTS")
                 urlpatterns.extend(
                     static(
                         self.settings.MEDIA_URL, document_root=self.settings.MEDIA_ROOT
