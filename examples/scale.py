@@ -14,7 +14,7 @@ Usage::
     ./manage.py runserver 0:8000
 """
 # /// script
-# dependencies = ["nanodjango", "pillow"]
+# dependencies = ["nanodjango"]
 # ///
 
 import os
@@ -64,7 +64,7 @@ class Book(models.Model):
     name = models.CharField(max_length=100)
     authors = models.ManyToManyField(Author)
     genre = models.CharField(max_length=100, choices=BOOK_GENRES)
-    cover = models.ImageField(blank=True, null=True)
+    cover = models.FileField(blank=True, null=True)
 
 
 @django.route("/")

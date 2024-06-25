@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.7.1 - TBC
+-----------
+
+Feature:
+
+* Serve static and media by default
+
+
 0.7.0 - 2024-06-19
 ------------------
 
