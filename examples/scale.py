@@ -14,13 +14,14 @@ Usage::
     ./manage.py runserver 0:8000
 """
 # /// script
-# dependencies = ["nanodjango"]
+# dependencies = ["nanodjango", "pillow"]
 # ///
 
 import os
 
 from django.db import models
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.urls import include
 from django.views.generic import ListView
 
@@ -63,9 +64,15 @@ class Book(models.Model):
     name = models.CharField(max_length=100)
     authors = models.ManyToManyField(Author)
     genre = models.CharField(max_length=100, choices=BOOK_GENRES)
+    cover = models.ImageField(blank=True, null=True)
 
 
 @django.route("/")
+def index(request):
+    return render(request, "scale/index.html", {"books": Book.objects.all()})
+
+
+@django.route("/count/")
 def count(request):
     CountLog.objects.create()
 

@@ -61,8 +61,8 @@ nanodjango start counter.py
 ```
 
 It will create your database in a ``db.sqlite3`` file next to your ``counter.py``, with
-the appropriate migrations in ``migrations/``. Alternatively you could run each of these
-commands manually with the ``run`` command, eg
+the appropriate migrations in ``migrations/``, and serve your static and media files.
+Alternatively you could run each of these commands manually with the ``run`` command, eg
 ``nanodjango run counter.py runserver 0:8000``
 
 Run it in production using WSGI:

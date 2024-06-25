@@ -1,0 +1,48 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Scale example</title>
+  <style>
+    .books {
+      display: flex;
+      flex-wrap: wrap;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      & li {
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        margin: 0.5rem 0;
+
+        & img {
+          max-height: 100px;
+          max-width: 100px;
+        }
+      }
+    }
+  </style>
+</head>
+<body>
+<h1>Scale example</h1>
+<p>This example project tests the range of nanodjango's capabilities</p>
+<p><a href="/count/">See the counter</a></p>
+<p>This should be an info icon from static: <img src="{% static "info.svg" %}" style="width:16px"></p>
+
+<h2>Books</h2>
+{% if books %}
+  <ul class="books">
+    {% for book in books %}
+      <li>
+        <img src="{{ book.cover.url }}">
+        <p>{{ book.name }}</p>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No books, add them in the <a href="{% url "admin:scale_book_changelist" %}">admin site</a></p>
+{% endif %}
+
+</body>
+</html>

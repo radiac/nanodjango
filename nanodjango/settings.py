@@ -25,6 +25,7 @@ MIGRATION_MODULES = {DF_APP_NAME: app_conf.get("MIGRATIONS_DIR", "migrations")}
 SECRET_KEY = getenv("DJANGO_SECRET_KEY", "not-a-secret")
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
+SITE_ID = 1
 
 # Application definition
 INSTALLED_APPS = [
@@ -96,6 +97,10 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# Media files
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 
 # nanodjango specific config

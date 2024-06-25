@@ -251,12 +251,15 @@ class Django:
 
         return self._api
 
-    def _prepare(self):
+    def _prepare(self, with_static=False):
         """
         Perform any final setup for this project after it has been imported:
 
         * detect if it has been run directly; if so, register it as an app
         * register the admin site
+
+        If with_static is True, serve STATIC_URL and MEDIA_URL using
+        django.conf.urls.static.static
         """
 
         # Check if this is being called from click commands or directly
@@ -289,6 +292,25 @@ class Django:
         if self._api:
             self.route(self.settings.API_URL, include=self._api.urls)
 
+        # Register static and media
+        if with_static:
+            from django.conf.urls.static import static
+
+            if self.settings.STATIC_ROOT and Path(self.settings.STATIC_ROOT).exists():
+                urlpatterns.extend(
+                    static(
+                        self.settings.STATIC_URL,
+                        document_root=self.settings.STATIC_ROOT,
+                    )
+                )
+            if self.settings.MEDIA_ROOT and Path(self.settings.MEDIA_ROOT).exists():
+                print("EXISTS")
+                urlpatterns.extend(
+                    static(
+                        self.settings.MEDIA_URL, document_root=self.settings.MEDIA_ROOT
+                    )
+                )
+
     def run(self, args: list[str] | tuple[str] | None = None):
         """
         Run a Django management command, passing all arguments
@@ -301,7 +323,7 @@ class Django:
         if args is None:
             args = sys.argv[1:]
 
-        self._prepare()
+        self._prepare(with_static=True)
         if args:
             exec_manage(*args)
         else:
@@ -321,7 +343,7 @@ class Django:
         if not host:
             host = "0:8000"
 
-        self._prepare()
+        self._prepare(with_static=True)
         exec_manage("makemigrations", self.app_name)
         exec_manage("migrate")
         User = get_user_model()

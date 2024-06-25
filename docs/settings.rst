@@ -22,6 +22,10 @@ to configure itself and to simplify configuring Django:
   The URL to serve the admin site from. If not set, the admin site will only be served
   if there are models registered with ``@app.admin``.
 
+``API_URL``
+  The URL to serve the Ninja API from - defaults to ``/api/``. This is only set up if
+  there are API endpoints defined.
+
 ``EXTRA_APPS``
   List of apps to be appended to the standard ``INSTALLED_APPS`` setting.
 

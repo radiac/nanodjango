@@ -10,8 +10,9 @@ API decorator
 =============
 
 The ``@app.api`` decorator is an instance of ``NinjaAPI`` which is automatically
-registered at the URL ``/api/``. This gives you an easy way to define your API
-endpoints:
+registered at the URL ``/api/``. It is only registered if used.
+
+This gives you an easy way to define your API endpoints:
 
 .. code-block:: python
 
