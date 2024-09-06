@@ -17,6 +17,7 @@ Usage::
 # dependencies = ["nanodjango"]
 # ///
 
+import asyncio
 import os
 
 from django.db import models

@@ -9,10 +9,9 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, cast
 
-from django.db.models import Model
-
 import isort
 from black import FileMode, format_str
+from django.db.models import Model
 
 from ..exceptions import ConversionError
 from .objects import AppApiView, AppModel, AppView
@@ -26,7 +25,6 @@ from .utils import (
     make_url,
     obj_to_ast,
 )
-
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -100,3 +100,19 @@ is always the first decorator:
     def count(request):
         return "Hello world"
 
+
+Async views
+===========
+
+The ``@app.route`` can also decorate async views:
+
+.. code-block:: python
+
+    @app.api.get("/async")
+    async def api_async(request):
+        sleep = random.randint(1, 5)
+        await asyncio.sleep(sleep)
+        return {
+            "saying": f"Hello world, async endpoint. You waited {sleep} seconds.",
+            "type": "async",
+        }

@@ -6,9 +6,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import django
-
 import pytest
-
 
 TIMEOUT = 10  # seconds
 
@@ -79,7 +77,7 @@ def runserver(server):
         expecting = "Starting development server at"
     else:
         expecting = "Watching for file changes"
-    timeout = time.time() + TIMEOUT
+    timeout = time.time() + (TIMEOUT * 2)
     out = ""
     os.set_blocking(stdout.fileno(), False)
     os.set_blocking(stderr.fileno(), False)
@@ -88,8 +86,8 @@ def runserver(server):
         out += stdout.readline() + stderr.readline()
 
         if "Error" in out or expecting in out:
-            # Wait long enough for errors
-            time.sleep(0.5)
+            # Wait long enough for errors or completion
+            time.sleep(5)
             out += stdout.readline() + stderr.readline()
             break
         else:

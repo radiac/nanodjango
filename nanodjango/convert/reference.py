@@ -58,6 +58,9 @@ class ReferenceVisitor(ast.NodeVisitor):
         self.generic_visit(node)
         self.pop_scope()
 
+    def visit_AsyncFunctionDef(self, node):
+        self.visit_FunctionDef(node)
+
     def visit_ClassDef(self, node):
         """Function definition, including top level definition if obj is a class"""
         self.push_scope()

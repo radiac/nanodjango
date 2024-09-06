@@ -71,15 +71,15 @@ comment to the top to specify ``nanodjango`` as a dependency:
     if __name__ == "__main__":
         app.run()
 
-This will allow you to pass it to ``pipx run``, to run your development server without
-installing anything first:
+This will allow you to pass it to ``uv run`` or ``pipx run``, to run your development
+server without installing anything first:
 
 .. code-block:: bash
 
     # Create a temporary venv with ``nanodjango`` installed, then run the script
-    pipx run ./script.py
+    uv start ./script.py
 
-    # Pass some arguments
+    # Call ``run`` and pass some arguments
     pipx run ./script.py -- runserver 0:8000
 
 
@@ -94,3 +94,18 @@ Instead, you can pass nanodjango's ``app = Django()`` to a WSGI server:
 .. code-block:: bash
 
     gunicorn -w 4 counter:app
+
+or if you have async views, you can use an ASGI server:
+
+.. code-block:: bash
+
+    uvicorn counter:app
+
+Because the WSGI and ASGI handlers are different, nanodjango will offer WSGI by default,
+and swap to ASGI if an ``async`` view is found. If you want to override this behaviour,
+you can specify the handler:
+
+.. code-block:: bash
+
+    gunicorn counter:app.wsgi
+    uvicorn counter:app.asgi

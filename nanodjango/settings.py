@@ -8,7 +8,6 @@ from types import ModuleType
 
 from nanodjango.app_meta import get_app_conf, get_app_module
 
-
 app_conf = get_app_conf()
 
 # Find paths

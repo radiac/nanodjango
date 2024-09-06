@@ -47,7 +47,8 @@ In nanodjango a view is a function which is decorated with ``@app.route``:
         ...
 
 The ``@app.route("/")`` decorator serves this view at the url ``/``, and the view
-function is passed the request as it would in a normal Django project.
+function is passed the request as it would in a normal Django project. You can decorate
+both normal and async views in the same way.
 
 From there we can do anything we would in a normal Django view - eg add more decorators,
 process the request, use Django forms. We then either return a standard Django

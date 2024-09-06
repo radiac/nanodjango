@@ -5,19 +5,12 @@
 [![Tests](https://github.com/radiac/nanodjango/actions/workflows/ci.yml/badge.svg)](https://github.com/radiac/nanodjango/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/radiac/nanodjango/branch/main/graph/badge.svg?token=BCNM45T6GI)](https://codecov.io/gh/radiac/nanodjango)
 
-Write a Django site in a single file, using views, models and admin, then automatically
-convert it to a full Django project when you're ready for it to grow.
-
-An alternative to Flask (see example below) and FastAPI (with django-ninja support built
-in) - similar simple syntax, but with full access to Django's features such as the ORM,
-auth and admin site.
-
-Perfect for experiments, prototypes, sharing working code samples, and deploying small
-production applications.
+* Write a Django site in a single file, using views, models and admin
+* Run it locally or in production, or share it as a standalone script
+* Automatically convert it to a full Django project when you're ready for it to grow
 
 
 ## Quickstart
-
 
 Install nanodjango:
 
@@ -25,12 +18,9 @@ Install nanodjango:
 pip install nanodjango
 ```
 
-Create a file ``counter.py`` using Django's standard features, and the ``@app.route``
-and ``@app.admin`` decorators to tell nanodjango where your URLs, views and model admin
-are:
+Write your app in single `.py` file - for example:
 
 ```python
-
 from django.db import models
 from nanodjango import Django
 
@@ -48,46 +38,96 @@ def count(request):
     return f"<p>Number of page loads: {CountLog.objects.count()}</p>"
 
 @app.api.get("/add")
-def count(request):
-    # Django Ninja API
+def add(request):
+    # Django Ninja API support built in
     CountLog.objects.create()
     return {"count": CountLog.objects.count()}
+
+@app.route("/slow/")
+async def slow(request):
+    import asyncio
+    await asyncio.sleep(10)
+    return "Async views supported"
 ```
 
-Save that as ``counter.py``, then set up your database and run it locally with:
+Save that as `counter.py`, then set it up and run it:
 
 ```sh
 nanodjango start counter.py
 ```
 
-It will create your database in a ``db.sqlite3`` file next to your ``counter.py``, with
-the appropriate migrations in ``migrations/``, and serve your static and media files.
-Alternatively you could run each of these commands manually with the ``run`` command, eg
-``nanodjango run counter.py runserver 0:8000``
+This will create migrations and a database, and run your project in development mode.
 
-Run it in production using WSGI:
+* See [Management commands](https://nanodjango.readthedocs.io/en/latest/management.html)
+  for more options
+
+
+### Convert it to a full site
+
+If your project outgrows its single file, you can convert it into a full Django site:
+
+```sh
+nanodjango counter.py convert path/to/site --name=counter
+```
+
+* See
+  [Converting to a full Django project](https://nanodjango.readthedocs.io/en/latest/convert.html)
+  for more information
+
+
+### Share an app
+
+Nanodjango apps are great for sharing examples and prototypes.
+
+Add [inline script metadata](https://peps.python.org/pep-0723/) at the top with your
+dependencies:
+
+```python
+# /// script
+# dependencies = ["nanodjango"]
+# ///
+```
+
+and call `app.run()` at the bottom:
+
+```python
+if __name__ == "__main__":
+    app.start()
+```
+
+Now your app can be run without installing anything, using `uv` or `pipx`:
+
+```sh
+# Run with uv
+uv start ./script.py
+# or with pipx
+pipx start ./script.py
+```
+
+You can still manually install dependencies and run the script directly with Python:
+
+```sh
+pip install nanodjango
+python script.py
+```
+
+
+### Run in production
+
+Run it in production using a WSGI server:
 
 ```sh
 gunicorn -w 4 counter:app
 ```
 
-or automatically convert it to a full Django project:
+or if you have async views, use an ASGI server:
 
 ```sh
-nanodjango convert counter.py /path/to/project --name=myproject
+uvicorn counter:app
 ```
 
-and with a [couple of extra
-lines](https://nanodjango.readthedocs.io/en/latest/management.html#run-script), run the
-development server as a standalone script using ``python``, or use ``pipx run`` to run
-it and automatically install dependencies to a temporary virtual environment:
 
-```sh
-# Either
-python script.py
-# or
-pipx run ./script.py
-```
+### Further reading
 
 For more details, see
 
@@ -95,5 +135,4 @@ For more details, see
 * [Tutorial](https://nanodjango.readthedocs.io/en/latest/tutorial.html)
 * [Full Documentation](https://nanodjango.readthedocs.io/en/latest/index.html)
 * [Changelog](https://nanodjango.readthedocs.io/en/latest/changelog.html)
-* [Examples](https://github.com/radiac/nanodjango/tree/main/examples) including how to
-  use nanodjango with Django Ninja
+* [Examples](https://github.com/radiac/nanodjango/tree/main/examples)

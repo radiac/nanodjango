@@ -5,9 +5,13 @@ Contributing
 Development
 ===========
 
-First, fork the ``nanodjango`` project on GitHub. If you haven't done this before, look for the Fork button in the upper right corner of the project's [home page](https://github.com/radiac/nanodjango/). This will copy the main branch of the project to a new repository under your account.
+First, fork the ``nanodjango`` project on GitHub. If you haven't done this before, look
+for the Fork button in the upper right corner of the project's `home page
+<(https://github.com/radiac/nanodjango/>`). This will copy the main branch of the
+project to a new repository under your account.
 
-Next, clone your new repository (replace ``<username>`` with your username) to your local machine:
+Next, clone your new repository (replace ``<username>`` with your username) to your
+local machine:
 
 .. code-block:: bash
 
@@ -19,7 +23,8 @@ If this doesn't work, try this alternative:
 
     $ git clone https://github.com/<username>/nanodjango.git
 
-Add an ``upstream`` remote, then configure ``git`` to pull ``main`` from ``upstream`` and always push to ``origin``:
+Add an ``upstream`` remote, then configure ``git`` to pull ``main`` from ``upstream``
+and always push to ``origin``:
 
 .. code-block:: bash
 
@@ -28,7 +33,8 @@ Add an ``upstream`` remote, then configure ``git`` to pull ``main`` from ``upstr
     nanodjango$ git config branch.main.remote upstream
     nanodjango$ git remote set-url --push upstream git@github.com:<your-username>/nanodjango.git
 
-This makes sure you'll be able to pull changes from the upstream nanodjango project, while pushing your changes to your fork.
+This makes sure you'll be able to pull changes from the upstream nanodjango project,
+while pushing your changes to your fork.
 
 You can verify that ``git`` is configured correctly by running:
 
@@ -43,7 +49,9 @@ You can verify that ``git`` is configured correctly by running:
     nanodjango$ git config branch.main.remote
     upstream
 
-If you did everything correctly, you should now have a copy of the code in the ``nanodjango`` directory and two remotes that refer to your own GitHub fork (`origin`) and the official nanodjango repository (`upstream`).
+If you did everything correctly, you should now have a copy of the code in the
+``nanodjango`` directory and two remotes that refer to your own GitHub fork (`origin`)
+and the official nanodjango repository (`upstream`).
 
 Now create a virtual environment and install the necessary dependencies:
 
@@ -67,6 +75,7 @@ For Windows:
 
 Now you should have all the dependencies installed to run the project.
 
+
 Running examples
 ================
 
@@ -76,6 +85,7 @@ the repo module directly::
     (.venv) nanodjango$ cd examples
     (.venv) examples$ PYTHONPATH=..
     (.venv) examples$ python -m nanodjango run counter.py migrate
+
 
 Running tests
 =============
@@ -87,12 +97,15 @@ Install dependencies that are only required for tests, and run tests:
     (.venv) nanodjango$ pip install -r tests/requirements.txt
     (.venv) nanodjango$ pytest
 
+
 Submitting a PR
 ===============
 
-Before making a pull request, please open an issue to discuss the change you'd like to make. This will help ensure we're working on a shared vision for the project.
+Before making a pull request, please open an issue to discuss the change you'd like to
+make. This will help ensure we're working on a shared vision for the project.
 
-Assuming you've set up your fork as described above, use the following workflow to implement a feature or a bugfix:
+Assuming you've set up your fork as described above, use the following workflow to
+implement a feature or a bugfix:
 
 * Make sure you have pulled any recent changes from the upstream fork.
 * Make a new branch on your fork.
@@ -100,14 +113,19 @@ Assuming you've set up your fork as described above, use the following workflow 
 * Push your branch to your fork.
 * Open a PR:
 
-    * If you see a button to submit a PR based on this fork on the main page of your fork, you can click that button.
-    * If you don't see that button on your fork's main page, click the dropdown showing all your branches and click on the relevant branch.
-* Fill out the pull request, making sure it's going to submit your fork's branch to the upstream repository.
+    * If you see a button to submit a PR based on this fork on the main page of your
+      fork, you can click that button.
+    * If you don't see that button on your fork's main page, click the dropdown showing
+      all your branches and click on the relevant branch.
+* Fill out the pull request, making sure it's going to submit your fork's branch to the
+  upstream repository.
+
 
 Merging upstream changes to your fork
 =====================================
 
-The upstream project is going to get ahead of your fork. Take these steps to pull changes from the main upstream repository to your fork:
+The upstream project is going to get ahead of your fork. Take these steps to pull
+changes from the main upstream repository to your fork:
 
 .. code-block:: bash
 
@@ -116,7 +134,10 @@ The upstream project is going to get ahead of your fork. Take these steps to pul
     $ git merge upstream/main
     $ git push origin main
 
-This makes sure you're on your fork's main branch. It then fetches the latest changes from the upstream project. It merges those changes into your main branch, and finally pushes those updates back to your fork's repository.
+This makes sure you're on your fork's main branch. It then fetches the latest changes
+from the upstream project. It merges those changes into your main branch, and finally
+pushes those updates back to your fork's repository.
+
 
 Building documentation
 ======================
@@ -131,10 +152,13 @@ To build a local copy of the documentation:
 
 You'll find a set of freshly-generated HTML files in ``docs/_build/html/``.
 
+
 Getting help
 ============
 
-If you're trying to contribute and these steps aren't working for you, please open an issue and let us know what specific step is not working.
+If you're trying to contribute and these steps aren't working for you, please open an
+issue and let us know what specific step is not working.
+
 
 Thanks
 ======

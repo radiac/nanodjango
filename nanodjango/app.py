@@ -53,6 +53,9 @@ class Django:
     #: Whether this app has defined an @app.admin
     has_admin: bool = False
 
+    #: Whether this app has any async views
+    has_async: bool = False
+
     #: Variable name for this current app
     _instance_name: str
 
@@ -92,6 +95,7 @@ class Django:
         self._settings = {}
         self._routes = {}
         self._config(_settings)
+        self._prepared = False
 
     def _config(self, _settings):
         """
@@ -199,6 +203,15 @@ class Django:
                 {"re": re, "include": False, "name": name or fn.__name__.lower()},
             )
 
+            # Detect async view
+            if inspect.iscoroutinefunction(fn):
+                self.has_async = True
+
+                # Not ideal that this is changing the global, but it's the only way to
+                # work around whatever uvicorn is doing, and you'd have to work hard for
+                # it to be a problem.
+                type(self).__call__ = type(self).asgi
+
             # Prepare CBVs
             if inspect.isclass(fn) and issubclass(fn, View):
                 fn = fn.as_view()
@@ -265,7 +278,6 @@ class Django:
         If with_static is True, serve STATIC_URL and MEDIA_URL using
         django.conf.urls.static.static
         """
-
         # Check if this is being called from click commands or directly
         if self.app_name not in sys.modules:
             # Hasn't been run through the ``nanodjango`` command
@@ -278,6 +290,16 @@ class Django:
 
             # Run directly, so register app module so Django won't try to load it again
             sys.modules[self.app_name] = sys.modules["__main__"]
+
+        # If there are no models in this app, remove it from the migrations
+        if not any(
+            isinstance(obj, type) and issubclass(obj, Model)
+            for obj in self.app_module.__dict__.values()
+            if getattr(obj, "__module__", None) == self.app_name
+        ):
+            from django.conf import settings
+
+            del settings.MIGRATION_MODULES[self.app_name]
 
         # Register the admin site
         admin_url = self.settings.ADMIN_URL
@@ -313,6 +335,7 @@ class Django:
                         self.settings.MEDIA_URL, document_root=self.settings.MEDIA_ROOT
                     )
                 )
+        self._prepared = True
 
     def run(self, args: list[str] | tuple[str] | None = None):
         """
@@ -330,7 +353,35 @@ class Django:
         if args:
             exec_manage(*args)
         else:
-            exec_manage("runserver", "0:8000")
+            self.runserver()
+
+    def runserver(self, host: str | None = None):
+        if host is None:
+            host = "0:8000"
+
+        if self.has_async:
+            import asyncio
+
+            try:
+                import uvicorn
+            except ImportError:
+                raise UsageError("Install uvicorn to use async views")
+
+            port = 8000
+            if ":" in host:
+                host, port = host.split(":")
+                port = int(port)
+
+            uvicorn.run(
+                f"{self.app_name}:{self._instance_name}",
+                host=host,
+                port=port,
+                log_level="info",
+                reload=True,
+                interface="asgi3",
+            )
+        else:
+            exec_manage("runserver", host)
 
     def start(self, host: str | None = None):
         """
@@ -338,13 +389,10 @@ class Django:
         """
         # Be helpful and check sys.argv for the host
         if host is None:
-            print(sys.argv)
             if len(sys.argv) > 2:
                 raise UsageError("Usage: start [HOST]")
             elif len(sys.argv) == 2:
                 host = sys.argv[1]
-        if not host:
-            host = "0:8000"
 
         self._prepare(with_static=True)
         exec_manage("makemigrations", self.app_name)
@@ -352,7 +400,7 @@ class Django:
         User = get_user_model()
         if User.objects.count() == 0:
             exec_manage("createsuperuser")
-        exec_manage("runserver", host)
+        self.runserver(host)
 
     def convert(self, path: Path, name: str):
         from .convert import Converter
@@ -364,13 +412,41 @@ class Django:
         converter = Converter(app=self, path=path, name=name)
         converter.build()
 
-    def __call__(self, *args, **kwargs):
-        from django.core.wsgi import get_wsgi_application
+    def _call_common(self):
+        """
+        Common steps to set up WSGI/ASGI in production mode
+        """
+        # WSGI/ASGI probably won't have had time to _prepare
+        if not self._prepared:
+            self._prepare()
 
         if "DEBUG" not in self._settings:
             from django.conf import settings
 
             settings.DEBUG = False
 
+    async def asgi(self, scope, receive, send):
+        """
+        ASGI handler
+
+        Swapped into __call__ when an async view is found
+
+        Alternatively run with uvicorn script:app.asgi
+        """
+        from django.core.asgi import get_asgi_application
+
+        self._call_common()
+        application = get_asgi_application()
+        return await application(scope, receive, send)
+
+    def wsgi(self, environ, start_response):
+        """
+        WSGI handler
+        """
+        from django.core.wsgi import get_wsgi_application
+
+        self._call_common()
         application = get_wsgi_application()
-        return application(*args, **kwargs)
+        return application(environ, start_response)
+
+    __call__ = wsgi
