@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.8.1 - 2024-09-07
+------------------
+
+Changes:
+
+* Add async API detection for async endpoints registered with ``@app.api``
+
+
 0.8.0 - 2024-09-07
 ------------------
 
@@ -9,14 +17,14 @@ Feature:
 
 * Async support
 
-Changes
+Changes:
 
-* Adds ``uvicorn`` as a dependency for ease of use
+* Add ``uvicorn`` as a dependency for ease of use
 
 Bugfix:
 
-* Fixed issue where scripts without models could fail on ``migrate``
-* Fixed issue where the app may not fully initialise when run as WSGI
+* Fix issue where scripts without models could fail on ``migrate``
+* Fix issue where the app may not fully initialise when run as WSGI
 
 
 0.7.1 - 2024-06-25

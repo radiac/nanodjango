@@ -54,7 +54,7 @@ class Django:
     has_admin: bool = False
 
     #: Whether this app has any async views
-    has_async: bool = False
+    _has_async_view: bool = False
 
     #: Variable name for this current app
     _instance_name: str
@@ -205,7 +205,7 @@ class Django:
 
             # Detect async view
             if inspect.iscoroutinefunction(fn):
-                self.has_async = True
+                self._has_async_view = True
 
                 # Not ideal that this is changing the global, but it's the only way to
                 # work around whatever uvicorn is doing, and you'd have to work hard for
@@ -336,6 +336,21 @@ class Django:
                     )
                 )
         self._prepared = True
+
+    @property
+    def has_async(self):
+        # Check whether any of our views are async
+        if self._has_async_view:
+            return True
+
+        # Check the Ninja API for any async endpoints
+        if self._api:
+            for _, router in self._api._routers:
+                for view in router.path_operations.values():
+                    if view.is_async:
+                        return True
+
+        return False
 
     def run(self, args: list[str] | tuple[str] | None = None):
         """
