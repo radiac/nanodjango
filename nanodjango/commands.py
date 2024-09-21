@@ -67,23 +67,21 @@ def cli():
 @cli.command()
 @click.argument("app", type=str, required=True, callback=load_app)
 @click.argument("args", type=str, required=False, nargs=-1)
-def run(app: Django, args: tuple[str]):
+def manage(app: Django, args: tuple[str]):
     """
-    Run a management command.
-
-    If no command is specified, it will run runserver 0:8000
+    Run a management command
     """
-    app.run(args)
+    app.manage(args)
 
 
 @cli.command()
 @click.argument("app", type=str, required=True, callback=load_app)
 @click.argument("host", type=str, required=False, default="")
-def start(app: Django, host: str):
+def run(app: Django, host: str):
     """
     Start the app in development mode on the specified IP and port
     """
-    app.start(host)
+    app.run(host)
 
 
 @cli.command()

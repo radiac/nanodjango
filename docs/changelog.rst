@@ -13,9 +13,11 @@ Features:
 
 Breaking changes:
 
-* Management command ``nanodjango run <script>`` no longer calls ``runserver`` by
-  default. Use ``nanodjango run <script> runserver`` or ``nanodjango start <script>``
-  instead.
+* ``nanodjango run`` is now ``nanodjango manage``, mirroring ``manage.py``.
+* ``nanodjango manage`` no longer calls ``runserver`` by default.
+* ``nanodjango start`` is now ``nanodjango run``, differentiating it from ``serve``.
+* ``Django.run()`` is now ``Django.manage()``
+* ``Django.start()`` is now ``Django.run()``
 
 
 0.8.1 - 2024-09-07

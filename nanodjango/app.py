@@ -358,14 +358,19 @@ class Django:
 
         return False
 
-    def run(self, args: list[str] | tuple[str] | None = None):
+    def manage(self, args: list[str] | tuple[str] | None = None):
         """
         Run a Django management command, passing all arguments
         """
         self._prepare(is_prod=False)
         exec_manage(*(args or []))
 
-    def runserver(self, host: str, port: int):
+    def run(self, host: str | None = None):
+        """
+        Perform app setup commands and run the server in development mode
+        """
+        self._prepare(is_prod=False)
+        host, port = self._prestart(host)
         if self.has_async:
             try:
                 import uvicorn
@@ -382,45 +387,6 @@ class Django:
             )
         else:
             exec_manage("runserver", f"{host}:{port}")
-
-    def _prestart(self, host: str | None = None) -> tuple[str, int]:
-        """
-        Common steps before start() and serve()
-
-        Returns:
-            (host: str, port: int)
-        """
-        # Be helpful and check sys.argv for the host in case the script is run directly
-        if host is None:
-            if len(sys.argv) > 2:
-                raise UsageError("Usage: start [HOST]")
-            elif len(sys.argv) == 2:
-                host = sys.argv[1]
-            else:
-                host = "0:8000"
-
-        port = 8000
-        if ":" in host:
-            host, _port = host.split(":")
-            port = int(_port)
-        elif not host:
-            host = "0"
-
-        exec_manage("makemigrations", self.app_name)
-        exec_manage("migrate")
-        User = get_user_model()
-        if User.objects.count() == 0:
-            exec_manage("createsuperuser")
-
-        return host, port
-
-    def start(self, host: str | None = None):
-        """
-        Perform app setup commands and run the server in development mode
-        """
-        self._prepare(is_prod=False)
-        host, port = self._prestart(host)
-        self.runserver(host, port)
 
     def serve(self, host: str | None = None):
         """
@@ -492,6 +458,37 @@ class Django:
             from django.conf import settings
 
             settings.DEBUG = False
+
+    def _prestart(self, host: str | None = None) -> tuple[str, int]:
+        """
+        Common steps before start() and serve()
+
+        Returns:
+            (host: str, port: int)
+        """
+        # Be helpful and check sys.argv for the host in case the script is run directly
+        if host is None:
+            if len(sys.argv) > 2:
+                raise UsageError("Usage: start [HOST]")
+            elif len(sys.argv) == 2:
+                host = sys.argv[1]
+            else:
+                host = "0:8000"
+
+        port = 8000
+        if ":" in host:
+            host, _port = host.split(":")
+            port = int(_port)
+        elif not host:
+            host = "0"
+
+        exec_manage("makemigrations", self.app_name)
+        exec_manage("migrate")
+        User = get_user_model()
+        if User.objects.count() == 0:
+            exec_manage("createsuperuser")
+
+        return host, port
 
     async def asgi(self, scope, receive, send):
         """

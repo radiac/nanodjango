@@ -53,14 +53,13 @@ async def slow(request):
 Save that as `counter.py`, then set it up and run it:
 
 ```sh
-nanodjango start counter.py
+nanodjango run counter.py
 ```
 
 This will create migrations and a database, and run your project in development mode.
 
-* See [Management commands](https://nanodjango.readthedocs.io/en/latest/management.html)
+* See [Command usage](https://nanodjango.readthedocs.io/en/latest/usage.html)
   for more options
-
 
 ### Convert it to a full site
 
@@ -92,16 +91,16 @@ and call `app.run()` at the bottom:
 
 ```python
 if __name__ == "__main__":
-    app.start()
+    app.run()
 ```
 
 Now your app can be run without installing anything, using `uv` or `pipx`:
 
 ```sh
 # Run with uv
-uv start ./script.py
+uv run ./script.py
 # or with pipx
-pipx start ./script.py
+pipx run ./script.py
 ```
 
 You can still manually install dependencies and run the script directly with Python:
@@ -112,20 +111,32 @@ python script.py
 ```
 
 
+### Run management commands
+
+Anything you would normally do with `manage.py` you can do with `nanodjango manage`:
+```sh
+nanodjango manage script.py check
+nanodjango manage script.py makemigrations script
+nanodjango manage script.py runserver 0:8000
+```
+
+
 ### Run in production
 
-Run it in production using a WSGI server:
+Run it using ``nanodjango serve``:
+```sh
+nanodjango serve counter.py
+```
 
+This will use gunicorn, or uvicorn if you have async views.
+
+Alternatively, you can pass the app directly to a WSGI or ASGI server if you prefer:
 ```sh
 gunicorn -w 4 counter:app
-```
-
-or if you have async views, use an ASGI server:
-
-```sh
 uvicorn counter:app
 ```
-
+* See [Command usage](https://nanodjango.readthedocs.io/en/latest/usage.html)
+  for more options
 
 ### Further reading
 

@@ -35,3 +35,5 @@ we can fix this by moving the ninja import to after instantiating the ``Django``
 
     from ninja import NinjaAPI  # will fail here, settings are not configured
     api = NinjaAPI()
+
+In the specific case of ninja, you can use ``@app.api`` for convenience.

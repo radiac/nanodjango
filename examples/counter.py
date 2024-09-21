@@ -5,8 +5,6 @@ Counter example
 
 Usage::
 
-    nanodjango run counter.py migrate
-    nanodjango run counter.py createsuperuser
     nanodjango run counter.py
 """
 

@@ -41,26 +41,25 @@ Create a new file, ``counter.py`` with the following:
         CountLog.objects.create()
         return {"count": CountLog.objects.count()}
 
-Now use the ``start`` command to create the migrations, apply them, and run your
+Now use the ``run`` command to create the migrations, apply them, and run your
 project:
 
 .. code-block:: bash
 
-    nanodjango start counter.py
-
-or you could run each step manually:
-
-.. code-block:: bash
-    nanodjango run counter.py makemigrations counter
-    nanodjango run counter.py migrate
-    nanodjango run counter.py createsuperuser
     nanodjango run counter.py
 
-Run it in production using WSGI:
+or you could run each step manually using Django management commands:
 
 .. code-block:: bash
+    nanodjango manage counter.py makemigrations counter
+    nanodjango manage counter.py migrate
+    nanodjango manage counter.py createsuperuser
+    nanodjango manage counter.py
 
-    gunicorn -w 4 counter:app
+Serve it in production using gunicorn:
+
+.. code-block:: bash
+    nanodjango serve counter.py
 
 
 or automatically convert it to a full Django app:

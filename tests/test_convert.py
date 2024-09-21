@@ -8,8 +8,8 @@ TEST_BIND = "127.0.0.1:8042"
 
 
 def test_runserver__fbv_with_model(tmp_path):
-    cmd("run", TEST_SCRIPT, "makemigrations", TEST_APP)
-    cmd("run", TEST_SCRIPT, "migrate")
+    cmd("manage", TEST_SCRIPT, "makemigrations", TEST_APP)
+    cmd("manage", TEST_SCRIPT, "migrate")
     cmd("convert", TEST_SCRIPT, str(tmp_path), "--name=converted", "--delete")
 
     with (

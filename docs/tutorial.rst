@@ -90,15 +90,20 @@ file, and they must be defined after ``app = Django()``:
         timestamp = models.DateTimeField(auto_now_add=True)
 
 
-We can now create migrations for the app and apply them:
+We can now run the script, which will create migrations for the app and apply them:
 
 .. code-block:: bash
 
-    nanodjango run counter.py makemigrations counter
-    nanodjango run counter.py migrate
+    nanodjango run counter.py
+
+You could also create migrations manually without running:
+
+.. code-block:: bash
+
+    nanodjango manage counter.py makemigrations counter
 
 For full details on how to use Django management commands with nanodjango, see
-:doc:`management`.
+:doc:`usage`.
 
 
 Use the model
@@ -146,6 +151,8 @@ Use the admin site
 
 To add a model to the admin site, decorate your models with the ``app.admin`` decorator:
 
+.. code-block:: python
+
     @app.admin
     class CountLog(models.Model):
         ...
@@ -175,17 +182,19 @@ site to be active even if you're not using the decorator anywhere.::
 Deploy to production
 ====================
 
-The ``Django`` app instance supports WSGI, so for gunicorn it would be:
+Nanodjango has a built-in command to run your script in production mode, with debug
+turned off, using whitenoise, gunicorn or uvicorn, and sensible defaults::
+
+    nanodjango serve counter.py
+
+If you want more control, you can also pass the ``Django`` instance to a WSGI or ASGI
+server directly:
 
 .. code-block:: bash
 
     gunicorn -w 4 counter:app
-
-or for uwsgi:
-
-.. code-block:: bash
-
     uwsgi --wsgi-file counter.py --callable app --processes 4
+    uvicorn counter:app
 
 
 Convert to a full Django project
@@ -198,7 +207,7 @@ You can do this with:
 
 .. code-block:: bash
 
-    nanodjango counter.py convert /path/to/site --name=myproject
+    nanodjango convert counter.py /path/to/site --name=myproject
 
 This will create a Django project at ``/path/to/site/myproject``, and unpack your single
 file into a full app at ``/path/to/site/myproject/counter``. Your sqlite database,

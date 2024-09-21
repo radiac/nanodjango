@@ -1,6 +1,9 @@
-===============
-Run your script
-===============
+=============
+Command usage
+=============
+
+The ``nanodjango`` shell command has several subcommands.
+
 
 Run using nanodjango
 ====================
@@ -16,7 +19,7 @@ To run your script locally, use development mode:
 
 .. code-block:: bash
 
-    nanodjango start script.py [host:port]
+    nanodjango run script.py [host:port]
 
 This uses ``runserver`` (or ``uvicorn`` for async views), and uses Django's ``static``
 to serve static and media files.
@@ -67,12 +70,11 @@ bottom of your script, eg:
     app = Django()
     ...
     if __name__ == "__main__":
-        app.start()
+        app.run()
 
-You can then run the script directly to launch the Django development server. This will
-also automatically collect any arguments you may have passed on the command line::
+You can then run the script directly to launch the Django development server::
 
-    python hello.py runserver 0:8000
+    python hello.py
 
 
 Running it as a standalone script
@@ -90,7 +92,7 @@ comment to the top to specify ``nanodjango`` as a dependency:
     app = Django()
     ...
     if __name__ == "__main__":
-        app.start()
+        app.run()
 
 This will allow you to pass it to ``uv run`` or ``pipx run``, to run your development
 server without installing anything first:
@@ -98,10 +100,10 @@ server without installing anything first:
 .. code-block:: bash
 
     # Create a temporary venv with ``nanodjango`` installed, then run the script
-    uv start ./script.py
+    uv run ./script.py
 
-    # Call ``run`` and pass some arguments
-    pipx run ./script.py -- runserver 0:8000
+    # Same, but using pipx:
+    pipx run ./script.py
 
 
 Run using WSGI or ASGI
@@ -136,7 +138,7 @@ Management commands
 The ``nanodjango`` command provides a convenient way to run Django management
 commands on your app::
 
-    nanodjango run <script.py> [<command>]
+    nanodjango manage <script.py> [<command>]
 
 
 If the management command is left out, it will default to ``runserver 0:8000`` - these
@@ -144,15 +146,15 @@ two commands are equivalent:
 
 .. code-block:: bash
 
-    nanodjango run counter.py
-    nanodjango run counter.py runserver 0:8000
+    nanodjango manage counter.py
+    nanodjango manage counter.py runserver 0:8000
 
 
-You can run any management command:
+You can perform any management command:
 
 .. code-block:: bash
 
-    nanodjango run counter.py migrate
+    nanodjango manage counter.py migrate
 
 
 For commands which need to know the name of the app, such as ``makemigrations``,
@@ -160,4 +162,4 @@ nanodjango uses the filename as the app name - eg:
 
 .. code-block:: bash
 
-    nanodjango run counter.py makemigrations counter
+    nanodjango manage counter.py makemigrations counter

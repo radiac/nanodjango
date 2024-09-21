@@ -8,11 +8,11 @@ TEST_BIND = "127.0.0.1:8042"
 
 
 def test_runserver__fbv_with_model():
-    cmd("run", TEST_SCRIPT, "makemigrations", TEST_APP)
-    cmd("run", TEST_SCRIPT, "migrate")
+    cmd("manage", TEST_SCRIPT, "makemigrations", TEST_APP)
+    cmd("manage", TEST_SCRIPT, "migrate")
 
     with (
-        nanodjango_process("run", TEST_SCRIPT, "runserver", TEST_BIND) as handle,
+        nanodjango_process("manage", TEST_SCRIPT, "runserver", TEST_BIND) as handle,
         runserver(handle),
     ):
         response = urllib.request.urlopen(f"http://{TEST_BIND}/", timeout=10)

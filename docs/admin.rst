@@ -15,16 +15,6 @@ startproject`` template, so the admin site will always be enabled after conversi
 using ``"admin/"`` if no models are decorated or if ``ADMIN_URL`` was not set.
 
 
-Set up the database
-===================
-
-You will need to ``migrate`` before use, and you will want to add a superuser::
-
-    nanodjango run myapp.py migrate
-    nanodjango run myapp.py createsuperuser
-
-
-
 Register a model
 ================
 

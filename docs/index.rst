@@ -14,10 +14,10 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     get_started
     tutorial
     settings
+    usage
     views
     api
     admin
-    running
     convert
     convert_plugin
     troubleshooting

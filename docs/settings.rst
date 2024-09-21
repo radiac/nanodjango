@@ -36,3 +36,7 @@ to configure itself and to simplify configuring Django:
 ``MIGRATIONS_DIR``
   The directory name for migrations. Useful if you have more than one app script in the
   same dir - such as the examples dir for this project.
+
+``PUBLIC_DIR``
+  If set, nanodjango will use it to set ``WHITENOISE_ROOT``, so any files inside are
+  served from the site root. Useful for ``favicon.ico``, ``robots.txt`` etc.
