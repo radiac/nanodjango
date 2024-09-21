@@ -81,16 +81,19 @@ def run(app: Django, args: tuple[str]):
 @click.argument("host", type=str, required=False, default="")
 def start(app: Django, host: str):
     """
-    Start the app on the specified IP and port
-
-    This will perform a series of setup commands:
-
-        makemigrations <app>
-        migrate
-        createsuperuser
-        runserver HOST
+    Start the app in development mode on the specified IP and port
     """
     app.start(host)
+
+
+@cli.command()
+@click.argument("app", type=str, required=True, callback=load_app)
+@click.argument("host", type=str, required=False, default="")
+def serve(app: Django, host: str):
+    """
+    Serve the app in production mode on the specified IP and port
+    """
+    app.serve(host)
 
 
 @cli.command()

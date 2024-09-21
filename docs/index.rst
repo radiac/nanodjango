@@ -17,7 +17,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     views
     api
     admin
-    management
+    running
     convert
     convert_plugin
     troubleshooting

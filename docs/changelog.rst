@@ -2,6 +2,22 @@
 Changelog
 =========
 
+0.9.0 - TBC
+-----------
+
+Features:
+
+* ``nanodjango serve`` command for production deployments
+* Static files are now served using ``whitenoise``
+* Serve static files in the site root from ``PUBLIC_DIR`` dir (default ``public``)
+
+Breaking changes:
+
+* Management command ``nanodjango run <script>`` no longer calls ``runserver`` by
+  default. Use ``nanodjango run <script> runserver`` or ``nanodjango start <script>``
+  instead.
+
+
 0.8.1 - 2024-09-07
 ------------------
 

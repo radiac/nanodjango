@@ -22,10 +22,12 @@ requires-python = ">=3.8"
 dependencies = [
     "black",
     "click",
+    "gunicorn",
     "isort",
     "Django>=3.2",
     "django-ninja",
     "uvicorn",
+    "whitenoise",
 ]
 
 [project.scripts]

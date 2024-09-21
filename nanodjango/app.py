@@ -109,9 +109,19 @@ class Django:
 
         self.settings = settings
 
+        # Update Django settings with ours
         for key, value in _settings.items():
             setattr(settings, key, value)
 
+        # Set WHITENOISE_ROOT if public dir exists
+        # Do it this way instead of setting WHITENOISE_ROOT directly, because if the dir
+        # does not exist, Whitenoise will raise warnings when run in production
+        if not getattr(settings, "WHITENOISE_ROOT", None):
+            public_dir = settings.PUBLIC_DIR
+            if public_dir.is_dir():
+                settings.WHITENOISE_ROOT = settings.PUBLIC_DIR
+
+        # Collect internal values
         self.app_name = settings.DF_APP_NAME
         self.app_module = app_meta.get_app_module()
         self.app_path = Path(inspect.getfile(self.app_module))
@@ -268,15 +278,14 @@ class Django:
 
         return self._api
 
-    def _prepare(self, with_static=False):
+    def _prepare(self, is_prod=False):
         """
         Perform any final setup for this project after it has been imported:
 
         * detect if it has been run directly; if so, register it as an app
         * register the admin site
-
-        If with_static is True, serve STATIC_URL and MEDIA_URL using
-        django.conf.urls.static.static
+        * if in production mode, collectstatic into STATIC_ROOT
+        * if in development mode, extend urls to serve media files
         """
         # Check if this is being called from click commands or directly
         if self.app_name not in sys.modules:
@@ -318,23 +327,20 @@ class Django:
         if self._api:
             self.route(self.settings.API_URL, include=self._api.urls)
 
-        # Register static and media
-        if with_static:
+        # If running in dev mode, serve media
+        if is_prod:
+            # Collect static
+            exec_manage("collectstatic", "--clear", "--noinput")
+        else:
             from django.conf.urls.static import static
 
-            if self.settings.STATIC_ROOT and Path(self.settings.STATIC_ROOT).exists():
-                urlpatterns.extend(
-                    static(
-                        self.settings.STATIC_URL,
-                        document_root=self.settings.STATIC_ROOT,
-                    )
-                )
             if self.settings.MEDIA_ROOT and Path(self.settings.MEDIA_ROOT).exists():
                 urlpatterns.extend(
                     static(
                         self.settings.MEDIA_URL, document_root=self.settings.MEDIA_ROOT
                     )
                 )
+
         self._prepared = True
 
     @property
@@ -355,28 +361,75 @@ class Django:
     def run(self, args: list[str] | tuple[str] | None = None):
         """
         Run a Django management command, passing all arguments
-
-        Defaults to:
-            runserver 0:8000
         """
-        # Be helpful and check sys.argv for args. This will almost certainly be because
-        # it's running directly.
-        if args is None:
-            args = sys.argv[1:]
+        self._prepare(is_prod=False)
+        exec_manage(*(args or []))
 
-        self._prepare(with_static=True)
-        if args:
-            exec_manage(*args)
+    def runserver(self, host: str, port: int):
+        if self.has_async:
+            try:
+                import uvicorn
+            except ImportError:
+                raise UsageError("Install uvicorn to use async views")
+
+            uvicorn.run(
+                f"{self.app_name}:{self._instance_name}",
+                host=host,
+                port=port,
+                log_level="info",
+                reload=True,
+                interface="asgi3",
+            )
         else:
-            self.runserver()
+            exec_manage("runserver", f"{host}:{port}")
 
-    def runserver(self, host: str | None = None):
+    def _prestart(self, host: str | None = None) -> tuple[str, int]:
+        """
+        Common steps before start() and serve()
+
+        Returns:
+            (host: str, port: int)
+        """
+        # Be helpful and check sys.argv for the host in case the script is run directly
         if host is None:
-            host = "0:8000"
+            if len(sys.argv) > 2:
+                raise UsageError("Usage: start [HOST]")
+            elif len(sys.argv) == 2:
+                host = sys.argv[1]
+            else:
+                host = "0:8000"
+
+        port = 8000
+        if ":" in host:
+            host, _port = host.split(":")
+            port = int(_port)
+        elif not host:
+            host = "0"
+
+        exec_manage("makemigrations", self.app_name)
+        exec_manage("migrate")
+        User = get_user_model()
+        if User.objects.count() == 0:
+            exec_manage("createsuperuser")
+
+        return host, port
+
+    def start(self, host: str | None = None):
+        """
+        Perform app setup commands and run the server in development mode
+        """
+        self._prepare(is_prod=False)
+        host, port = self._prestart(host)
+        self.runserver(host, port)
+
+    def serve(self, host: str | None = None):
+        """
+        Perform app setup and run the server in production mode
+        """
+        self._prepare(is_prod=True)
+        host, port = self._prestart(host)
 
         if self.has_async:
-            import asyncio
-
             try:
                 import uvicorn
             except ImportError:
@@ -392,30 +445,30 @@ class Django:
                 host=host,
                 port=port,
                 log_level="info",
-                reload=True,
                 interface="asgi3",
             )
         else:
-            exec_manage("runserver", host)
+            try:
+                from gunicorn.app.base import BaseApplication
+            except ImportError:
+                raise UsageError("Install gunicorn to serve WSGI")
 
-    def start(self, host: str | None = None):
-        """
-        Perform app setup commands and run the server
-        """
-        # Be helpful and check sys.argv for the host
-        if host is None:
-            if len(sys.argv) > 2:
-                raise UsageError("Usage: start [HOST]")
-            elif len(sys.argv) == 2:
-                host = sys.argv[1]
+            class LoadedApplication(BaseApplication):
+                def __init__(self, app, host="127.0.0.1", port=8000):
+                    self.app = app
+                    self.host = host
+                    self.port = port
+                    super().__init__()
 
-        self._prepare(with_static=True)
-        exec_manage("makemigrations", self.app_name)
-        exec_manage("migrate")
-        User = get_user_model()
-        if User.objects.count() == 0:
-            exec_manage("createsuperuser")
-        self.runserver(host)
+                def load_config(self):
+                    self.cfg.set("bind", f"{self.host}:{self.port}")
+                    self.cfg.set("workers", 4)
+
+                def load(self):
+                    return self.app
+
+            wsgi = LoadedApplication(self, host=host, port=port)
+            wsgi.run()
 
     def convert(self, path: Path, name: str):
         from .convert import Converter

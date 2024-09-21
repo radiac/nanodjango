@@ -22,6 +22,7 @@ Vagrantfile
 examples/*.sqlite3
 examples/*migrations*
 examples/media
+examples/static-collected
 
 # OS-specific
 .DS_Store
