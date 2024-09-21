@@ -22,6 +22,6 @@ def test_run_check__counter_module():
 
 
 def test_run_check__scale():
-    result = cmd("manage", "examples/scale.py", "check")
+    result = cmd("manage", "examples/scale/scale.py", "check")
     assert result.stderr.strip() == ""
     assert result.stdout.strip() == "System check identified no issues (0 silenced)."

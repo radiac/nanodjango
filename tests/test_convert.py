@@ -3,7 +3,7 @@ import urllib.request
 from .utils import cmd, converted_process, runserver
 
 TEST_APP = "scale"
-TEST_SCRIPT = f"examples/{TEST_APP}.py"
+TEST_SCRIPT = f"examples/scale/{TEST_APP}.py"
 TEST_BIND = "127.0.0.1:8042"
 
 
