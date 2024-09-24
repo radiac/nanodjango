@@ -16,7 +16,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     settings
     usage
     views
-    api
+    apis
     admin
     convert
     convert_plugin
