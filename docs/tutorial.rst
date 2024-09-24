@@ -63,7 +63,7 @@ Create an API endpoint
 
 We use `Django Ninja <https://django-ninja.dev/>`_ to provide a simple syntax for
 defining APIs - nanodjango provides a convenient ``@app.api`` decorator which
-initialises and registers a ``NinjaAPI`` instance::
+initialises and registers a ``NinjaAPI`` instance:
 
 .. code-block:: python
 

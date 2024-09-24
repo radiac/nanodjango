@@ -2,6 +2,18 @@
 Changelog
 =========
 
+0.9.1 - TBC
+-----------
+
+Docs:
+
+* Fix incorrect tutorial syntax (#15)
+
+Thanks to:
+
+* Simon Willison (simonw) for providing the tutorial syntax fix (#15)
+
+
 0.9.0 - 2024-09-21
 ------------------
 
