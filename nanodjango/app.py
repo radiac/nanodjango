@@ -41,8 +41,11 @@ class Django:
     # Class variable to ensure there can be only one
     _instantiated = False
 
-    #: Name of the app script
+    #: Name of the app script, eg counter.py has app_name == "counter"
     app_name: str
+
+    #: Cached name of this app instance - see self.instance_name
+    _instance_name: str | None = None
 
     #: Reference to the app script's module
     app_module: ModuleType
@@ -55,9 +58,6 @@ class Django:
 
     #: Whether this app has any async views
     _has_async_view: bool = False
-
-    #: Variable name for this current app
-    _instance_name: str
 
     # Settings cache to aid ``convert``
     _settings: dict[str, Any]
@@ -135,6 +135,30 @@ class Django:
 
         # Ready for Django's standard setup
         setup()
+
+    @property
+    def instance_name(self):
+        """
+        Variable name of this instance in the module it's defined in
+
+        If this instance is assigned to multiple names, the first name will be used
+        Example:
+
+            foobar = Django
+            foobar.instance_name == "foobar"
+        """
+        if not self._instance_name:
+            for var, val in self.app_module.__dict__.items():
+                if val == self:
+                    self._instance_name = var
+                    break
+
+        if not self._instance_name:
+            raise UsageError(
+                f"Could not find Django instance name in {self.app_module.__name__}"
+            )
+        return self._instance_name
+
 
     def route(self, pattern: str, *, re=False, include=None, name=None):
         """
@@ -292,7 +316,7 @@ class Django:
             # Hasn't been run through the ``nanodjango`` command
             if (
                 "__main__" not in sys.modules
-                or getattr(sys.modules["__main__"], self._instance_name) != self
+                or getattr(sys.modules["__main__"], self.instance_name) != self
             ):
                 # Doesn't look like it was run directly either
                 raise UsageError("App module not initialised")
@@ -378,7 +402,7 @@ class Django:
                 raise UsageError("Install uvicorn to use async views")
 
             uvicorn.run(
-                f"{self.app_name}:{self._instance_name}",
+                f"{self.app_name}:{self.instance_name}",
                 host=host,
                 port=port,
                 log_level="info",
@@ -407,7 +431,7 @@ class Django:
                 port = int(port)
 
             uvicorn.run(
-                f"{self.app_name}:{self._instance_name}",
+                f"{self.app_name}:{self.instance_name}",
                 host=host,
                 port=port,
                 log_level="info",

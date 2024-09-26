@@ -5,9 +5,10 @@ Changelog
 0.9.1 - TBC
 -----------
 
-Docs:
+Bugs:
 
 * Fix incorrect tutorial syntax (#15)
+* Fix instance name detection (#21, #22)
 
 Thanks to:
 

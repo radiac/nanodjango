@@ -54,7 +54,8 @@ def load_app(ctx: click.Context, param: str, value: str) -> Django:
 
     if app_name is None or app is None:
         raise click.UsageError(f"App {value} has no Django instances")
-
+    
+    # This would get picked up by app.instance_name, but we have it already
     app._instance_name = app_name
     return app
 
