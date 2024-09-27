@@ -41,6 +41,11 @@ jobs:
     defaults:
       run:
         working-directory: ./examples
+
+    strategy:
+      matrix:
+        module: ["counter", "hello_async"]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -53,10 +58,10 @@ jobs:
           pip install -r ../tests/requirements.txt
 
       - name: Create migrations
-        run: nanodjango manage counter.py makemigrations counter
+        run: nanodjango manage ${{ matrix.module }}.py makemigrations ${{ matrix.module }}
 
-      - name: Test counter.py
-        run: pytest counter.py --cov-append
+      - name: Test ${{ matrix.module }}
+        run: pytest ${{ matrix.module }}.py --cov-append
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
