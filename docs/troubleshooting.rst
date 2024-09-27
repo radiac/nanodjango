@@ -28,7 +28,7 @@ importing the library::
     app = Django()
     api = NinjaAPI()
 
-we can fix this by moving the ninja import to after instantiating the ``Django`` class::
+We can fix this by moving the ninja import to after instantiating the ``Django`` class::
 
     from nanodjango import Django
     app = Django()
