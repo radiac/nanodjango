@@ -1,6 +1,8 @@
+from unittest.mock import patch
 import asyncio
 import random
 
+import pytest
 from nanodjango import Django
 
 app = Django(
@@ -38,3 +40,19 @@ def api_sync(request):
         "saying": "Hello world, sync endpoint.",
         "type": "sync",
     }
+
+
+###############################################################################
+@pytest.fixture(scope="module", autouse=True)
+def _init():
+    """
+    Initialize the Django instance (i.e. admin, ninja).
+    """
+    app._prepare()
+
+
+def test_api_async_get(client):
+    with patch.object(asyncio, "sleep"):
+        response = client.get("/api/async")
+
+    assert response.status_code == 200

@@ -25,7 +25,7 @@ jobs:
           pip install -r tests/requirements.txt
       - name: Set Python path
         run: |
-            echo "PYTHONPATH=." >> $GITHUB_ENV
+          echo "PYTHONPATH=." >> $GITHUB_ENV
       - name: Test
         run: |
           pytest
@@ -33,5 +33,29 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           name: ${{ matrix.python }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  examples:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./examples
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ../
+          pip install -r ../tests/requirements.txt
+
+      - name: Test counter.py
+        run: pytest counter.py --cov-append
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

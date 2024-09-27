@@ -8,9 +8,11 @@ Usage::
     nanodjango run counter.py
 """
 
+import pytest
 from django.db import models
 
 from nanodjango import Django
+
 
 app = Django(
     # Avoid clashes with other examples
@@ -36,3 +38,46 @@ def add(request):
     # Django Ninja API
     CountLog.objects.create()
     return {"count": CountLog.objects.count()}
+
+
+###############################################################################
+pytestmark = pytest.mark.django_db
+
+
+parametrized_make_count_log = pytest.mark.parametrize(
+    "make_data, expected_count",
+    [
+        (lambda: None, 1),
+        (lambda: CountLog.objects.create(), 2),
+    ],
+)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _init():
+    """
+    Initialize the Django instance (i.e. admin, ninja).
+    """
+    app._prepare()
+
+
+@parametrized_make_count_log
+def test_index_view(client, expected_count, make_data):
+    make_data()
+    response = client.get("/")
+    assert response.status_code == 200
+
+    result = response.content.decode()
+    expected = f"<p>Number of page loads: {expected_count}</p>"
+    assert result == expected
+
+
+@parametrized_make_count_log
+def test_api_view(client, expected_count, make_data):
+    make_data()
+    response = client.get("/api/add")
+    assert response.status_code == 200
+
+    result = response.json()
+    expected = {"count": expected_count}
+    assert result == expected
