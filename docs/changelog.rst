@@ -7,13 +7,20 @@ Changelog
 
 Bugs:
 
-* Fix incorrect tutorial syntax (#15)
 * Fix instance name detection (#21, #22)
 * Fix dev mode ASGI (#23)
 
+Docs:
+
+* Fix incorrect doc reference (#16)
+* Fix incorrect tutorial syntax (#15, #16)
+* Fix incorrect convert command invocation (#25)
+* Fix incorrect troubleshooting syntax (#26)
+
 Thanks to:
 
-* Simon Willison (simonw) for providing the tutorial syntax fix (#15)
+* Simon Willison (simonw) for providing doc fixes (#15, #16)
+* vincent d warmerdam (koaning) for providing doc fixes (#26)
 
 
 0.9.0 - 2024-09-21
