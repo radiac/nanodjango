@@ -52,6 +52,9 @@ jobs:
           pip install ../
           pip install -r ../tests/requirements.txt
 
+      - name: Create migrations
+        run: nanodjango manage counter.py makemigrations counter
+
       - name: Test counter.py
         run: pytest counter.py --cov-append
 
