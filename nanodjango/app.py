@@ -402,7 +402,7 @@ class Django:
                 raise UsageError("Install uvicorn to use async views")
 
             uvicorn.run(
-                f"{self.app_name}:{self.instance_name}",
+                f"{self.app_name}:{self.instance_name}.asgi_dev",
                 host=host,
                 port=port,
                 log_level="info",
@@ -470,19 +470,6 @@ class Django:
         converter = Converter(app=self, path=path, name=name)
         converter.build()
 
-    def _call_common(self):
-        """
-        Common steps to set up WSGI/ASGI in production mode
-        """
-        # WSGI/ASGI probably won't have had time to _prepare
-        if not self._prepared:
-            self._prepare()
-
-        if "DEBUG" not in self._settings:
-            from django.conf import settings
-
-            settings.DEBUG = False
-
     def _prestart(self, host: str | None = None) -> tuple[str, int]:
         """
         Common steps before start() and serve()
@@ -514,7 +501,25 @@ class Django:
 
         return host, port
 
-    async def asgi(self, scope, receive, send):
+    def _pre_xsgi(self, is_prod=True):
+        """
+        Common steps to set up WSGI/ASGI
+        """
+        # WSGI/ASGI probably won't have had time to _prepare
+        if not self._prepared:
+            self._prepare()
+
+        # Production settings
+        if not is_prod:
+            return
+
+        if "DEBUG" not in self._settings:
+            from django.conf import settings
+
+            settings.DEBUG = False
+
+ 
+    async def asgi(self, scope, receive, send, is_prod=True):
         """
         ASGI handler
 
@@ -523,10 +528,18 @@ class Django:
         Alternatively run with uvicorn script:app.asgi
         """
         from django.core.asgi import get_asgi_application
-
-        self._call_common()
+        self._pre_xsgi(is_prod=is_prod)
+        
         application = get_asgi_application()
         return await application(scope, receive, send)
+
+    async def asgi_dev(self, scope, receive, send):
+        """
+        ASGI handler for development mode
+
+        Used by uvicorn when called from ``run``
+        """
+        return await self.asgi(scope, receive, send, is_prod=False)
 
     def wsgi(self, environ, start_response):
         """
@@ -534,7 +547,7 @@ class Django:
         """
         from django.core.wsgi import get_wsgi_application
 
-        self._call_common()
+        self._pre_xsgi()
         application = get_wsgi_application()
         return application(environ, start_response)
 

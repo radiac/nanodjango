@@ -2,13 +2,14 @@
 Changelog
 =========
 
-0.9.1 - TBC
------------
+0.9.1 - 2024-09-27
+------------------
 
 Bugs:
 
 * Fix incorrect tutorial syntax (#15)
 * Fix instance name detection (#21, #22)
+* Fix dev mode ASGI (#23)
 
 Thanks to:
 
