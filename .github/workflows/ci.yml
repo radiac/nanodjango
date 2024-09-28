@@ -42,10 +42,6 @@ jobs:
       run:
         working-directory: ./examples
 
-    strategy:
-      matrix:
-        module: ["counter", "hello_async"]
-
     steps:
       - uses: actions/checkout@v4
 
@@ -57,11 +53,16 @@ jobs:
           pip install ../
           pip install -r ../tests/requirements.txt
 
-      - name: Create migrations
-        run: nanodjango manage ${{ matrix.module }}.py makemigrations ${{ matrix.module }}
-
-      - name: Test ${{ matrix.module }}
-        run: pytest ${{ matrix.module }}.py --cov-append
+      - name: Run tests on example modules
+        # We can't (yet) let pytest collect all the modules, since
+        # we can't instantiate nanodjango.Django more than once (due to
+        # django-ninja).
+        run: |
+          for module in "counter" "hello_async" "hello_world"; do
+            echo "Test $module"
+            nanodjango manage ${module}.py makemigrations ${module}
+            pytest ${module}.py --cov-append
+          done
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
