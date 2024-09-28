@@ -180,9 +180,9 @@ class Django:
                 return f"Hello {pk}"
 
             # re_path() parameters
-            @app.route("/(?P<slug>[a-z]/", re=True)
-            def view(request, char):
-                return f"Hello {char}"
+            @app.route("/(?P<slug>[a-z])/", re=True)
+            def view(request, slug):
+                return f"Hello {slug}"
 
             # Include another urlconf
             # Note this is called as a function, not a decorator
