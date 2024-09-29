@@ -172,7 +172,7 @@ This decorator also lets you configure your ``ModelAdmin`` by passing class attr
 
 Using the decorator anywhere in your script will automatically enable the admin site.
 You can customise the url with ``ADMIN_SITE``, or use the setting to force the admin
-site to be active even if you're not using the decorator anywhere.::
+site to be active even if you're not using the decorator anywhere.:
 
 .. code-block:: python
 
