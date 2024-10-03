@@ -17,6 +17,8 @@ def cmd(script, *args, fail_ok=False, cwd=None, **kwargs):
     """
     if cwd is None:
         cwd = Path(__file__).parent.parent
+    elif not isinstance(cwd, Path):
+        cwd = Path(cwd)
     cmd = [sys.executable, "-mnanodjango", script, *args]
     result = subprocess.run(
         cmd,

@@ -1,3 +1,4 @@
+import logging
 import shutil
 import sys
 from importlib import import_module
@@ -7,6 +8,8 @@ from pathlib import Path
 import click
 
 from .app import Django
+
+logger = logging.getLogger(__name__)
 
 
 def load_module(module_name: str, path: str | Path):
@@ -54,7 +57,7 @@ def load_app(ctx: click.Context, param: str, value: str) -> Django:
 
     if app_name is None or app is None:
         raise click.UsageError(f"App {value} has no Django instances")
-    
+
     # This would get picked up by app.instance_name, but we have it already
     app._instance_name = app_name
     return app

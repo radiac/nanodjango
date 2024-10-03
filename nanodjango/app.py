@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import inspect
+import logging
 import os
 import sys
 from pathlib import Path
@@ -14,6 +15,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Model
 from django.views import View
+from pydantic import BaseModel, Field, IPvAnyAddress, field_validator
 
 from . import app_meta
 from .exceptions import ConfigurationError, UsageError
@@ -24,6 +26,43 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from ninja import NinjaAPI
+
+logger = logging.getLogger(__name__)
+
+DEFAULT_RUNSERVER_ADDR_IPV4 = "0.0.0.0"
+DEFAULT_RUNSERVER_ADDR_IPV6 = "::"  # placeholder, not currently used
+DEFAULT_SERVE_ADDR_IPV4 = "127.0.0.1"
+DEFAULT_SERVE_ADDR_IPV6 = "::1"  # placeholder, not currently used
+DEFAULT_PORT = 8000
+
+
+class HostPort(BaseModel):
+    host: IPvAnyAddress = Field(
+        default=DEFAULT_RUNSERVER_ADDR_IPV4, description="Host address to bind to"
+    )
+    port: int = Field(default=DEFAULT_PORT, description="Port to bind to")
+
+    @property
+    def addr(self) -> str:
+        return f"{self.host}:{self.port}"
+
+    @field_validator("host", mode="before")
+    @classmethod
+    def validate_host(cls, value: str | None):
+        if value in ("", "0", None):
+            return DEFAULT_RUNSERVER_ADDR_IPV4
+        return value
+
+    @classmethod
+    def from_str(cls, addr: str):
+        if ":" in addr:
+            host, port = addr.split(":")
+
+            port = int(port)
+            return cls(host=host, port=port)
+        else:
+            host = addr
+            return cls(host=host)
 
 
 def exec_manage(*args):
@@ -158,7 +197,6 @@ class Django:
                 f"Could not find Django instance name in {self.app_module.__name__}"
             )
         return self._instance_name
-
 
     def route(self, pattern: str, *, re=False, include=None, name=None):
         """
@@ -394,7 +432,8 @@ class Django:
         Perform app setup commands and run the server in development mode
         """
         self._prepare(is_prod=False)
-        host, port = self._prestart(host)
+        host_obj = self._prestart(host)
+
         if self.has_async:
             try:
                 import uvicorn
@@ -403,21 +442,21 @@ class Django:
 
             uvicorn.run(
                 f"{self.app_name}:{self.instance_name}.asgi_dev",
-                host=host,
-                port=port,
+                host=host_obj.host,
+                port=host_obj.port,
                 log_level="info",
                 reload=True,
                 interface="asgi3",
             )
         else:
-            exec_manage("runserver", f"{host}:{port}")
+            exec_manage("runserver", f"{host_obj.host}:{host_obj.port}")
 
     def serve(self, host: str | None = None):
         """
         Perform app setup and run the server in production mode
         """
         self._prepare(is_prod=True)
-        host, port = self._prestart(host)
+        host_obj = self._prestart(host)
 
         if self.has_async:
             try:
@@ -425,15 +464,10 @@ class Django:
             except ImportError:
                 raise UsageError("Install uvicorn to use async views")
 
-            port = 8000
-            if ":" in host:
-                host, port = host.split(":")
-                port = int(port)
-
             uvicorn.run(
                 f"{self.app_name}:{self.instance_name}",
-                host=host,
-                port=port,
+                host=host_obj.host,
+                port=host_obj.port,
                 log_level="info",
                 interface="asgi3",
             )
@@ -444,10 +478,16 @@ class Django:
                 raise UsageError("Install gunicorn to serve WSGI")
 
             class LoadedApplication(BaseApplication):
-                def __init__(self, app, host="127.0.0.1", port=8000):
+                def __init__(
+                    self,
+                    app,
+                    host: str = DEFAULT_SERVE_ADDR_IPV4,
+                    port: int = DEFAULT_PORT,
+                ):
+                    host_obj = HostPort(host=host, port=port)
                     self.app = app
-                    self.host = host
-                    self.port = port
+                    self.host = host_obj.host
+                    self.port = host_obj.port
                     super().__init__()
 
                 def load_config(self):
@@ -457,7 +497,7 @@ class Django:
                 def load(self):
                     return self.app
 
-            wsgi = LoadedApplication(self, host=host, port=port)
+            wsgi = LoadedApplication(self, host=host_obj.host, port=host_obj.port)
             wsgi.run()
 
     def convert(self, path: Path, name: str):
@@ -470,28 +510,18 @@ class Django:
         converter = Converter(app=self, path=path, name=name)
         converter.build()
 
-    def _prestart(self, host: str | None = None) -> tuple[str, int]:
-        """
-        Common steps before start() and serve()
-
-        Returns:
-            (host: str, port: int)
-        """
+    def _prestart(self, host: str | None = None) -> HostPort:
+        """Common steps before start() and serve()."""
         # Be helpful and check sys.argv for the host in case the script is run directly
         if host is None:
             if len(sys.argv) > 2:
                 raise UsageError("Usage: start [HOST]")
             elif len(sys.argv) == 2:
-                host = sys.argv[1]
+                host_obj = HostPort(host=sys.argv[1])
             else:
-                host = "0:8000"
-
-        port = 8000
-        if ":" in host:
-            host, _port = host.split(":")
-            port = int(_port)
-        elif not host:
-            host = "0"
+                host_obj = HostPort()
+        else:
+            host_obj = HostPort.from_str(host)
 
         exec_manage("makemigrations", self.app_name)
         exec_manage("migrate")
@@ -499,7 +529,7 @@ class Django:
         if User.objects.count() == 0:
             exec_manage("createsuperuser")
 
-        return host, port
+        return host_obj
 
     def _pre_xsgi(self, is_prod=True):
         """
@@ -518,7 +548,6 @@ class Django:
 
             settings.DEBUG = False
 
- 
     async def asgi(self, scope, receive, send, is_prod=True):
         """
         ASGI handler
@@ -528,8 +557,9 @@ class Django:
         Alternatively run with uvicorn script:app.asgi
         """
         from django.core.asgi import get_asgi_application
+
         self._pre_xsgi(is_prod=is_prod)
-        
+
         application = get_asgi_application()
         return await application(scope, receive, send)
 
