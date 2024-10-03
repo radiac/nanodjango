@@ -20,15 +20,18 @@ classifiers = [
 keywords = ["django"]
 requires-python = ">=3.8"
 dependencies = [
-    "black",
+    "ruff",
     "click",
     "gunicorn",
-    "isort",
     "Django>=3.2",
     "django-ninja",
-    "uvicorn",
     "whitenoise",
 ]
+
+[project.optional-dependencies]
+async = ["uvicorn"]
+
+test = ["pytest", "pytest-cov", "pytest-sugar", "tox"]
 
 [project.scripts]
 nanodjango = "nanodjango.commands:invoke"
@@ -51,7 +54,7 @@ exclude = ["docs*", "tests*", "examples*", "src*", "dist*"]
 version = {attr = "nanodjango.__version__"}
 
 [tool.pytest.ini_options]
-addopts = "--cov=nanodjango --cov-report=term --cov-report=html"
+# addopts = "--cov=nanodjango --cov-report=term --cov-report=html"
 testpaths = [
     "tests",
     "nanodjango",
@@ -62,35 +65,9 @@ pythonpath = ["."]
 [tool.coverage.run]
 source = ["nanodjango"]
 
-[tool.black]
-line-length = 88
-target-version = ["py311"]
-include = "\\.pyi?$"
-
-[tool.isort]
-multi_line_output = 3
-line_length = 88
-known_django = "django"
-sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
-include_trailing_comma = true
-lines_after_imports = 2
-skip = [".git"]
-
 [tool.mypy]
 follow_imports = "skip"
 ignore_missing_imports = true
 
-[tool.doc8]
-max-line-length = 88
-ignore-path = ["*.txt"]
-
 [tool.ruff]
-line-length = 88
-lint.select = ["E", "F"]
-lint.ignore = [
-    "E501",  # line length
-]
-exclude = [
-    ".git",
-    "dist",
-]
+target-version = "py311"

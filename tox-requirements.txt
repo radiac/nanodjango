@@ -1,0 +1,4 @@
+gunicorn
+django-ninja
+whitenoise
+pytest

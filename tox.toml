@@ -1,0 +1,27 @@
+[tool.tox]
+envlist = ["py38-django32", "py38-django41", "py38-django51",
+           "py39-django32", "py39-django41", "py39-django51",
+           "py310-django32", "py310-django41", "py310-django51",
+           "py311-django32", "py311-django41", "py311-django51"]
+
+[testenv]
+setenv = {DJANGO_SETTINGS_MODULE = "myapp.settings"}  # Replace with your Django settings module
+commands = ["python", "manage.py", "test"]
+deps = [
+    "django32: Django>=3.2,<3.3",
+    "django41: Django>=4.1,<4.2",
+    "django51: Django>=5.1,<5.2",
+    "-r tests/requirements.txt"  # Any other dependencies
+]
+
+[testenv.py38]
+basepython = "python3.8"
+
+[testenv.py39]
+basepython = "python3.9"
+
+[testenv.py310]
+basepython = "python3.10"
+
+[testenv.py311]
+basepython = "python3.11"
