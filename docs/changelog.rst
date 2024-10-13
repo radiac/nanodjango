@@ -2,6 +2,18 @@
 Changelog
 =========
 
+0.9.2 - TBC
+-----------
+
+Bugs:
+
+* Fix kwarg handling in string_view decorator (#31)
+
+Thanks to:
+
+* 최병욱 (esc5221) for providing the kwarg handling fix (#31)
+
+
 0.9.1 - 2024-09-27
 ------------------
 
