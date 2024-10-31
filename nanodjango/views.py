@@ -10,15 +10,15 @@ def string_view(fn):
     """
     if inspect.iscoroutinefunction(fn):
 
-        async def django_view(request):
+        async def django_view(request, **kwargs):
             response = await fn(request)
             if isinstance(response, HttpResponse):
                 return response
             return HttpResponse(response)
     else:
 
-        def django_view(request):
-            response = fn(request)
+        def django_view(request, **kwargs):
+            response = fn(request, **kwargs)
             if isinstance(response, HttpResponse):
                 return response
             return HttpResponse(response)

@@ -10,7 +10,7 @@ project structure.
 When you feel that your code has outgrown a single app in a single file, nanodjango
 can help turn it into a full Django project::
 
-    nanodjango counter.py convert path/to/new/project
+    nanodjango convert counter.py path/to/new/project
 
 It will do its best to break up your ``counter.py`` into a proper Django project,
 with your code in an app inside the project called ``counter``.
@@ -25,7 +25,7 @@ The ``convert`` command
 
 With all options, the ``convert`` command is::
 
-    nanodjango <script.py> convert <target/path> --name=<project_name> --delete
+    nanodjango convert <script.py> <target/path> --name=<project_name> --delete
 
 The arguments are:
 
@@ -44,7 +44,7 @@ The arguments are:
 
 For example::
 
-    nanodjango counter.py convert project --name=tracker --delete
+    nanodjango convert counter.py project --name=tracker --delete
 
 * will create a new dir ``project`` next to ``counter.py``
 * it will create a new Django project called ``tracker`` inside that dir, giving you

@@ -2,17 +2,42 @@
 Changelog
 =========
 
-0.9.1 - TBC
------------
+0.9.2 - 2024-10-14
+------------------
 
 Bugs:
 
-* Fix incorrect tutorial syntax (#15)
-* Fix instance name detection (#21, #22)
+* Fix kwarg handling in string_view decorator (#31)
+
+Docs:
+
+* Fix incorrect tutorial syntax (#32, #33)
 
 Thanks to:
 
-* Simon Willison (simonw) for providing the tutorial syntax fix (#15)
+* 최병욱 (esc5221) for providing the kwarg handling fix (#31)
+* Abdulwasiu Apalowo (mrbazzan) for providing doc fix (#32, #33)
+
+
+0.9.1 - 2024-09-27
+------------------
+
+Bugs:
+
+* Fix instance name detection (#21, #22)
+* Fix dev mode ASGI (#23)
+
+Docs:
+
+* Fix incorrect doc reference (#16)
+* Fix incorrect tutorial syntax (#15, #16)
+* Fix incorrect convert command invocation (#25)
+* Fix incorrect troubleshooting syntax (#26)
+
+Thanks to:
+
+* Simon Willison (simonw) for providing doc fixes (#15, #16)
+* vincent d warmerdam (koaning) for providing doc fixes (#26)
 
 
 0.9.0 - 2024-09-21
