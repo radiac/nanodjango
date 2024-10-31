@@ -54,15 +54,7 @@ jobs:
           pip install -r ../tests/requirements.txt
 
       - name: Run tests on example modules
-        # We can't (yet) let pytest collect all the modules, since
-        # we can't instantiate nanodjango.Django more than once (due to
-        # django-ninja).
-        run: |
-          for module in "counter" "hello_async" "hello_world"; do
-            echo "Test $module"
-            nanodjango manage ${module}.py makemigrations ${module}
-            pytest ${module}.py --cov-append
-          done
+        run: ./test.sh
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
