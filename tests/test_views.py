@@ -1,5 +1,4 @@
 import pytest
-from django.test import Client
 
 from nanodjango import Django
 
@@ -24,11 +23,6 @@ def nanodjango_app():
         return f"Hello {slug}"
 
     return app
-
-
-@pytest.fixture(scope="module", autouse=True)
-def client():
-    return Client()
 
 
 def test_get(client):
