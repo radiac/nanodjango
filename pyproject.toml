@@ -26,6 +26,7 @@ dependencies = [
     "isort",
     "Django>=3.2",
     "django-ninja",
+    "djp",
     "uvicorn",
     "whitenoise",
 ]
