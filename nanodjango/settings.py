@@ -6,6 +6,8 @@ from os import getenv
 from pathlib import Path
 from types import ModuleType
 
+import djp
+
 from nanodjango.app_meta import get_app_conf, get_app_module
 
 app_conf = get_app_conf()
@@ -130,3 +132,6 @@ API_URL = "api/"
 
 # Directory containing public files
 PUBLIC_DIR = BASE_DIR / "public"
+
+# Initialize djp
+djp.settings(globals())
