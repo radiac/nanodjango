@@ -97,10 +97,15 @@ class AppView(ConverterObject):
         self.references = self.visitor.globals_ref
 
     def rewrite_app_render(self):
-        app_attr_nodes = []
-        # Go over all app references we found
+        # Find all app references in this view
         dirty = False
-        for node in self.visitor.globals_lookup.get(self.converter.app._instance_name):
+        app_nodes = self.visitor.globals_lookup.get(self.converter.app._instance_name)
+        if not app_nodes:
+            return
+
+        # Find the ones which are app.render calls
+        app_attr_nodes = []
+        for node in app_nodes:
             attr_node = getattr(node, "attribute_parent", None)
 
             if attr_node and attr_node.attr == "render":
@@ -108,6 +113,7 @@ class AppView(ConverterObject):
             else:
                 dirty = True
 
+        # Try to clean up - we don't want any app references
         if dirty:
             print(f"Unexpected reference to `app` in view {self.name}")
         elif app_attr_nodes:
