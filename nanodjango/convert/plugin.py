@@ -7,7 +7,6 @@ from __future__ import annotations
 import importlib.metadata
 from typing import TYPE_CHECKING, Any
 
-
 if TYPE_CHECKING:
     import ast
 
@@ -74,6 +73,14 @@ class BaseConverterPlugin:
     def copy_assets(self, converter: Converter):
         """
         Copy additional assets into the project.
+
+        Args:
+            converter (Converter): The current converter instance.
+        """
+
+    def build_app_templates(self, converter: Converter):
+        """
+        Build templates from the app.templates dict.
 
         Args:
             converter (Converter): The current converter instance.

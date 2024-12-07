@@ -6,13 +6,14 @@ import os
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence
 
 from django import setup
 from django import urls as django_urls
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Model
+from django.shortcuts import render
 from django.views import View
 
 from . import app_meta
@@ -23,6 +24,7 @@ from .views import string_view
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from django.http import HttpRequest, HttpResponse
     from ninja import NinjaAPI
 
 
@@ -55,6 +57,9 @@ class Django:
 
     #: Whether this app has defined an @app.admin
     has_admin: bool = False
+
+    #: In-memory template store - access via app.templates
+    _templates: dict[str, str]
 
     #: Whether this app has any async views
     _has_async_view: bool = False
@@ -125,6 +130,7 @@ class Django:
         self.app_name = settings.DF_APP_NAME
         self.app_module = app_meta.get_app_module()
         self.app_path = Path(inspect.getfile(self.app_module))
+        self._templates = app_meta.get_templates()
 
         # Import and apply glue after django.conf has its settings
         from .django_glue.apps import prepare_apps
@@ -159,8 +165,15 @@ class Django:
             )
         return self._instance_name
 
-
-    def route(self, pattern: str, *, re=False, include=None, name=None):
+    def route(
+        self,
+        pattern: str,
+        *,
+        re: bool = False,
+        include=None,
+        name: str | None = None,
+        template: bool | str | None = None,
+    ):
         """
         Decorator to add a view to the urls
 
@@ -301,6 +314,31 @@ class Django:
             self._api = api
 
         return self._api
+
+    @property
+    def templates(self) -> dict[str, str]:
+        return self._templates
+
+    @templates.setter
+    def templates(self, data: dict[str, str]):
+        # Set or replace the templates dict, maintaining the single object reference
+        if self._templates:
+            self._templates.clear()
+        self._templates.update(data)
+
+    def render(
+        self,
+        request: HttpRequest,
+        template_name: str | Sequence[str],
+        context: Mapping[str, Any] | None = None,
+        content_type: str | None = None,
+        status: int | None = None,
+        using: str | None = None,
+    ) -> HttpResponse:
+        """
+        Convenience wrapper for ``django.shortcuts.render`` to save an import
+        """
+        return render(request, template_name, context, content_type, status, using)
 
     def _prepare(self, is_prod=False):
         """
@@ -518,7 +556,6 @@ class Django:
 
             settings.DEBUG = False
 
- 
     async def asgi(self, scope, receive, send, is_prod=True):
         """
         ASGI handler
@@ -528,8 +565,9 @@ class Django:
         Alternatively run with uvicorn script:app.asgi
         """
         from django.core.asgi import get_asgi_application
+
         self._pre_xsgi(is_prod=is_prod)
-        
+
         application = get_asgi_application()
         return await application(scope, receive, send)
 

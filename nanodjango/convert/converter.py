@@ -249,6 +249,7 @@ class Converter:
         plugins.build_settings_done(self)
 
         self.copy_assets()
+        self.build_app_templates()
 
         self.build_app_models()
         plugins.build_app_models_done(self)
@@ -458,6 +459,21 @@ class Converter:
 
         plugins.copy_assets(self)
 
+    def build_app_templates(self) -> None:
+        """
+        Build ``templates/*html`` from the app.templates dict
+
+        Hooks:
+            build_templates: After the templates have been built
+        """
+        dest_dir = self.app_path / "templates"
+        for template_name, template_str in self.app.templates.items():
+            path = dest_dir / template_name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(template_str)
+
+        plugins.build_app_templates(self)
+
     def build_app_models(self) -> None:
         """
         Build ``app/models.py`` and collect models in ``self.models`` (a list of
@@ -513,8 +529,15 @@ class Converter:
         if not self.views and not extra_src:
             return
 
+        extra_imports = ""
+        if any([v.has_render for v in self.views]):
+            # If we're converting an app.render, register that we know render
+            extra_imports = "from django.shortcuts import render"
+            resolver.global_refs.remove("render")
+
         self.write_file(
             self.app_path / "views.py",
+            extra_imports,
             resolver.gen_src(),
             "\n".join([app_view.src for app_view in self.views]),
             "\n".join(extra_src),

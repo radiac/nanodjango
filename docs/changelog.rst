@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.10.0 - TBC
+------------
+
+Features:
+
+* Improved template support (#44)
+
+
 0.9.2 - 2024-10-14
 ------------------
 

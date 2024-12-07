@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+from collections import defaultdict
 
 
 class ReferenceVisitor(ast.NodeVisitor):
@@ -14,9 +15,13 @@ class ReferenceVisitor(ast.NodeVisitor):
     #: Set of global names referenced
     globals_ref: set[str]
 
+    #: Lookup of which nodes reference each global
+    globals_lookup: dict[str, list[ast.AST]]
+
     def __init__(self):
         self.locals_stack = [set()]
         self.globals_ref = set()
+        self.globals_lookup = defaultdict(list)
 
     def push_scope(self):
         self.locals_stack.append(self.current_scope.copy())
@@ -32,11 +37,13 @@ class ReferenceVisitor(ast.NodeVisitor):
     def local_scopes(self):
         return set().union(*self.locals_stack)
 
-    def found_reference(self, ref):
+    def found_reference(self, node):
+        ref = node.id
         if ref in __builtins__:
             return
         if ref not in self.local_scopes:
             self.globals_ref.add(ref)
+        self.globals_lookup[ref].append(node)
 
     def visit_FunctionDef(self, node):
         """Function definition, including top level definition if obj is a function"""
@@ -88,18 +95,19 @@ class ReferenceVisitor(ast.NodeVisitor):
     def visit_Attribute(self, node):
         """Accessing an attribute of a variable"""
         if isinstance(node.value, ast.Name):
-            self.found_reference(node.value.id)
+            node.value.attribute_parent = node
+            self.found_reference(node.value)
         self.visit(node.value)
 
     def visit_Name(self, node):
         """Accessing something in scope, eg a variable"""
         if isinstance(node.ctx, ast.Load):
-            self.found_reference(node.id)
+            self.found_reference(node)
 
     def visit_Global(self, node):
         """Bringing in a global reference"""
         for name in node.names:
-            self.globals_ref.add(name)
+            self.found_reference(node)
 
     def visit_ListComp(self, node: ast.ListComp | ast.SetComp | ast.GeneratorExp):
         """List and set comprehensions, and generator expressions"""

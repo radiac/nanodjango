@@ -7,7 +7,6 @@
 from types import ModuleType
 from typing import Any
 
-
 #: Reference to app module
 #:
 #: Available after the app is imported, before app.run() is called
@@ -20,6 +19,9 @@ _app_module: ModuleType | None = None
 #: Used to configure settings
 _app_conf: dict[str, Any] = {}
 
+#: Dict for in-memory template definitions
+_locmem_templates: dict[str, str] = {}
+
 
 def get_app_module() -> ModuleType:
     global _app_module
@@ -30,3 +32,7 @@ def get_app_module() -> ModuleType:
 
 def get_app_conf() -> dict[str, Any]:
     return _app_conf
+
+
+def get_templates() -> dict[str, str]:
+    return _locmem_templates

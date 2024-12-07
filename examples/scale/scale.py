@@ -9,7 +9,7 @@ should be converted.
 
 Usage::
 
-    nanodjango scale.py convert /path/to/site --name=myproject
+    nanodjango convert scale.py /path/to/site --name=myproject
     cd /path/to/site
     ./manage.py runserver 0:8000
 """

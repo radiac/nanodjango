@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, cast
 
 from django.http import HttpResponse
 
+from .reference import ReferenceVisitor
 from .utils import (
     applied_ensure_http_response,
     collect_references,
@@ -17,7 +18,6 @@ from .utils import (
     obj_to_ast,
     parse_admin_decorator,
 )
-
 
 if TYPE_CHECKING:
     from .converter import Converter
@@ -53,9 +53,24 @@ class ConverterObject:
         self.references = collect_references(self.ast)
 
 
+class AppRenderRewriter(ast.NodeTransformer):
+    def __init__(self, app_attr_nodes: list[ast.AST]):
+        self.app_attr_nodes = app_attr_nodes
+
+    def visit_Call(self, node):
+        if isinstance(node.func, ast.Attribute) and node.func in self.app_attr_nodes:
+            return ast.Call(
+                func=ast.Name(id="render", ctx=ast.Load()),
+                args=node.args,
+                keywords=node.keywords,
+            )
+        return self.generic_visit(node)
+
+
 class AppView(ConverterObject):
     pattern: str
     url_config: dict[str, Any]
+    has_render: bool = False
 
     def __init__(
         self,
@@ -73,6 +88,41 @@ class AppView(ConverterObject):
 
         self.fix_return_value()
         self.collect_references()
+        self.rewrite_app_render()
+
+    def collect_references(self):
+        # Same as standard collect_references, except we persist the visitor
+        self.visitor = ReferenceVisitor()
+        self.visitor.visit(self.ast)
+        self.references = self.visitor.globals_ref
+
+    def rewrite_app_render(self):
+        app_attr_nodes = []
+        # Go over all app references we found
+        dirty = False
+        for node in self.visitor.globals_lookup.get(self.converter.app._instance_name):
+            attr_node = getattr(node, "attribute_parent", None)
+
+            if attr_node and attr_node.attr == "render":
+                app_attr_nodes.append(attr_node)
+            else:
+                dirty = True
+
+        if dirty:
+            print(f"Unexpected reference to `app` in view {self.name}")
+        elif app_attr_nodes:
+            self.visitor.globals_ref.remove(self.converter.app._instance_name)
+            del self.visitor.globals_lookup[self.converter.app._instance_name]
+
+        if not app_attr_nodes:
+            return
+
+        # Found one to rewrite
+        self.has_render = True
+        rewriter = AppRenderRewriter(app_attr_nodes)
+        self.ast = rewriter.visit(self.ast)
+        self.src = ast.unparse(self.ast)
+        self.references.add("render")
 
     def fix_return_value(self):
         """
