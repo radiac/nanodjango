@@ -12,6 +12,7 @@ Features:
 Bugs:
 
 * Fix view decorators when used with ``@app.route`` (#50)
+* Fix missing arguments in ``string_view`` (#54)
 
 
 0.9.2 - 2024-10-14

@@ -12,8 +12,8 @@ def string_view(fn):
     if inspect.iscoroutinefunction(fn):
 
         @wraps(fn)
-        async def django_view(request, **kwargs):
-            response = await fn(request)
+        async def django_view(request, *args, **kwargs):
+            response = await fn(request, *args, **kwargs)
             if isinstance(response, HttpResponse):
                 return response
             return HttpResponse(response)
@@ -21,8 +21,8 @@ def string_view(fn):
     else:
 
         @wraps(fn)
-        def django_view(request, **kwargs):
-            response = fn(request, **kwargs)
+        def django_view(request, *args, **kwargs):
+            response = fn(request, *args, **kwargs)
             if isinstance(response, HttpResponse):
                 return response
             return HttpResponse(response)
