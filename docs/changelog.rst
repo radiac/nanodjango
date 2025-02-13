@@ -7,7 +7,11 @@ Changelog
 
 Features:
 
-* Improved template support (#44)
+* Support templates in the single file (#44)
+
+Bugs:
+
+* Fix view decorators when used with ``@app.route`` (#50)
 
 
 0.9.2 - 2024-10-14

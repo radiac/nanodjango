@@ -123,12 +123,13 @@ nanodjango manage script.py runserver 0:8000
 
 ### Run in production
 
-Run it using ``nanodjango serve``:
+To run nanodjango with production defaults, use ``nanodjango serve``:
 ```sh
 nanodjango serve counter.py
 ```
 
-This will use gunicorn, or uvicorn if you have async views.
+This will use gunicorn, or uvicorn if you have async views. It will also turn off
+`settings.DEBUG`, and will not serve media files.
 
 Alternatively, you can pass the app directly to a WSGI or ASGI server if you prefer:
 ```sh
