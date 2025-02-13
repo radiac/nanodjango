@@ -16,6 +16,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     settings
     usage
     views
+    templates
     apis
     admin
     convert
