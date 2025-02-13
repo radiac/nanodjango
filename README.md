@@ -66,7 +66,7 @@ This will create migrations and a database, and run your project in development 
 If your project outgrows its single file, you can convert it into a full Django site:
 
 ```sh
-nanodjango counter.py convert path/to/site --name=counter
+nanodjango convert counter.py path/to/site --name=counter
 ```
 
 * See
