@@ -110,6 +110,9 @@ def serve(app: Django, host: str):
 def convert(
     app: Django, path: click.Path, name: str, can_delete: bool, plugin: list[str]
 ):
+    """
+    convert the app into a full Django site
+    """
     # Load plugins
     for index, plugin_path in enumerate(plugin):
         plugin_name = Path(plugin_path).stem
