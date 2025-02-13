@@ -11,8 +11,14 @@ Features:
 
 Bugs:
 
+* Add missing license file (#49)
 * Fix view decorators when used with ``@app.route`` (#50)
+* Fix incorrect convert command in readme (#53)
 * Fix missing arguments in ``string_view`` (#54)
+
+Thanks to:
+
+* lybtt for the readme fix (#53)
 
 
 0.9.2 - 2024-10-14
