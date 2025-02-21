@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+addopts = ""
+pythonpath = ["."]
+testpaths = []  # Disabled until nanodjango.Django can be instantiated multiple times
