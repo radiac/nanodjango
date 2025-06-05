@@ -7,6 +7,7 @@ from pathlib import Path
 import click
 
 from .app import Django
+from .hookspecs import get_contrib_plugins
 
 
 def load_module(module_name: str, path: str | Path):
@@ -54,15 +55,22 @@ def load_app(ctx: click.Context, param: str, value: str) -> Django:
 
     if app_name is None or app is None:
         raise click.UsageError(f"App {value} has no Django instances")
-    
+
     # This would get picked up by app.instance_name, but we have it already
     app._instance_name = app_name
     return app
 
 
 @click.group()
-def cli():
-    pass
+@click.option("--plugin", "-p", multiple=True, help="Converter plugins to load")
+def cli(plugin: list[str]):
+    # Load plugins
+    for index, plugin_path in enumerate(plugin):
+        plugin_name = Path(plugin_path).stem
+        module = load_module(
+            f"nanodjango.contrib.runtime_{index}_{plugin_name}", plugin_path
+        )
+        Django._plugins.append(module)
 
 
 @cli.command()
@@ -106,26 +114,41 @@ def serve(app: Django, host: str):
     default=False,
     help="If the target path is not empty, delete it before proceeding",
 )
-@click.option("--plugin", "-p", multiple=True, help="Converter plugins to load")
-def convert(
-    app: Django, path: click.Path, name: str, can_delete: bool, plugin: list[str]
-):
+def convert(app: Django, path: click.Path, name: str, can_delete: bool):
     """
-    convert the app into a full Django site
+    Convert the app into a full Django site
     """
-    # Load plugins
-    for index, plugin_path in enumerate(plugin):
-        plugin_name = Path(plugin_path).stem
-        load_module(
-            f"nanodjango.convert.contrib.runtime_{index}_{plugin_name}", plugin_path
-        )
-
     # Clear out target path
     target_path: Path = Path(str(path)).resolve()
     if can_delete and target_path.exists():
         shutil.rmtree(str(target_path))
 
     app.convert(target_path, name)
+
+
+@cli.command()
+def plugins():
+    """
+    List installed plugins
+    """
+    import importlib.metadata
+
+    click.echo("Active nanodjango plugins:")
+
+    entry_points = importlib.metadata.entry_points()
+    count = 0
+
+    for contrib_module in get_contrib_plugins():
+        click.echo(f"  {contrib_module}")
+        count += 1
+
+    for entry_point in entry_points:
+        if entry_point.group == "nanodjango":
+            click.echo(f"  {entry_point.name}")
+            count += 1
+
+    if count == 0:
+        click.echo("None")
 
 
 def invoke():

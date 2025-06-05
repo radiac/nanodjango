@@ -1,6 +1,6 @@
 import urllib.request
 
-from .utils import cmd, converted_process, runserver
+from nanodjango.testing.utils import cmd, django_process, runserver
 
 TEST_APP = "scale"
 TEST_SCRIPT = f"examples/scale/{TEST_APP}.py"
@@ -13,7 +13,7 @@ def test_runserver__fbv_with_model(tmp_path):
     cmd("convert", TEST_SCRIPT, str(tmp_path), "--name=converted", "--delete")
 
     with (
-        converted_process(tmp_path, "runserver", TEST_BIND) as handle,
+        django_process(tmp_path, "runserver", TEST_BIND) as handle,
         runserver(handle),
     ):
         response = urllib.request.urlopen(f"http://{TEST_BIND}/", timeout=10)

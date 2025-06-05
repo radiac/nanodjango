@@ -22,12 +22,23 @@ requires-python = ">=3.8"
 dependencies = [
     "black",
     "click",
-    "gunicorn",
-    "isort",
     "Django>=3.2",
     "django-ninja",
+    "gunicorn",
+    "isort",
+    "pluggy",
     "uvicorn",
     "whitenoise",
+]
+
+[project.optional-dependencies]
+static = [
+    "django-nanopages",
+    "django-distill",
+]
+full = [
+    "django-nanopages",
+    "django-distill",
 ]
 
 [project.scripts]

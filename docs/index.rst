@@ -20,7 +20,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     apis
     admin
     convert
-    convert_plugin
+    plugins
     troubleshooting
     contributing
     changelog

@@ -15,7 +15,6 @@ from django.db.models import Model
 
 from ..exceptions import ConversionError
 from .objects import AppApiView, AppModel, AppView
-from .plugin import plugins
 from .utils import (
     collect_references,
     ensure_http_response,
@@ -149,7 +148,7 @@ class Converter:
 
     def __init__(self, app: Django, path: Path, name: str):
         """
-        Prepare state and load plugins
+        Prepare state
         """
         self.app = app
         self.root_path = path
@@ -165,8 +164,7 @@ class Converter:
         self.imports = {}
         self.used = set()
 
-        plugins.load()
-        plugins.init(self)
+        self.app.pm.hook.convert_init(converter=self)
 
     @property
     def project_path(self):
@@ -238,40 +236,40 @@ class Converter:
             build_start: Called at the start
             build_end: Called at the end
         """
-        plugins.build_start(self)
-
+        self.app.pm.hook.convert_build_start(converter=self)
         self.collect_imports()
 
         self.build_project()
-        plugins.build_project_done(self)
+        self.app.pm.hook.convert_build_project_done(converter=self)
 
         self.build_settings()
-        plugins.build_settings_done(self)
+        self.app.pm.hook.convert_build_settings_done(converter=self)
 
         self.copy_assets()
         self.build_app_templates()
 
         self.build_app_models()
-        plugins.build_app_models_done(self)
+        self.app.pm.hook.convert_build_app_models_done(converter=self)
 
         self.build_app_views()
-        plugins.build_app_views_done(self)
+        self.app.pm.hook.convert_build_app_views_done(converter=self)
 
         self.build_app_api()
-        plugins.build_app_api_done(self)
+        self.app.pm.hook.convert_build_app_api_done(converter=self)
 
         self.app_has_urls = False
         self.build_app_urls()
-        plugins.build_app_urls_done(self)
+        self.app.pm.hook.convert_build_app_urls_done(converter=self)
+
         self.build_urls()
-        plugins.build_urls_done(self)
+        self.app.pm.hook.convert_build_urls_done(converter=self)
 
         self.build_app_admin()
-        plugins.build_app_admin_done(self)
+        self.app.pm.hook.convert_build_app_admin_done(converter=self)
 
         self.build_app_unused()
 
-        plugins.build_end(self)
+        self.app.pm.hook.convert_build_end(converter=self)
 
     def collect_imports(self) -> dict[str, str]:
         """
@@ -288,7 +286,7 @@ class Converter:
                 for alias in node.names:
                     self.imports[alias.name] = f"from {node.module} import {alias.name}"
 
-        plugins.collect_imports(self)
+        self.app.pm.hook.collect_imports(converter=self)
         return self.imports
 
     def build_project(self) -> None:
@@ -395,7 +393,9 @@ class Converter:
             settings_ast.body.append(node)
 
         # Plugin hook
-        resolver, settings_ast = plugins.build_settings(self, resolver, settings_ast)
+        self.app.pm.hook.convert_build_settings(
+            converter=self, resolver=resolver, settings_ast=settings_ast
+        )
 
         # Insert any references - usually imports
         ref_src = resolver.gen_src()
@@ -457,7 +457,7 @@ class Converter:
                     self.app_path / dest_name,
                 )
 
-        plugins.copy_assets(self)
+        self.app.pm.hook.copy_assets(converter=self)
 
     def build_app_templates(self) -> None:
         """
@@ -472,7 +472,7 @@ class Converter:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(template_str)
 
-        plugins.build_app_templates(self)
+        self.app.pm.hook.convert_build_app_templates(converter=self)
 
     def build_app_models(self) -> None:
         """
@@ -492,7 +492,10 @@ class Converter:
                 self.models.append(app_model)
                 resolver.add(name, app_model.references)
 
-        resolver, extra_src = plugins.build_app_models(self, resolver, [])
+        extra_src = []
+        self.app.pm.hook.convert_build_app_models(
+            converter=self, resolver=resolver, extra_src=extra_src
+        )
 
         if not self.models and not extra_src:
             return
@@ -524,7 +527,10 @@ class Converter:
             self.views.append(app_view)
             resolver.add(view.__name__, app_view.references)
 
-        resolver, extra_src = plugins.build_app_views(self, resolver, [])
+        extra_src = []
+        self.app.pm.hook.convert_build_app_views(
+            converter=self, resolver=resolver, extra_src=extra_src
+        )
 
         if not self.views and not extra_src:
             return
@@ -579,7 +585,10 @@ class Converter:
                 self.api_views.append(api_view)
                 resolver.add(name, api_view.references)
 
-        resolver, extra_src = plugins.build_app_api(self, resolver, [])
+        extra_src = []
+        self.app.pm.hook.convert_build_app_api(
+            converter=self, resolver=resolver, extra_src=extra_src
+        )
         if not self.api_views and not extra_src:
             return
 
@@ -647,7 +656,10 @@ class Converter:
             else:
                 imports.add("path")
 
-        resolver, urls, extra_src = plugins.build_app_urls(self, resolver, urls, [])
+        extra_src = []
+        self.app.pm.hook.convert_build_app_urls(
+            converter=self, resolver=resolver, extra_src=extra_src
+        )
 
         if not urls and not extra_src:
             return
@@ -704,7 +716,9 @@ class Converter:
                 raise ConversionError("Expected to find admin path in urls.py")
             src = src.replace(pattern, f'"{self.app._settings["ADMIN_URL"]}"')
 
-        src = plugins.build_urls(self, src)
+        src_lines = src.splitlines()
+        self.app.pm.hook.convert_build_urls(converter=self, src=src_lines)
+        src = "\n".join(src_lines)
         self.write_file(filename, src)
 
     def build_app_admin(self) -> None:
@@ -729,8 +743,9 @@ class Converter:
 
         # TODO: We could collect ModelAdmin. For now lets let it fall into unused
 
-        resolver, admins, extra_src = plugins.build_app_admin(
-            self, resolver, admins, []
+        extra_src = []
+        self.app.pm.hook.convert_build_app_admin(
+            converter=self, resolver=resolver, extra_src=extra_src
         )
 
         if not model_names:
@@ -770,7 +785,10 @@ class Converter:
             all_src.append(obj_src)
             resolver.add(obj_name, references)
 
-        resolver, extra_src = plugins.build_app_unused(self, resolver, [])
+        extra_src = []
+        self.app.pm.hook.convert_build_app_unused(
+            converter=self, resolver=resolver, extra_src=extra_src
+        )
 
         if not all_src or extra_src:
             return

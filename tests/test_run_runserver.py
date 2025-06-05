@@ -1,6 +1,6 @@
 import urllib.request
 
-from .utils import cmd, nanodjango_process, runserver
+from nanodjango.testing.utils import cmd, nanodjango_process, runserver
 
 TEST_APP = "scale"
 TEST_SCRIPT = f"examples/scale/{TEST_APP}.py"

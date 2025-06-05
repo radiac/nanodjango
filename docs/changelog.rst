@@ -2,6 +2,70 @@
 Changelog
 =========
 
+0.11.0 - TBC
+------------
+
+Features
+
+* Added new plugin system using pluggy
+* Added contrib plugin for django-distill
+* Add django-nanopages and django-distill as optional dependencies under ``[static]``
+* Install all optional dependencies with ``[full]``
+
+Breaking changes:
+
+* The ``convert`` plugin system has been replaced with the pluggy-based plugin system -
+  see :ref:`_upgrade_0_11_0__plugins` below
+* The ``--plugin`` option has moved from ``nanodjango convert --plugin=...`` to
+  ``nanodjango --plugin=... <command>``
+* Plugins are no longer registered on import - plugins now need to be explicitly
+  passed with ``--plugin``, or manually registered with ``app.pm.hook.register(...)``.
+
+Bugs:
+
+* Fix admin site URL order so it is still served with a catch-all route.
+
+
+.. _upgrade_0_11_0__plugins
+
+Upgrading convert plugins
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Existing converter plugins will need to be converted to work with pluggy.
+
+Code within plugin hooks should work as before, but they will need to be restructured.
+
+#. remove imports from ``nanodjango.convert.plugins`` - that no longer exists
+#. add ``from nanodjango import hookimpl``
+#. remove the ``ConverterPlugin`` classes and move the methods to functions
+#. add the ``@hookimpl`` decorator to the plugin functions
+#. add a ``convert_`` prefix to the function names
+#. You should use side effects to update args in place, like the resolver and extra_src
+
+For example, if your plugin was::
+
+    from ..convert.plugin import ConverterPlugin
+
+    class MyConverter(ConverterPlugin):
+        def build_app_api(
+            self, converter: Converter, resolver: Resolver, extra_src: list[str]
+        ) -> tuple[Resolver, list[str]]:
+            # do something
+            return resolver, extra_src
+
+it should now be::
+
+    from nanodjango import hookimpl
+
+    @hookimpl
+    def convert_build_app_api(
+        converter: Converter, resolver: Resolver, extra_src: list[str]
+    ):
+        # update resolver and extra_src in place
+
+
+
+
 0.10.0 - 2025-02-13
 -------------------
 

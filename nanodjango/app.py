@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import importlib
 import inspect
 import os
 import sys
@@ -8,6 +9,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence
 
+import pluggy
 from django import setup
 from django import urls as django_urls
 from django.contrib import admin
@@ -16,7 +18,7 @@ from django.db.models import Model
 from django.shortcuts import render
 from django.views import View
 
-from . import app_meta
+from . import app_meta, hookspecs
 from .exceptions import ConfigurationError, UsageError
 from .urls import urlpatterns
 from .views import string_view
@@ -39,6 +41,9 @@ class Django:
     """
     The main Django app
     """
+
+    # Class attribute: list of plugin modules to load - set by click
+    _plugins = []
 
     # Class variable to ensure there can be only one
     _instantiated = False
@@ -96,11 +101,29 @@ class Django:
             app = Django()
             app = Django(SECRET_KEY="some-secret", ALLOWED_HOSTS=["my.example.com"])
         """
+        self.init_plugin_manager()
+
         self.has_admin = False
         self._settings = {}
         self._routes = {}
         self._config(_settings)
         self._prepared = False
+
+    def init_plugin_manager(self):
+        self.pm = pluggy.PluginManager("nanodjango")
+        self.pm.add_hookspecs(hookspecs)
+
+        # Load installed modules which register with our entrypoint
+        self.pm.load_setuptools_entrypoints("nanodjango")
+
+        # Load contrib plugins we provide
+        for module_path in hookspecs.get_contrib_plugins():
+            module = importlib.import_module(module_path)
+            self.pm.register(module)
+
+        # Load plugins from the command line
+        for plugin in self._plugins:
+            self.pm.register(plugin)
 
     def _config(self, _settings):
         """
@@ -140,7 +163,9 @@ class Django:
         prepare_apps(self.app_name, self.app_module)
 
         # Ready for Django's standard setup
+        self.pm.hook.django_pre_setup(app=self)
         setup()
+        self.pm.hook.django_post_setup(app=self)
 
     @property
     def instance_name(self):
@@ -168,11 +193,11 @@ class Django:
     def route(
         self,
         pattern: str,
+        include=None,
         *,
         re: bool = False,
-        include=None,
         name: str | None = None,
-        template: bool | str | None = None,
+        **kwargs,
     ):
         """
         Decorator to add a view to the urls
@@ -201,6 +226,7 @@ class Django:
             # Note this is called as a function, not a decorator
             # If this is a list not an include()
             app.route("/api/", include=api.urls)
+            app.route("/api/", api.urls)
 
         All paths are relative to the root URL, leading slashes will be ignored.
         """
@@ -209,7 +235,16 @@ class Django:
         pattern = pattern.removeprefix("/")
 
         # Find if it's a path() or re_path()
-        path_fn = django_urls.re_path if re else django_urls.path
+        unknown_kwargs = kwargs
+        path_fn = self.pm.hook.django_route_path_fn(
+            app=self, pattern=pattern, include=include, re=re, kwargs=unknown_kwargs
+        )
+        if unknown_kwargs:
+            raise TypeError(
+                f"'{list(unknown_kwargs.keys())[0]}' is an invalid keyword argument for route()"
+            )
+        if path_fn is None:
+            path_fn = django_urls.re_path if re else django_urls.path
 
         if include is not None:
             # Being called directly with an include
@@ -244,10 +279,20 @@ class Django:
             return invalid
 
         def wrapped(fn):
+            path_kwargs = {
+                "name": name or fn.__name__.lower(),
+            }
+
+            extra_kwargs_list = self.pm.hook.django_route_path_kwargs(
+                app=self, pattern=pattern, include=include, re=re, kwargs=kwargs
+            )
+            for extra_kwargs_dict in extra_kwargs_list:
+                path_kwargs.update(extra_kwargs_dict)
+
             # Store route for convert lookup
             self._routes[pattern] = (
                 fn,
-                {"re": re, "include": False, "name": name or fn.__name__.lower()},
+                {"re": re, "include": False, **path_kwargs},
             )
 
             # Detect async view
@@ -264,9 +309,7 @@ class Django:
                 fn = fn.as_view()
 
             # Register URL
-            urlpatterns.append(
-                path_fn(pattern, string_view(fn), name=name or fn.__name__.lower())
-            )
+            urlpatterns.append(path_fn(pattern, string_view(fn), **path_kwargs))
             return fn
 
         return wrapped
@@ -381,8 +424,9 @@ class Django:
                 raise ConfigurationError(
                     "settings.ADMIN_URL must be a string path ending in /"
                 )
-            urlpatterns.append(
-                django_urls.path(admin_url.removeprefix("/"), admin.site.urls)
+            urlpatterns.insert(
+                0,
+                django_urls.path(admin_url.removeprefix("/"), admin.site.urls),
             )
 
         # Register the API, if defined

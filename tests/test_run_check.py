@@ -1,4 +1,4 @@
-from .utils import cmd
+from nanodjango.testing.utils import cmd
 
 
 def test_run_check__counter():
