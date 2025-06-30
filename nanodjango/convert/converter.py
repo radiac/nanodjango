@@ -286,7 +286,7 @@ class Converter:
                 for alias in node.names:
                     self.imports[alias.name] = f"from {node.module} import {alias.name}"
 
-        self.app.pm.hook.collect_imports(converter=self)
+        self.app.pm.hook.convert_collect_imports(converter=self)
         return self.imports
 
     def build_project(self) -> None:
@@ -457,7 +457,7 @@ class Converter:
                     self.app_path / dest_name,
                 )
 
-        self.app.pm.hook.copy_assets(converter=self)
+        self.app.pm.hook.convert_copy_assets(converter=self)
 
     def build_app_templates(self) -> None:
         """

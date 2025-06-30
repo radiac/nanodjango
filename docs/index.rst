@@ -20,6 +20,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     apis
     admin
     convert
+    defer
     plugins
     troubleshooting
     contributing

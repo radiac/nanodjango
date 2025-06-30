@@ -3,7 +3,7 @@ import urllib.request
 from nanodjango.testing.utils import cmd, django_process, runserver
 
 TEST_APP = "scale"
-TEST_SCRIPT = f"examples/scale/{TEST_APP}.py"
+TEST_SCRIPT = f"../examples/scale/{TEST_APP}.py"
 TEST_BIND = "127.0.0.1:8042"
 
 

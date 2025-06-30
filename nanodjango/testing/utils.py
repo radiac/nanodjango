@@ -73,19 +73,49 @@ def _get_caller_cwd() -> Path:
 
 def _get_nanodjango_env() -> dict:
     """
-    Get a copy of the current env, removing vars which would make sense for standard
-    Django tests but don't for nanodjango.
+    Get a copy of the current env suitable for running nanodjango in a subprocess.
+
+    * remove vars for standard Django tests but which don't make sense for nanodjango
+    * ensure the cwd is added to PYTHONPATH - we will normally move the cwd to the test
+      dir, but tests are often run in an env where the tested module isn't installed.
 
     This makes it easier for a project with its own tests to black-box test a nanodjango
     script.
     """
     env = os.environ.copy()
+
+    # Remove vars used for standard Django tests
     env.pop("DJANGO_SETTINGS_MODULE", None)
+
+    # Convert relative paths in PYTHONPATH to absolute paths
+    pythonpaths = env.get("PYTHONPATH", "").split(os.pathsep)
+    if "." not in pythonpaths:
+        pythonpaths.append(".")
+    updated_paths = []
+    for path in pythonpaths:
+        if not path:
+            # Skip empty paths
+            continue
+
+        if os.path.isabs(path):
+            # Keep absolute paths as-is
+            updated_paths.append(path)
+        else:
+            # Resolve relative
+            resolved_path = os.path.abspath(path)
+            updated_paths.append(resolved_path)
+
+    env["PYTHONPATH"] = os.pathsep.join(updated_paths)
+
     return env
 
 
 def cmd(
-    script: str, *args: str, fail_ok: bool = False, cwd: Path | None = None, **kwargs
+    script: str,
+    *args: str,
+    fail_ok: bool = False,
+    cwd: Path | str | None = None,
+    **kwargs,
 ) -> subprocess.CompletedProcess:
     """
     Execute a command, check it was ok, and return the CompletedProcess result
@@ -125,7 +155,21 @@ def cmd(
     if fail_ok:
         return result
     elif result.returncode != 0:
-        pytest.fail(f"{' '.join(cmd)} failed: {result.stdout=} {result.stderr=}")
+        pytest.fail(f"""
+Test subprocess returned a non-zero result when fail_ok is False:
+
+Command
+-------
+{" ".join(cmd)}
+
+stdout
+------
+{result.stdout}
+
+stderr
+------
+{result.stderr}
+""")
     return result
 
 

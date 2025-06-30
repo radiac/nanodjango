@@ -26,7 +26,7 @@ def load_app(ctx: click.Context, param: str, value: str) -> Django:
         path = path.parent / script_name
 
     # Find the app module
-    if "." in script_name:
+    if script_name.endswith(".py"):
         if path.exists():
             sys.path.append(str(path.parent))
             module = load_module(path.stem, path)
@@ -62,14 +62,22 @@ def load_app(ctx: click.Context, param: str, value: str) -> Django:
 
 
 @click.group()
-@click.option("--plugin", "-p", multiple=True, help="Converter plugins to load")
+@click.option(
+    "--plugin",
+    "-p",
+    multiple=True,
+    help="Plugin path - either a filesystem path or a Python module",
+)
 def cli(plugin: list[str]):
     # Load plugins
     for index, plugin_path in enumerate(plugin):
-        plugin_name = Path(plugin_path).stem
-        module = load_module(
-            f"nanodjango.contrib.runtime_{index}_{plugin_name}", plugin_path
-        )
+        if plugin_path.endswith(".py"):
+            plugin_name = Path(plugin_path).stem
+            module = load_module(
+                f"nanodjango.contrib.runtime_{index}_{plugin_name}", plugin_path
+            )
+        else:
+            module = import_module(plugin_path)
         Django._plugins.append(module)
 
 

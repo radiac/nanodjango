@@ -8,25 +8,24 @@ Registering routes
 Routes with ``path()``
 ----------------------
 
-Once you create your ``app = Django()``, you can use the ``@app.route`` decorator to
+Once you create your ``app = Django()``, you can use the ``@app.path`` decorator to
 define routes and views:
 
 .. code-block:: python
 
-    @app.route("/")
+    @app.path("")
     def index(request):
         ...
 
-Paths can start with a leading ``/`` as they do in Flask, but this is optional.
+You can also use ``@app.route()``. Both can start with a leading ``/`` like Flask, or without as with Django.
 
-Behind the scenes, nanodjango uses `path`__ when it adds it to Django's URLs, so
-the standard path converters work as expected:
+This uses Django's standard `path`__ function, so the standard path converters work as expected:
 
 __ https://docs.djangoproject.com/en/5.0/ref/urls/#django.urls.path
 
 .. code-block:: python
 
-    @app.route("articles/<int:year>/<int:month>/<slug:slug>/")
+    @app.path("articles/<int:year>/<int:month>/<slug:slug>/")
     def article_detail(request, year, month, slug):
         ...
 

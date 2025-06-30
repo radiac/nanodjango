@@ -19,6 +19,7 @@ from django.shortcuts import render
 from django.views import View
 
 from . import app_meta, hookspecs
+from .defer import defer
 from .exceptions import ConfigurationError, UsageError
 from .urls import urlpatterns
 from .views import string_view
@@ -165,6 +166,9 @@ class Django:
         # Ready for Django's standard setup
         self.pm.hook.django_pre_setup(app=self)
         setup()
+
+        # Import any deferred imports
+        defer.apply()
         self.pm.hook.django_post_setup(app=self)
 
     @property
@@ -313,6 +317,54 @@ class Django:
             return fn
 
         return wrapped
+
+    def path(
+        self,
+        pattern: str,
+        include=None,
+        *,
+        name: str | None = None,
+        **kwargs,
+    ):
+        """
+        Decorator to add a view using Django path() syntax
+
+        This is equivalent to app.route() with re=False (the default).
+        Provided for compatibility with Django's standard URL functions.
+
+        Usage::
+
+            @app.path("")
+            def home(request):
+                return "Home"
+
+            @app.path("posts/<int:id>/")
+            def post_detail(request, id):
+                return f"Post {id}"
+        """
+        return self.route(pattern, include, re=False, name=name, **kwargs)
+
+    def path_re(
+        self,
+        pattern: str,
+        include=None,
+        *,
+        name: str | None = None,
+        **kwargs,
+    ):
+        """
+        Decorator to add a view using Django re_path() regex syntax
+
+        This is equivalent to app.route() with re=True.
+        Provided for compatibility with Django's standard URL functions.
+
+        Usage::
+
+            @app.path_re(r"^posts/(?P<year>[0-9]{4})/$")
+            def posts_by_year(request, year):
+                return f"Posts from {year}"
+        """
+        return self.route(pattern, include, re=True, name=name, **kwargs)
 
     def admin(self, model: type[Model] | None = None, **options):
         """

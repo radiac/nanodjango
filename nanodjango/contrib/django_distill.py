@@ -1,22 +1,14 @@
-from .. import Django, hookimpl
+from .. import Django, defer, hookimpl
 
-try:
+with defer.optional:
     import django_distill
-except ImportError:
-    installed = False
-except Exception:
-    # It tries to access settings, but this is before setup(), so it will error
-    installed = True
-else:
-    installed = True
-
-
-# TODO: wrap this. or finally find a way to defer settings
 
 
 @hookimpl
 def django_pre_setup(app: Django):
-    if not installed:
+    # TODO: Event when deferred, we can't check this here. We're going to need another
+    # way to check if the module exists
+    if not defer.is_installed("django_distill"):
         return
 
     from django.conf import settings
