@@ -344,7 +344,7 @@ class Django:
         """
         return self.route(pattern, include, re=False, name=name, **kwargs)
 
-    def path_re(
+    def re_path(
         self,
         pattern: str,
         include=None,
@@ -360,7 +360,7 @@ class Django:
 
         Usage::
 
-            @app.path_re(r"^posts/(?P<year>[0-9]{4})/$")
+            @app.re_path(r"^posts/(?P<year>[0-9]{4})/$")
             def posts_by_year(request, year):
                 return f"Posts from {year}"
         """

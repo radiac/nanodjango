@@ -21,7 +21,7 @@ You can also use ``@app.route()``. Both can start with a leading ``/`` like Flas
 
 This uses Django's standard `path`__ function, so the standard path converters work as expected:
 
-__ https://docs.djangoproject.com/en/5.0/ref/urls/#django.urls.path
+__ https://docs.djangoproject.com/en/5.2/ref/urls/#django.urls.path
 
 .. code-block:: python
 
@@ -33,14 +33,21 @@ __ https://docs.djangoproject.com/en/5.0/ref/urls/#django.urls.path
 Routes with ``re_path()``
 -------------------------
 
-The ``@app.route(..)`` decorator can take ``re=True`` to specify that this is a regular
-expression path:
+You can use the ``@app.re_path`` decorator to define routes with a regular expression:
 
 .. code-block:: python
 
-    @app.route("authors/(?P<slug>[a-z]{3,})/", re=True)
+    @app.re_path("authors/(?P<slug>[a-z]{3,})/")
     def author_detail(request, slug):
         ...
+
+This uses Django's standard `re_path`__ function, so the standard path converters work as expected:
+
+__ https://docs.djangoproject.com/en/5.2/ref/urls/#django.urls.re_path
+
+
+You can also use the underlying ``@app.route(..)`` decorator with ``re=True`` to specify
+that this is a regular expression path.
 
 
 Including other urlconfs

@@ -10,11 +10,15 @@ from typing import Any, Dict, Generator, List, Optional, Union
 
 
 class DeferredUsageError(ImportError):
-    """Raised when trying to use a deferred import before it's applied"""
+    """
+    Raised when trying to use a deferred import before it's applied
+    """
 
 
 class DeferredImport:
-    """Represents a deferred import statement"""
+    """
+    Represents a deferred import statement
+    """
 
     def __init__(
         self,
@@ -51,7 +55,9 @@ class DeferredImport:
 
 
 class DeferredImportErrorMixin:
-    """Mixin to add deferred import location info to exceptions"""
+    """
+    Mixin to add deferred import location info to exceptions
+    """
 
     def __init__(self, original_error: Exception, deferred: DeferredImport):
         # Find the frame that contains the actual import
@@ -90,7 +96,9 @@ class DeferredAttributeError(DeferredImportErrorMixin, AttributeError):
 
 
 class ImportDeferrer:
-    """Manages deferred imports by intercepting the import machinery"""
+    """
+    Manages deferred imports by intercepting imports
+    """
 
     #: Whether the deferrer is currently intercepting imports
     active: bool
@@ -116,7 +124,9 @@ class ImportDeferrer:
     @property
     @contextmanager
     def optional(self) -> Generator[None, None, None]:
-        """Context manager for optional imports"""
+        """
+        Context manager for optional imports
+        """
         was_active = self.active
         if not was_active:
             self.__enter__()
@@ -131,7 +141,9 @@ class ImportDeferrer:
                 self.__exit__(None, None, None)
 
     def __enter__(self) -> ImportDeferrer:
-        """Start deferring imports"""
+        """
+        Start deferring imports
+        """
         if self.active:
             return self
 
@@ -154,7 +166,9 @@ class ImportDeferrer:
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
-        """Stop deferring imports but don't execute them"""
+        """
+        Stop deferring imports but don't execute them
+        """
         if not self.active:
             return False
 
@@ -166,7 +180,9 @@ class ImportDeferrer:
         return False  # Don't suppress exceptions
 
     def apply(self) -> None:
-        """Execute all deferred imports"""
+        """
+        Execute all deferred imports
+        """
         if self.active:
             raise RuntimeError(
                 "Cannot apply imports while still deferring. Exit the context manager first."
@@ -189,7 +205,9 @@ class ImportDeferrer:
         fromlist: tuple = (),
         level: int = 0,
     ) -> Any:
-        """Custom import function that defers imports instead of executing them"""
+        """
+        Custom import function that defers imports instead of executing them
+        """
         if not self.active:
             if self.original_import is None:
                 raise RuntimeError("Internal error: original_import is None")
@@ -227,7 +245,9 @@ class ImportDeferrer:
         return dummy_module
 
     def _parse_import_line(self, line: str, name: str):
-        """Parse the import line and return kwargs for DeferredImport"""
+        """
+        Parse the import line and return kwargs for DeferredImport
+        """
         tree = ast.parse(line)
         if tree.body and isinstance(tree.body[0], (ast.Import, ast.ImportFrom)):
             stmt = tree.body[0]
@@ -252,7 +272,9 @@ class ImportDeferrer:
                     }
 
     def _execute_import(self, deferred: DeferredImport):
-        """Execute a single deferred import"""
+        """
+        Execute a single deferred import
+        """
         target_globals = deferred.target_globals
 
         # Calculate target name once
@@ -288,7 +310,8 @@ class ImportDeferrer:
 
     @classmethod
     def is_installed(cls, package_name: str) -> bool:
-        """Check if a package is installed in the system.
+        """
+        Check if a package is installed in the system.
 
         Args:
             package_name: The name of the package as installed (e.g. 'requests', 'django')
@@ -306,7 +329,9 @@ class ImportDeferrer:
 
 
 class DummyObject:
-    """A dummy object that raises an error when called or used"""
+    """
+    A dummy object that raises an error when called or used
+    """
 
     def __init__(self, name):
         self.name = name

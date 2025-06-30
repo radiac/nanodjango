@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.11.1 - 2025-07-01
+-------------------
+
+Bugfix:
+
+* Correct spelling of app.re_path
+
+
 0.11.0 - 2025-06-30
 -------------------
 
@@ -13,7 +21,7 @@ Features
 * Added django-nanopages and django-distill as optional dependencies under ``[static]``
 * Install all optional dependencies with ``[full]``
 * Refactored test tools into ``nanodjango.tests.utils`` for third party tests
-* Added ``Django.path()`` and ``Django.path_re()`` convenience methods
+* Added ``Django.path()`` and ``Django.re_path()`` convenience methods
 
 Breaking changes:
 
