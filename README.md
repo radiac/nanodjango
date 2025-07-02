@@ -9,6 +9,8 @@
 * Run it locally or in production, or share it as a standalone script
 * Automatically convert it to a full Django project when you're ready for it to grow
 
+You may like to [watch a lighting talk](https://www.youtube.com/watch?v=ctCnTz8B32c&t=20s) or [read a blog post](https://lincolnloop.com/blog/single-file-apps-with-nanodjango/) to get a high level overview of what nanodjango can do.
+
 
 ## Quickstart
 
