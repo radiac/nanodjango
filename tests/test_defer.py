@@ -21,40 +21,47 @@ class TestDeferredImport:
 
     def test_repr_simple_import(self):
         """Test __repr__ for simple import"""
-        target_globals = {}
-        deferred = DeferredImport("os", target_globals)
-        assert repr(deferred) == "import os"
+        deferred = DeferredImport("os", target_globals={}, line="import os")
+        assert repr(deferred) == "<os: import os>"
 
     def test_repr_import_with_alias(self):
         """Test __repr__ for import with alias"""
-        target_globals = {}
-        deferred = DeferredImport("os", target_globals, alias="operating_system")
-        assert repr(deferred) == "import os as operating_system"
+        deferred = DeferredImport(
+            "os",
+            target_globals={},
+            alias="operating_system",
+            line="import os as operating_system",
+        )
+        assert repr(deferred) == "<operating_system: import os as operating_system>"
 
     def test_repr_from_import(self):
         """Test __repr__ for from import"""
-        target_globals = {}
-        deferred = DeferredImport("os", target_globals, from_name="path")
-        assert repr(deferred) == "from os import path"
+        deferred = DeferredImport(
+            "os", target_globals={}, from_name="path", line="from os import path"
+        )
+        assert repr(deferred) == "<path: from os import path>"
 
     def test_repr_from_import_with_alias(self):
         """Test __repr__ for from import with alias"""
-        target_globals = {}
         deferred = DeferredImport(
-            "os", target_globals, from_name="path", from_alias="p"
+            "os",
+            target_globals={},
+            from_name="path",
+            from_alias="p",
+            line="from os import path as p",
         )
-        assert repr(deferred) == "from os import path as p"
+        assert repr(deferred) == "<p: from os import path as p>"
 
     def test_repr_optional(self):
         """Test __repr__ for optional import"""
-        target_globals = {}
-        deferred = DeferredImport("nonexistent", target_globals, optional=True)
-        assert repr(deferred) == "import nonexistent (optional)"
+        deferred = DeferredImport(
+            "nonexistent", target_globals={}, optional=True, line="import nonexistent"
+        )
+        assert repr(deferred) == "<[Optional] nonexistent: import nonexistent>"
 
     def test_original_stack_captured(self):
         """Test that original stack trace is captured"""
-        target_globals = {}
-        deferred = DeferredImport("os", target_globals)
+        deferred = DeferredImport("os", target_globals={})
         assert len(deferred.original_stack) > 0
         # Stack should be non-empty (exact content depends on call stack)
         assert isinstance(deferred.original_stack, list)
@@ -146,60 +153,81 @@ class TestImportDeferrer:
 
         assert not deferrer.active
 
-    def test_import_interception(self):
+    def test_import_direct(self):
         """Test that imports are intercepted when active"""
         deferrer = ImportDeferrer()
 
         with deferrer:
             # This should be intercepted and create a dummy
-            import os
+            import functools
 
-            assert isinstance(os, DummyObject)
-            assert os.name == "os"
+            assert isinstance(functools, DummyObject)
+            assert functools.name == "functools"
 
         # Should have one deferred import
         assert len(deferrer.deferred_imports) == 1
-        assert deferrer.deferred_imports[0].module_name == "os"
+        assert deferrer.deferred_imports[0].module_name == "functools"
+
+    def test_import_direct_multiple(self):
+        """Test that multiple imports are intercepted when active"""
+        deferrer = ImportDeferrer()
+
+        with deferrer:
+            # This should be intercepted and create a dummy
+            import functools
+            import math
+
+            assert isinstance(functools, DummyObject)
+            assert functools.name == "functools"
+
+            assert isinstance(math, DummyObject)
+            assert math.name == "math"
+
+        # Should have one deferred import
+        assert len(deferrer.deferred_imports) == 2
+        names = [deferred.module_name for deferred in deferrer.deferred_imports]
+        assert "functools" in names
+        assert "math" in names
 
     def test_import_with_alias(self):
         """Test import with alias is handled correctly"""
         deferrer = ImportDeferrer()
 
         with deferrer:
-            import os as operating_system
+            import functools as ft
 
-            assert isinstance(operating_system, DummyObject)
-            assert operating_system.name == "os"
+            assert isinstance(ft, DummyObject)
+            assert ft.name == "functools"
 
         deferred = deferrer.deferred_imports[0]
-        assert deferred.module_name == "os"
-        assert deferred.alias == "operating_system"
+        assert deferred.module_name == "functools"
+        assert deferred.alias == "ft"
 
     def test_from_import(self):
         """Test from import is handled correctly"""
         deferrer = ImportDeferrer()
 
         with deferrer:
-            from os import path
+            from functools import partial
 
-            assert isinstance(path, DummyObject)
+            assert isinstance(partial, DummyObject)
 
         deferred = deferrer.deferred_imports[0]
-        assert deferred.module_name == "os"
-        assert deferred.from_name == "path"
+        assert deferred.module_name == "functools"
+        assert deferred.from_name == "partial"
 
     def test_from_import_with_alias(self):
         """Test from import with alias"""
         deferrer = ImportDeferrer()
 
         with deferrer:
-            from os import path as p
+            from functools import partial as p
 
             assert isinstance(p, DummyObject)
 
         deferred = deferrer.deferred_imports[0]
-        assert deferred.module_name == "os"
-        assert deferred.from_name == "path"
+        assert deferred.module_name == "functools"
+        assert deferred.from_name == "partial"
         assert deferred.from_alias == "p"
 
     def test_apply_simple_import(self):

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import ast
+import dis
 import inspect
 import traceback
 from contextlib import contextmanager
 from importlib.util import find_spec
 from types import FrameType, ModuleType
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Any, Generator
 
 
 class DeferredUsageError(ImportError):
@@ -23,38 +24,43 @@ class DeferredImport:
     def __init__(
         self,
         module_name: str,
-        target_globals: Dict,
-        alias: Optional[str] = None,
-        from_name: Optional[str] = None,
-        from_alias: Optional[str] = None,
+        target_globals: dict[str, Any],
+        line: str = "",
+        alias: str | None = None,
+        from_name: str | None = None,
+        from_alias: str | None = None,
         optional: bool = False,
     ):
         self.module_name = module_name
         self.target_globals = target_globals
+        self.line = line
         self.alias = alias
         self.from_name = from_name
         self.from_alias = from_alias
         self.optional = optional
 
         # Capture the original stack trace in case we need to raise an error
-        self.original_stack = traceback.extract_stack()[:-2]
+        # TODO: Find a better way
+        # *Stack extraction can fail in environments where modules are in zip files.
+        # * This probably needs a new approach
+        try:
+            self.original_stack = traceback.extract_stack()[:-2]
+        except Exception:
+            self.original_stack = []
+
+    @property
+    def name(self):
+        return self.from_alias or self.from_name or self.alias or self.module_name
 
     def __repr__(self):
-        if self.from_name:
-            base = f"from {self.module_name} import {self.from_name}"
-            if self.from_alias:
-                base += f" as {self.from_alias}"
-        else:
-            base = f"import {self.module_name}"
-            if self.alias:
-                base += f" as {self.alias}"
-
         if self.optional:
-            base += " (optional)"
+            base = f"<[Optional] {self.name}: {self.line}>"
+        else:
+            base = f"<{self.name}: {self.line}>"
         return base
 
 
-class DeferredImportErrorMixin:
+class DeferredImportErrorMixin(Exception):
     """
     Mixin to add deferred import location info to exceptions
     """
@@ -67,16 +73,15 @@ class DeferredImportErrorMixin:
                 import_frame = frame_summary
                 break
 
-        if not import_frame:
+        if not import_frame and deferred.original_stack:
             import_frame = deferred.original_stack[-1]
 
-        # Enhance the original message with location info
-        original_line = (
-            import_frame.line.strip()
-            if import_frame.line
-            else f"import {deferred.module_name}"
-        )
-        enhanced_message = f'{original_error}\n  File "{import_frame.filename}", line {import_frame.lineno}, in {import_frame.name}\n    {original_line}'
+        # Enhance the original message with location info if available
+        source = ""
+        if import_frame:
+            source = f'\n  File "{import_frame.filename}", line {import_frame.lineno}, in {import_frame.name}'
+
+        enhanced_message = f"{original_error}{source}\n    {deferred.line}"
 
         super().__init__(enhanced_message)
         self.original_error = original_error
@@ -103,15 +108,15 @@ class ImportDeferrer:
     #: Whether the deferrer is currently intercepting imports
     active: bool
     #: List of deferred imports to execute later
-    deferred_imports: List[DeferredImport]
+    deferred_imports: list[DeferredImport]
     #: Reference to the original __import__ function
-    original_import: Optional[Any]
+    original_import: Any | None
     #: Globals dict from the calling context
-    caller_globals: Optional[Dict[str, Any]]
+    caller_globals: dict[str, Any] | None
     #: Whether we're in optional import mode
     _optional_mode: bool
     #: Cache for file contents
-    file_cache: Dict[str, List[str]]
+    file_cache: dict[str, list[str]]
 
     def __init__(self):
         self.active = False
@@ -200,17 +205,20 @@ class ImportDeferrer:
     def _deferred_import(
         self,
         name: str,
-        globals: Optional[Dict[str, Any]] = None,
-        locals: Optional[Dict[str, Any]] = None,
+        globals: dict[str, Any] | None = None,
+        locals: dict[str, Any] | None = None,
         fromlist: tuple = (),
         level: int = 0,
     ) -> Any:
         """
         Custom import function that defers imports instead of executing them
         """
+        if self.original_import is None:
+            raise RuntimeError("Not in context, original_import is None")
+        if self.caller_globals is None:
+            raise RuntimeError("Not in context, caller_globals is None")
+
         if not self.active:
-            if self.original_import is None:
-                raise RuntimeError("Internal error: original_import is None")
             return self.original_import(name, globals, locals, fromlist, level)
 
         target_globals = globals if globals is not None else self.caller_globals
@@ -223,30 +231,134 @@ class ImportDeferrer:
 
         try:
             # Get the source line to find any aliases
-            frame_info = inspect.getframeinfo(caller_frame)
-            if not frame_info.code_context:
-                raise RuntimeError(
-                    f"Cannot determine import statement for '{name}' - no code context available"
-                )
-            line = frame_info.code_context[0].strip()
-
-            for deferred_kwargs in self._parse_import_line(line, name):
-                deferred = DeferredImport(
-                    target_globals=target_globals, **deferred_kwargs
-                )
-                self.deferred_imports.append(deferred)
+            line = self._extract_import(caller_frame, name)
 
         except Exception as e:
             # If we can't parse the import properly, this is a serious problem
             # for aliases, so raise an error
             raise RuntimeError(f"Failed to parse import statement for '{name}'") from e
 
+        if not line:
+            raise RuntimeError(
+                f"Cannot determine import statement for '{name}' - no code context available"
+            )
+
+        # Special case for Python 3.13+, which imports standard lib during our
+        # resolution process. It's fine for us to skip these standard libs.
+        if line in ["import os", "import sys", "import tokenize"]:
+            return self.original_import(name, globals, locals, fromlist, level)
+
+        for deferred_kwargs in self._parse_import_line(line, name):
+            deferred = DeferredImport(
+                target_globals=target_globals,
+                line=line,
+                **deferred_kwargs,
+            )
+            self.deferred_imports.append(deferred)
+
         dummy_module = DummyObject(name)
         return dummy_module
 
+    def _extract_import(self, frame: FrameType, name: str) -> str | None:
+        """
+        Extract import statement from bytecode
+        """
+        code = frame.f_code
+        lasti = frame.f_lasti
+
+        # Get all instructions
+        instructions = list(dis.get_instructions(code))
+
+        # Find the current instruction position
+        current_instruction_index = 0
+        for i, instr in enumerate(instructions):
+            if instr.offset <= lasti:
+                current_instruction_index = i
+            else:
+                break
+
+        # Look backwards and forwards from current position for import-related instructions
+        import_instructions = []
+        store_instructions = []
+
+        # Search around the current instruction for IMPORT and STORE operations
+        search_start = max(0, current_instruction_index - 10)
+        search_end = min(len(instructions), current_instruction_index + 10)
+
+        for i in range(search_start, search_end):
+            instr = instructions[i]
+
+            if instr.opname in ("IMPORT_NAME", "IMPORT_FROM"):
+                import_instructions.append((i, instr))
+            elif instr.opname in ("STORE_NAME", "STORE_GLOBAL", "STORE_FAST"):
+                store_instructions.append((i, instr))
+
+        # For "from module import item", we need to find both IMPORT_NAME and IMPORT_FROM
+        # For "import module", we only need IMPORT_NAME
+
+        # Look for IMPORT_NAME instructions that match our module name
+        import_name_instr = None
+        import_from_instr = None
+
+        for idx, instr in import_instructions:
+            if instr.opname == "IMPORT_NAME" and instr.argval == name:
+                import_name_instr = (idx, instr)
+            elif instr.opname == "IMPORT_FROM":
+                import_from_instr = (idx, instr)
+
+        # Find STORE instruction to determine the target variable name
+        target_store = None
+        if import_name_instr or import_from_instr:
+            # Find the next STORE instruction after any import instruction
+            import_idx = (
+                import_name_instr[0] if import_name_instr else import_from_instr[0]
+            )
+            for idx, instr in store_instructions:
+                if idx > import_idx:
+                    target_store = instr
+                    break
+
+        if target_store:
+            target_name = target_store.argval
+
+            # Determine if this is a "from ... import ..." or plain "import ..."
+            if import_name_instr and import_from_instr:
+                # This is "from module import name [as alias]"
+                # The import_from_instr.argval contains the imported item name
+                imported_item = import_from_instr[1].argval
+
+                if target_name == imported_item:
+                    return f"from {name} import {imported_item}"
+                else:
+                    return f"from {name} import {imported_item} as {target_name}"
+
+            elif import_name_instr and not import_from_instr:
+                # This is "import module [as alias]"
+                if target_name == name:
+                    return f"import {name}"
+                else:
+                    return f"import {name} as {target_name}"
+
+        # If we can't determine the exact pattern, check variable names in frame
+        # to see if there's an alias being created
+        frame_vars = set(frame.f_locals.keys()) | set(frame.f_globals.keys())
+
+        # If the module name itself isn't being stored but something else is,
+        # it might be an alias
+        potential_aliases = [
+            var for var in frame_vars if var != name and not var.startswith("_")
+        ]
+
+        if potential_aliases and len(potential_aliases) == 1:
+            alias = potential_aliases[0]
+            return f"import {name} as {alias}"
+
+        # Import bytecode analysis failed
+        raise RuntimeError(f"Unable to determine import statement for {name=}")
+
     def _parse_import_line(self, line: str, name: str):
         """
-        Parse the import line and return kwargs for DeferredImport
+        Generator to parse the import line and return kwargs for each DeferredImport
         """
         tree = ast.parse(line)
         if tree.body and isinstance(tree.body[0], (ast.Import, ast.ImportFrom)):

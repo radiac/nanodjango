@@ -41,7 +41,8 @@ from typing import Generator
 import django
 import pytest
 
-TIMEOUT = 10  # seconds
+RUNSERVER_TIMEOUT = 10  # seconds
+SUBPROCESS_TIMEOUT = 5  # seconds
 
 
 def _get_caller_cwd() -> Path:
@@ -115,6 +116,7 @@ def cmd(
     *args: str,
     fail_ok: bool = False,
     cwd: Path | str | None = None,
+    timeout: float = SUBPROCESS_TIMEOUT,
     **kwargs,
 ) -> subprocess.CompletedProcess:
     """
@@ -134,6 +136,9 @@ def cmd(
         cwd (Path):
             Optional path to current working directory
 
+        timeout (float):
+            Timeout in seconds for the subprocess. Default: SUBPROCESS_TIMEOUT
+
         **kwargs:
             Keyword arguments for subprocess.run
 
@@ -142,34 +147,55 @@ def cmd(
     """
     if cwd is None:
         cwd = _get_caller_cwd()
-    cmd = [sys.executable, "-m", "nanodjango", script, *args]
-    result = subprocess.run(
-        cmd,
-        env=_get_nanodjango_env(),
-        capture_output=True,
-        text=True,
-        cwd=cwd,
-        **kwargs,
-    )
+    cmd_list = [sys.executable, "-m", "nanodjango", script, *args]
 
-    if fail_ok:
-        return result
-    elif result.returncode != 0:
+    # Initialize variables for error reporting
+    stdout = ""
+    stderr = ""
+    error_msg = None
+    result = None
+
+    try:
+        result = subprocess.run(
+            cmd_list,
+            env=_get_nanodjango_env(),
+            capture_output=True,
+            text=True,
+            cwd=cwd,
+            timeout=timeout,
+            **kwargs,
+        )
+        stdout = result.stdout
+        stderr = result.stderr
+
+        if not fail_ok and result.returncode != 0:
+            error_msg = (
+                f"Test subprocess returned a non-zero result when fail_ok is False"
+            )
+
+    except subprocess.TimeoutExpired as e:
+        stdout = e.stdout or ""
+        stderr = e.stderr or ""
+        error_msg = f"Test subprocess timed out after {timeout} seconds"
+
+    # Handle any error condition
+    if error_msg and not fail_ok:
         pytest.fail(f"""
-Test subprocess returned a non-zero result when fail_ok is False:
+{error_msg}:
 
 Command
 -------
-{" ".join(cmd)}
+{" ".join(cmd_list)}
 
 stdout
 ------
-{result.stdout}
+{stdout}
 
 stderr
 ------
-{result.stderr}
+{stderr}
 """)
+
     return result
 
 
@@ -260,7 +286,7 @@ def runserver(server: subprocess.Popen) -> Generator[subprocess.Popen, None, Non
         expecting = "Starting development server at"
     else:
         expecting = "Watching for file changes"
-    timeout = time.time() + (TIMEOUT * 2)
+    timeout = time.time() + (RUNSERVER_TIMEOUT * 2)
     out = ""
     os.set_blocking(stdout.fileno(), False)
     os.set_blocking(stderr.fileno(), False)
