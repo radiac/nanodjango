@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.11.2 - 2025-07-06
+-------------------
+
+Bugfix:
+
+* Fix defer issues by switching to using bytecode to detect import statements
+
+
 0.11.1 - 2025-07-01
 -------------------
 
