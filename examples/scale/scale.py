@@ -67,6 +67,20 @@ class Book(models.Model):
     cover = models.FileField(blank=True, null=True)
 
 
+@django.templatetag.simple_tag
+def format_book_count(count):
+    """Format book count with proper pluralization"""
+    if count == 1:
+        return f"{count} book"
+    return f"{count} books"
+
+
+@django.templatetag.filter
+def title_case(value):
+    """Convert to title case"""
+    return value.title() if value else ""
+
+
 @django.route("/")
 def index(request):
     return render(request, "scale/index.html", {"books": Book.objects.all()})

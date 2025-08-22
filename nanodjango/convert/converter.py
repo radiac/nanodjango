@@ -267,6 +267,9 @@ class Converter:
         self.build_app_admin()
         self.app.pm.hook.convert_build_app_admin_done(converter=self)
 
+        self.build_app_templatetags()
+        self.app.pm.hook.convert_build_app_templatetags_done(converter=self)
+
         self.build_app_unused()
 
         self.app.pm.hook.convert_build_end(converter=self)
@@ -756,6 +759,69 @@ class Converter:
             "from django.contrib import admin",
             resolver.gen_src(),
             "\n".join(admins),
+            "\n".join(extra_src),
+        )
+
+    def build_app_templatetags(self) -> None:
+        """
+        Build ``app/templatetags/app_name.py`` from the app.templatetag registry
+
+        Hooks:
+            build_app_templatetags: Modify or add content to ``app/templatetags/app_name.py``
+            build_app_templatetags_done: After ``app/templatetags/app_name.py`` has been written.
+        """
+        # Check if there are any template tags to convert
+        if not self.app._templatetag or not self.app._templatetag._registered:
+            return
+
+        # Create templatetags directory
+        templatetags_dir = self.app_path / "templatetags"
+        templatetags_dir.mkdir(exist_ok=True)
+
+        # Create __init__.py
+        init_file = templatetags_dir / "__init__.py"
+        init_file.write_text("")
+
+        # Create resolver for the template tag module
+        resolver = Resolver(self, f".templatetags.{self.app.app_name}")
+
+        # Process all template tags
+        tag_sources = []
+        for decorator_name, func, kwargs in self.app._templatetag._registered:
+            # Build decorator
+            decorator = f"@register.{decorator_name}"
+            if kwargs:
+                args = []
+                for key, value in kwargs.items():
+                    if isinstance(value, str):
+                        args.append(f'{key}="{value}"')
+                    else:
+                        args.append(f"{key}={value}")
+                decorator += f"({', '.join(args)})"
+
+            # Get function source and collect references
+            func_src = inspect.getsource(func)
+            func_ast = obj_to_ast(func_src)
+            references = collect_references(func_ast)
+            resolver.add_references(references)
+
+            tag_sources.append(f"{decorator}\n{func_src}")
+
+        extra_src = []
+        self.app.pm.hook.convert_build_app_templatetags(
+            converter=self, resolver=resolver, extra_src=extra_src
+        )
+
+        # Write the template tag module
+        filename = templatetags_dir / f"{self.app.app_name}.py"
+        self.write_file(
+            filename,
+            "from django.template import Library",
+            "",
+            "register = Library()",
+            "",
+            resolver.gen_src(),
+            "\n\n".join(tag_sources),
             "\n".join(extra_src),
         )
 

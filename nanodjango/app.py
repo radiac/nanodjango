@@ -16,11 +16,13 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Model
 from django.shortcuts import render
+from django.template import engines
 from django.views import View
 
 from . import app_meta, hookspecs
 from .defer import defer
 from .exceptions import ConfigurationError, UsageError
+from .templatetags import TemplateTagLibrary
 from .urls import urlpatterns
 from .views import string_view
 
@@ -79,6 +81,9 @@ class Django:
 
     # NinjaAPI instance for @app.api
     _api: NinjaAPI | None = None
+
+    # Template tag library for @app.templatetag
+    _templatetag: TemplateTagLibrary | None = None
 
     def __new__(cls, *args, **kwargs):
         # Enforce only one Django() per script, otherwise everything will get confused
@@ -170,6 +175,9 @@ class Django:
         # Import any deferred imports
         defer.apply()
         self.pm.hook.django_post_setup(app=self)
+
+        # Register template tag library with Django's template engine
+        self._register_template_library()
 
     @property
     def instance_name(self):
@@ -411,6 +419,41 @@ class Django:
         return self._api
 
     @property
+    def templatetag(self):
+        """
+        Template tag integration
+        """
+        if not self._templatetag:
+            self._templatetag = TemplateTagLibrary(self)
+
+        return self._templatetag
+
+    def _register_template_library(self):
+        """
+        Register this app's template tag library with Django's template engine
+        so {% load app_name %} works
+        """
+        # Get the default template engine
+        django_engines = engines.all()
+        if not django_engines:
+            return
+        engine = django_engines[0]
+
+        # Register our library under the app name
+        if engine and hasattr(engine, "engine"):
+            # For DjangoTemplates backend
+            django_engine = engine.engine
+            if hasattr(django_engine, "template_libraries"):
+                # Create a fake module that returns our library's register object
+                class FakeTemplateTagModule:
+                    def __init__(self, library):
+                        self.register = library
+
+                # Register under the app name so {% load app_name %} works
+                fake_module = FakeTemplateTagModule(self.templatetag.library)
+                django_engine.template_libraries[self.app_name] = fake_module.register
+
+    @property
     def templates(self) -> dict[str, str]:
         return self._templates
 
@@ -444,6 +487,10 @@ class Django:
         * if in production mode, collectstatic into STATIC_ROOT
         * if in development mode, extend urls to serve media files
         """
+        # Check this app hasn't already been prepared
+        if self._prepared:
+            return
+
         # Check if this is being called from click commands or directly
         if self.app_name not in sys.modules:
             # Hasn't been run through the ``nanodjango`` command
@@ -640,8 +687,7 @@ class Django:
         Common steps to set up WSGI/ASGI
         """
         # WSGI/ASGI probably won't have had time to _prepare
-        if not self._prepared:
-            self._prepare()
+        self._prepare()
 
         # Production settings
         if not is_prod:

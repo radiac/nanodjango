@@ -177,6 +177,33 @@ def convert_build_app_templates(converter: Converter):
 
 
 @hookspec
+def convert_build_app_templatetags(
+    converter: Converter, resolver: Resolver, extra_src: list[str]
+):
+    """
+    Build templatetags from the app.templatetag registry.
+
+    Template tags have been collected and are about to be written into
+    ``app/templatetags/app_name.py``.
+
+    Args:
+        converter (Converter): The current converter instance.
+        resolver (Resolver): The current resolver instance for ``app/templatetags/app_name.py``.
+        extra_src (list[str]): Lines of Python code to insert at the end.
+    """
+
+
+@hookspec
+def convert_build_app_templatetags_done(converter: Converter):
+    """
+    The ``app/templatetags/app_name.py`` has been written, the models are about to be built.
+
+    Args:
+        converter (Converter): The current converter instance.
+    """
+
+
+@hookspec
 def convert_build_app_models(
     converter: Converter, resolver: Resolver, extra_src: list[str]
 ):

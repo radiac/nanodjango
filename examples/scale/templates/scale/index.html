@@ -1,4 +1,4 @@
-{% load static %}<!doctype html>
+{% load static scale %}<!doctype html>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
@@ -31,12 +31,13 @@
 <p>This should be an info icon from static: <img src="{% static "info.svg" %}" style="width:16px"></p>
 
 <h2>Books</h2>
+<p>{% format_book_count books|length %} available</p>
 {% if books %}
   <ul class="books">
     {% for book in books %}
       <li>
         <img src="{{ book.cover.url }}">
-        <p>{{ book.name }}</p>
+        <p>{{ book.name|title_case }}</p>
       </li>
     {% endfor %}
   </ul>
