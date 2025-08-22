@@ -17,6 +17,7 @@ def test_runserver__fbv_with_model():
     ):
         response = urllib.request.urlopen(f"http://{TEST_BIND}/", timeout=10)
         assert response.getcode() == 200
+        assert "0 books available" in response.read().decode("utf-8")
 
         response = urllib.request.urlopen(f"http://{TEST_BIND}/count/", timeout=10)
         assert response.getcode() == 200

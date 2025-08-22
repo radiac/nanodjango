@@ -17,6 +17,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     usage
     views
     templates
+    template_tags
     apis
     admin
     convert

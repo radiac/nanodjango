@@ -2,6 +2,27 @@
 Changelog
 =========
 
+0.12.0 - TBC
+------------
+
+Features:
+
+* Django requirement now 5.2
+* Add :doc:`template tags <template_tags>` support
+* Add ``convert_build_app_templatetags`` and ``convert_build_app_templatetags_done``
+  hooks
+* Add ``django_browser_reload`` contrib plugin to support automatic browser reloading
+
+Bugfix:
+
+* Fix issue with multiple deferred imports in a single statement
+* Fix WSGI/ASGI preparation to avoid double initialization
+
+Internal:
+
+* Improve patch migrations to work around missing migration dir in some environments
+
+
 0.11.2 - 2025-07-06
 -------------------
 
@@ -21,7 +42,7 @@ Bugfix:
 0.11.0 - 2025-06-30
 -------------------
 
-Features
+Features:
 
 * Added support for :doc:`deferred imports <defer>`
 * Added :doc:`new plugin system <plugins` using pluggy
