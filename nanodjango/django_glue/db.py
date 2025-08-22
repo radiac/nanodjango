@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.writer import MigrationWriter
@@ -33,25 +35,43 @@ def patch_modelbase(app_name):
 
 def patch_migrations(app_name):
     """
-    Migrations needs a root path
+    Patch migrations to support missing migration dir
     """
     old_basedir = MigrationWriter.basedir.fget
-    old_load_disk = MigrationLoader.load_disk
+    old_init = MigrationLoader.__init__
 
     def new_basedir(self):
         if self.migration.app_label != app_name:
             return old_basedir(self)
 
-        # Ensure
+        # Ensure migrations directory exists
         migrations_dir = settings.BASE_DIR / settings.MIGRATION_MODULES[app_name]
         migrations_dir.mkdir(parents=True, exist_ok=True)
         return str(migrations_dir)
 
-    def new_load_disk(self):
-        old_load_disk(self)
+    def new_init(self, connection, load=True, ignore_no_migrations=False):
+        # Allow MigrationLoader to initialise if the init migration module is missing
+        our_migration_module = settings.MIGRATION_MODULES.get(app_name, "migrations")
+        migrations_dir = settings.BASE_DIR / our_migration_module
+
+        has_migrations = migrations_dir.exists() and any(
+            f.endswith(".py") and f != "__init__.py" for f in os.listdir(migrations_dir)
+        )
+
+        if not has_migrations:
+            # Temporarily set our app's migrations to None so Django skips it
+            settings.MIGRATION_MODULES[app_name] = None
+
+        try:
+            # Call original init
+            old_init(self, connection, load, ignore_no_migrations)
+        finally:
+            # Restore original migration module setting if we changed it
+            if not has_migrations:
+                settings.MIGRATION_MODULES[app_name] = our_migration_module
 
     MigrationWriter.basedir = property(new_basedir)  # type: ignore
-    MigrationLoader.load_disk = new_load_disk
+    MigrationLoader.__init__ = new_init
 
 
 def patch_db(app_name):
