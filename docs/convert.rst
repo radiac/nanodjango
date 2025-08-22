@@ -25,7 +25,7 @@ The ``convert`` command
 
 With all options, the ``convert`` command is::
 
-    nanodjango convert <script.py> <target/path> --name=<project_name> --delete
+    nanodjango convert <script.py> <target/path> --name=<project_name> --template=<template_path> --delete
 
 The arguments are:
 
@@ -36,6 +36,13 @@ The arguments are:
     Specify the name of the project for ``django-admin startproject``.
 
     If not provided, defaults to ``project``
+
+``--template=<template_path>``
+    Path or URL to a custom Django project template for ``django-admin startproject --template``.
+
+    By default, ``nanodjango convert`` uses Django's standard project template. You can specify a custom template using a path to a directory or URL to a compressed archive containing a Django project template.
+
+    To use a Cookiecutter template, first run ``cookiecutter`` to generate the template directory, then pass that directory path to ``nanodjango convert --template``.
 
 ``--delete``
     If the target path exists, delete it before creating the new project.

@@ -641,14 +641,14 @@ class Django:
             wsgi = LoadedApplication(self, host=host, port=port)
             wsgi.run()
 
-    def convert(self, path: Path, name: str):
+    def convert(self, path: Path, name: str, template: str | None = None):
         from .convert import Converter
 
         if path.exists():
             raise UsageError("Upgrade path is not empty - path cannot exist")
         path.mkdir()
 
-        converter = Converter(app=self, path=path, name=name)
+        converter = Converter(app=self, path=path, name=name, template=template)
         converter.build()
 
     def _prestart(self, host: str | None = None) -> tuple[str, int]:

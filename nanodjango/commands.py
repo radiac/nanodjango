@@ -122,7 +122,12 @@ def serve(app: Django, host: str):
     default=False,
     help="If the target path is not empty, delete it before proceeding",
 )
-def convert(app: Django, path: click.Path, name: str, can_delete: bool):
+@click.option(
+    "--template",
+    "-t",
+    help="Path or URL to a custom Django project template",
+)
+def convert(app: Django, path: click.Path, name: str, can_delete: bool, template: str):
     """
     Convert the app into a full Django site
     """
@@ -131,7 +136,7 @@ def convert(app: Django, path: click.Path, name: str, can_delete: bool):
     if can_delete and target_path.exists():
         shutil.rmtree(str(target_path))
 
-    app.convert(target_path, name)
+    app.convert(target_path, name, template=template)
 
 
 @cli.command()

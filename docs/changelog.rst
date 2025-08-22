@@ -12,6 +12,7 @@ Features:
 * Add ``convert_build_app_templatetags`` and ``convert_build_app_templatetags_done``
   hooks
 * Add ``django_browser_reload`` contrib plugin to support automatic browser reloading
+* Add ``--template`` option to ``convert`` command for custom Django project templates (#42)
 
 Bugfix:
 

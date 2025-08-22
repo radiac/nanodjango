@@ -125,6 +125,9 @@ class Converter:
     #: Name of the Django project (``django-admin startproject {project_name} ...``)
     project_name: str
 
+    #: Optional template for django-admin startproject --template
+    project_template: str | None
+
     #: The module to convert
     module: ModuleType
 
@@ -146,13 +149,14 @@ class Converter:
     #: Definitions in the module's top level scope which have been converted
     used: set[str]
 
-    def __init__(self, app: Django, path: Path, name: str):
+    def __init__(self, app: Django, path: Path, name: str, template: str | None = None):
         """
         Prepare state
         """
         self.app = app
         self.root_path = path
         self.project_name = name
+        self.project_template = template
         self.module = app.app_module
         self.src = inspect.getsource(app.app_module)
         self.ast = ast.parse(self.src)
@@ -299,9 +303,16 @@ class Converter:
         # Copy the env, so we're still working within any venv
         env = os.environ.copy()
         env.pop("DJANGO_SETTINGS_MODULE", None)
+
+        # Build the django-admin command with optional template
+        cmd = ["django-admin", "startproject"]
+        if self.project_template:
+            cmd.extend(["--template", self.project_template])
+        cmd.extend([self.project_name, str(self.root_path)])
+
         try:
             result = subprocess.run(
-                ["django-admin", "startproject", self.project_name, self.root_path],
+                cmd,
                 env=env,
                 capture_output=True,
                 text=True,
