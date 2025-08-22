@@ -22,7 +22,7 @@ requires-python = ">=3.8"
 dependencies = [
     "black",
     "click",
-    "Django>=3.2",
+    "Django>=5.2",
     "django-ninja",
     "gunicorn",
     "isort",
