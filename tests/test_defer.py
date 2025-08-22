@@ -4,6 +4,19 @@ import builtins
 
 import pytest
 
+
+@pytest.fixture
+def safe_globals():
+    """Fixture that saves and restores globals to avoid test contamination"""
+    orig_globals = globals().copy()
+    try:
+        yield
+    finally:
+        # Restore original globals
+        globals().clear()
+        globals().update(orig_globals)
+
+
 from nanodjango.defer import (
     DeferredAttributeError,
     DeferredImport,
@@ -375,6 +388,147 @@ class TestImportDeferrer:
         assert len(deferrer.deferred_imports) == 0
         assert deferrer.caller_globals is None
         assert deferrer.file_cache == {}
+
+    def test_import_multiple_paths(self):
+        """Test multiple from imports from different deep modules - reproduces bytecode parsing bug"""
+        deferrer = ImportDeferrer()
+
+        with deferrer:
+            # This should reproduce the bug where the bytecode parser
+            # mixes up separate from import statements with deep paths (3+ levels)
+            from email.mime.text import MIMEText
+            from urllib.parse import urlparse
+            from xml.etree.ElementTree import Element
+
+            assert isinstance(urlparse, DummyObject)
+            assert isinstance(Element, DummyObject)
+            assert isinstance(MIMEText, DummyObject)
+
+        # Check what was actually parsed
+        assert len(deferrer.deferred_imports) == 3
+
+        # Find the deferred imports
+        urlparse_import = None
+        element_import = None
+        mimetext_import = None
+
+        for deferred in deferrer.deferred_imports:
+            if deferred.from_name == "urlparse":
+                urlparse_import = deferred
+            elif deferred.from_name == "Element":
+                element_import = deferred
+            elif deferred.from_name == "MIMEText":
+                mimetext_import = deferred
+
+        # These should be correct
+        assert urlparse_import is not None, "urlparse import should exist"
+        assert element_import is not None, "Element import should exist"
+        assert mimetext_import is not None, "MIMEText import should exist"
+
+        # Check the modules are correct (this is where the bug would manifest)
+        assert (
+            urlparse_import.module_name == "urllib.parse"
+        ), f"Expected urllib.parse, got {urlparse_import.module_name}"
+        assert (
+            element_import.module_name == "xml.etree.ElementTree"
+        ), f"Expected xml.etree.ElementTree, got {element_import.module_name}"
+        assert (
+            mimetext_import.module_name == "email.mime.text"
+        ), f"Expected email.mime.text, got {mimetext_import.module_name}"
+
+    def test_django_shortcuts_integration(self, safe_globals):
+        """Test that Django shortcuts imports work correctly"""
+        global get_object_or_404, redirect, ValidationError
+
+        deferrer = ImportDeferrer()
+
+        with deferrer:
+            from django.core.exceptions import ValidationError
+            from django.shortcuts import get_object_or_404, redirect
+
+        # Check all imports are deferred (should be DummyObjects in globals)
+        assert isinstance(get_object_or_404, DummyObject)
+        assert isinstance(redirect, DummyObject)
+        assert isinstance(ValidationError, DummyObject)
+
+        # Apply the deferred imports
+        deferrer.apply()
+
+        # After apply, the real objects should be in globals
+        from django.core.exceptions import ValidationError as actual_ValidationError
+        from django.shortcuts import get_object_or_404 as actual_get_object_or_404
+        from django.shortcuts import redirect as actual_redirect
+
+        assert get_object_or_404 is actual_get_object_or_404
+        assert redirect is actual_redirect
+        assert ValidationError is actual_ValidationError
+
+    def test_deferred_imports_replaced_after_apply(self, safe_globals):
+        """Test that variables containing deferred imports are properly replaced after apply()"""
+        global redirect, ValidationError
+
+        deferrer = ImportDeferrer()
+
+        # Black box test: use real import statements
+        with deferrer:
+            from django.core.exceptions import ValidationError
+            from django.shortcuts import redirect
+
+        # After the context, these should be DummyObjects in globals
+        assert isinstance(redirect, DummyObject)
+        assert isinstance(ValidationError, DummyObject)
+
+        # Apply deferred imports
+        deferrer.apply()
+
+        # Now the real objects should be accessible
+        from django.core.exceptions import ValidationError as expected_validation_error
+        from django.shortcuts import redirect as expected_redirect
+
+        # Check that the variables were updated correctly
+        assert redirect is expected_redirect
+        assert ValidationError is expected_validation_error
+
+    def test_import_with_tuple_assignment(self):
+        """Test that imports work correctly when used in tuple assignments like server.py"""
+        deferrer = ImportDeferrer()
+        test_globals = {}
+
+        with deferrer:
+            # Create deferred imports similar to server.py pattern:
+            # from django.shortcuts import get_object_or_404, redirect
+            deferred1 = DeferredImport(
+                "django.shortcuts", test_globals, from_name="get_object_or_404"
+            )
+            deferred2 = DeferredImport(
+                "django.shortcuts", test_globals, from_name="redirect"
+            )
+            deferrer.deferred_imports = [deferred1, deferred2]
+
+            # Create dummy objects in globals
+            test_globals["get_object_or_404"] = DummyObject(
+                "django.shortcuts.get_object_or_404"
+            )
+            test_globals["redirect"] = DummyObject("django.shortcuts.redirect")
+
+        # Before applying, these should be dummies
+        assert isinstance(test_globals["redirect"], DummyObject)
+        assert isinstance(test_globals["get_object_or_404"], DummyObject)
+
+        # Apply the deferred imports
+        deferrer.apply()
+
+        # After applying, redirect should be the real function
+        # This test will fail if defer.apply() doesn't properly replace the dummies
+        from django.shortcuts import get_object_or_404 as actual_get_object_or_404
+        from django.shortcuts import redirect as actual_redirect
+
+        assert (
+            test_globals["redirect"] is actual_redirect
+        ), "redirect was not properly replaced after defer.apply()"
+        assert (
+            test_globals["get_object_or_404"] is actual_get_object_or_404
+        ), "get_object_or_404 was not properly replaced after defer.apply()"
 
 
 class TestDeferredErrors:

@@ -296,48 +296,77 @@ class ImportDeferrer:
         # For "from module import item", we need to find both IMPORT_NAME and IMPORT_FROM
         # For "import module", we only need IMPORT_NAME
 
-        # Look for IMPORT_NAME instructions that match our module name
-        import_name_instr = None
-        import_from_instr = None
+        # Look for IMPORT_NAME and IMPORT_FROM instruction pairs
+        # We'll reconstruct all import statements and see which one makes sense
+        for import_name_idx, import_name_instr in import_instructions:
+            if import_name_instr.opname != "IMPORT_NAME":
+                continue
 
-        for idx, instr in import_instructions:
-            if instr.opname == "IMPORT_NAME" and instr.argval == name:
-                import_name_instr = (idx, instr)
-            elif instr.opname == "IMPORT_FROM":
-                import_from_instr = (idx, instr)
+            # The argval contains the full module path being imported
+            module_name = import_name_instr.argval
 
-        # Find STORE instruction to determine the target variable name
-        target_store = None
-        if import_name_instr or import_from_instr:
-            # Find the next STORE instruction after any import instruction
-            import_idx = (
-                import_name_instr[0] if import_name_instr else import_from_instr[0]
-            )
-            for idx, instr in store_instructions:
-                if idx > import_idx:
-                    target_store = instr
+            # Check if this module name starts with our name (for "from django.contrib.auth.models" when name="django")
+            if not (module_name == name or module_name.startswith(name + ".")):
+                continue
+
+            # Find IMPORT_FROM instructions that follow this IMPORT_NAME
+            # until we hit another IMPORT_NAME (which starts a new import statement)
+            import_from_instrs = []
+            next_import_name_idx = None
+
+            # Find the next IMPORT_NAME instruction
+            for idx, instr in import_instructions:
+                if instr.opname == "IMPORT_NAME" and idx > import_name_idx:
+                    next_import_name_idx = idx
                     break
 
-        if target_store:
-            target_name = target_store.argval
+            # Collect IMPORT_FROM instructions between this IMPORT_NAME and the next
+            for idx, instr in import_instructions:
+                if (
+                    instr.opname == "IMPORT_FROM"
+                    and idx > import_name_idx
+                    and (next_import_name_idx is None or idx < next_import_name_idx)
+                ):
+                    import_from_instrs.append((idx, instr))
 
-            # Determine if this is a "from ... import ..." or plain "import ..."
-            if import_name_instr and import_from_instr:
-                # This is "from module import name [as alias]"
-                # The import_from_instr.argval contains the imported item name
-                imported_item = import_from_instr[1].argval
+            if import_from_instrs:
+                # This is "from module import name1, name2, ..." - collect all imported names
+                imported_items = []
 
-                if target_name == imported_item:
-                    return f"from {name} import {imported_item}"
-                else:
-                    return f"from {name} import {imported_item} as {target_name}"
+                # Find the corresponding STORE instructions for each IMPORT_FROM
+                for from_idx, from_instr in import_from_instrs:
+                    imported_name = from_instr.argval
 
-            elif import_name_instr and not import_from_instr:
-                # This is "import module [as alias]"
-                if target_name == name:
-                    return f"import {name}"
-                else:
-                    return f"import {name} as {target_name}"
+                    # Find the STORE instruction that follows this IMPORT_FROM
+                    target_store = None
+                    for store_idx, store_instr in store_instructions:
+                        if store_idx > from_idx:
+                            target_store = store_instr
+                            break
+
+                    if target_store:
+                        target_name = target_store.argval
+                        if target_name == imported_name:
+                            imported_items.append(imported_name)
+                        else:
+                            imported_items.append(f"{imported_name} as {target_name}")
+
+                if imported_items:
+                    return f"from {module_name} import {', '.join(imported_items)}"
+            else:
+                # This is "import module [as alias]" - find the STORE instruction
+                target_store = None
+                for idx, instr in store_instructions:
+                    if idx > import_name_idx:
+                        target_store = instr
+                        break
+
+                if target_store:
+                    target_name = target_store.argval
+                    if target_name == module_name:
+                        return f"import {module_name}"
+                    else:
+                        return f"import {module_name} as {target_name}"
 
         # If we can't determine the exact pattern, check variable names in frame
         # to see if there's an alias being created
@@ -400,7 +429,10 @@ class ImportDeferrer:
         try:
             if deferred.from_name:
                 # Handle "from module import name [as alias]"
-                module = self.original_import(deferred.module_name, target_globals)
+                # For "from module import name", we need to pass fromlist to get the leaf module
+                module = self.original_import(
+                    deferred.module_name, target_globals, {}, [deferred.from_name], 0
+                )
                 target_obj = getattr(module, deferred.from_name)
             else:
                 # Handle "import module [as alias]"
