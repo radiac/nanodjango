@@ -6,8 +6,6 @@ with defer.optional:
 
 @hookimpl
 def django_pre_setup(app: Django):
-    # TODO: Event when deferred, we can't check this here. We're going to need another
-    # way to check if the module exists
     if not defer.is_installed("django_distill"):
         return
 
