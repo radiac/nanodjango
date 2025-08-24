@@ -26,9 +26,6 @@ Bugfix:
 * Fix issue with multiple deferred imports in a single statement
 * Fix WSGI/ASGI preparation to avoid double initialization
 * Fix missing ``urls`` argument in hook
-
-Internal:
-
 * Improve patch migrations to work around missing migration dir in some environments
 
 

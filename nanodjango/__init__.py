@@ -6,5 +6,5 @@ from .defer import defer
 # Register pluggy hook
 hookimpl = pluggy.HookimplMarker("nanodjango")
 
-__version__ = "0.11.2"
+__version__ = "0.12.0"
 __all__ = ["Django", "defer", "hookimpl"]
