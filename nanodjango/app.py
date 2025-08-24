@@ -262,7 +262,8 @@ class Django:
             # Being called directly with an include
             urlpatterns.append(path_fn(pattern, include))
 
-            # If we're converting, we're going to need the source AST node
+            # If we're converting, we're going to need the source AST node based on the
+            # current frame, so we have to capture it now
             # Get the full source code, then fine the expression by line number
             caller_frame = inspect.currentframe().f_back
             caller_lineno = caller_frame.f_lineno
@@ -274,6 +275,15 @@ class Django:
             source = None
             for node in ast.walk(caller_ast):
                 if isinstance(node, ast.Expr) and node.lineno == caller_lineno:
+                    source = node
+                    break
+                # Handle multiline expressions - check if caller line is within the expression
+                elif (
+                    isinstance(node, ast.Expr)
+                    and hasattr(node, "end_lineno")
+                    and node.end_lineno
+                    and node.lineno <= caller_lineno <= node.end_lineno
+                ):
                     source = node
                     break
 

@@ -111,6 +111,7 @@ def mk_app_decorator_filter(attr_name: str) -> Callable:
 is_admin_decorator = mk_app_decorator_filter("admin")
 is_view_decorator = mk_app_decorator_filter("route")
 is_api_decorator = mk_app_decorator_filter("api")
+is_templatetag_decorator = mk_app_decorator_filter("templatetag")
 
 
 def ensure_http_response(view_fn):

@@ -21,6 +21,7 @@ from .utils import (
     filter_decorators,
     import_from_path,
     is_api_decorator,
+    is_templatetag_decorator,
     make_url,
     obj_to_ast,
 )
@@ -662,9 +663,21 @@ class Converter:
                     urls.append(make_url(pattern, include_src, **url_config))
                     resolver.add_references(references)
                 else:
-                    raise ConversionError(
-                        f"Could not understand route {url_config['source']}"
-                    )
+                    # If we don't have source information, this is almost certainly
+                    # defined outside our app, so outside the scope of convert.
+                    #
+                    # Plugins should handle their own conversion via hooks.
+                    if url_config.get("include"):
+                        # Probably from a plugin
+                        continue
+                    else:
+                        # Report it in case it's an error
+                        #
+                        # TODO: we might want to switch this to a warning
+                        source_desc = url_config["source"] or f"pattern '{pattern}'"
+                        raise ConversionError(
+                            f"Could not understand route {source_desc}"
+                        )
             if url_config["re"]:
                 imports.add("re_path")
             else:
@@ -672,7 +685,7 @@ class Converter:
 
         extra_src = []
         self.app.pm.hook.convert_build_app_urls(
-            converter=self, resolver=resolver, extra_src=extra_src
+            converter=self, resolver=resolver, urls=urls, extra_src=extra_src
         )
 
         if not urls and not extra_src:
@@ -810,13 +823,19 @@ class Converter:
                         args.append(f"{key}={value}")
                 decorator += f"({', '.join(args)})"
 
-            # Get function source and collect references
+            # Get function source and remove templatetag decorators
             func_src = inspect.getsource(func)
             func_ast = obj_to_ast(func_src)
+            _, other_decorators = filter_decorators(
+                func_ast, is_templatetag_decorator, self.app._instance_name
+            )
+            func_ast.decorator_list = other_decorators
+            clean_func_src = ast.unparse(func_ast)
+
+            # Collect references from the cleaned function
             references = collect_references(func_ast)
             resolver.add_references(references)
-
-            tag_sources.append(f"{decorator}\n{func_src}")
+            tag_sources.append(f"{decorator}\n{clean_func_src}")
 
         extra_src = []
         self.app.pm.hook.convert_build_app_templatetags(
