@@ -2,8 +2,8 @@
 Changelog
 =========
 
-0.12.0 - TBC
-------------
+0.12.0 - 2025-08-24
+-------------------
 
 Features:
 
@@ -12,12 +12,20 @@ Features:
 * Add ``convert_build_app_templatetags`` and ``convert_build_app_templatetags_done``
   hooks
 * Add ``django_browser_reload`` contrib plugin to support automatic browser reloading
-* Add ``--template`` option to ``convert`` command for custom Django project templates (#42)
+* Add ``--template`` option to ``convert`` command for custom Django project templates
+  (#42)
+
+Docs:
+
+* Add "Integrations" section to track growing list of key packages which either have
+  ``nanodjango.contrib`` plugins or provide plugins themselves.
 
 Bugfix:
 
+* Fix arguments not being passed through in manage command (#61, #66)
 * Fix issue with multiple deferred imports in a single statement
 * Fix WSGI/ASGI preparation to avoid double initialization
+* Fix missing ``urls`` argument in hook
 
 Internal:
 

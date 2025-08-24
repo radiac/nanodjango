@@ -81,14 +81,16 @@ def cli(plugin: list[str]):
         Django._plugins.append(module)
 
 
-@cli.command()
+@cli.command(
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": False}
+)
 @click.argument("app", type=str, required=True, callback=load_app)
-@click.argument("args", type=str, required=False, nargs=-1)
-def manage(app: Django, args: tuple[str]):
+@click.pass_context
+def manage(ctx: click.Context, app: Django):
     """
     Run a management command
     """
-    app.manage(args)
+    app.manage(tuple(ctx.args))
 
 
 @cli.command()

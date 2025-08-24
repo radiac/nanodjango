@@ -20,6 +20,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     template_tags
     apis
     admin
+    integrations
     convert
     defer
     plugins

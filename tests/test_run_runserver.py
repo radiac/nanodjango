@@ -22,3 +22,8 @@ def test_runserver__fbv_with_model():
         response = urllib.request.urlopen(f"http://{TEST_BIND}/count/", timeout=10)
         assert response.getcode() == 200
         assert "Number of page loads" in response.read().decode("utf-8")
+
+
+def test_manage_flag_passthrough():
+    result = cmd("manage", TEST_SCRIPT, "makemigrations", TEST_APP, "--empty")
+    assert "migrations" in result.stdout.lower()
