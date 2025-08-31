@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import inspect
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -286,13 +287,33 @@ class Converter:
         Values are the import strings - we'll use isort to merge modules later
         """
         self.imports = {}
-        for node in self.ast.body:
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    self.imports[alias.name] = f"import {alias.name}"
-            elif isinstance(node, ast.ImportFrom):
-                for alias in node.names:
-                    self.imports[alias.name] = f"from {node.module} import {alias.name}"
+
+        def collect_from_nodes(nodes):
+            for node in nodes:
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        self.imports[alias.name] = f"import {alias.name}"
+                elif isinstance(node, ast.ImportFrom):
+                    for alias in node.names:
+                        self.imports[alias.name] = (
+                            f"from {node.module} import {alias.name}"
+                        )
+                elif hasattr(node, "body"):
+                    # Recursively check inside blocks (with, try, if, for, while, etc.)
+                    collect_from_nodes(node.body)
+                elif hasattr(node, "orelse") and node.orelse:
+                    # Check else clauses
+                    collect_from_nodes(node.orelse)
+                elif hasattr(node, "handlers"):
+                    # Check except handlers in try blocks
+                    for handler in node.handlers:
+                        if hasattr(handler, "body"):
+                            collect_from_nodes(handler.body)
+                elif hasattr(node, "finalbody"):
+                    # Check finally blocks
+                    collect_from_nodes(node.finalbody)
+
+        collect_from_nodes(self.ast.body)
 
         self.app.pm.hook.convert_collect_imports(converter=self)
         return self.imports
@@ -443,6 +464,7 @@ class Converter:
             settings_ast.body[index:index] = others
 
         # Save settings
+        ast.fix_missing_locations(settings_ast)
         self.write_file(filename, ast.unparse(settings_ast))
 
     def copy_assets(self) -> None:
@@ -502,10 +524,14 @@ class Converter:
         resolver = Resolver(self, ".models")
 
         for name, obj in self.module.__dict__.items():
-            if inspect.isclass(obj) and issubclass(obj, Model):
-                app_model = AppModel(self, name, obj)
-                self.models.append(app_model)
-                resolver.add(name, app_model.references)
+            if not (inspect.isclass(obj) and issubclass(obj, Model)):
+                # Not a model
+                continue
+            if inspect.getsourcefile(obj) != self.module.__file__:
+                continue
+            app_model = AppModel(self, name, obj)
+            self.models.append(app_model)
+            resolver.add(name, app_model.references)
 
         extra_src = []
         self.app.pm.hook.convert_build_app_models(
@@ -724,17 +750,19 @@ class Converter:
         src = filename.read_text()
 
         # Add path to app
-        pattern = "urlpatterns = ["
-        if pattern not in src:
+        pattern = r"((^|\n)urlpatterns(\s*:[^=]+)?\s*=\s*\[)"
+        if not re.search(pattern, src):
             raise ConversionError("Expected to find urlpatterns in urls.py")
 
         if self.app_has_urls:
             src = src.replace(
                 "from django.urls import path",
                 "from django.urls import include, path",
-            ).replace(
+            )
+            src = re.sub(
                 pattern,
-                f'{pattern}\n    path("", include("{self.project_name}.{self.app.app_name}.urls")),',
+                rf'\1\n    path("", include("{self.project_name}.{self.app.app_name}.urls")),',
+                src,
             )
 
         if "ADMIN_URL" in self.app._settings:

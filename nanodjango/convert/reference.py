@@ -84,6 +84,11 @@ class ReferenceVisitor(ast.NodeVisitor):
         for target in node.targets:
             if isinstance(target, ast.Name):
                 self.current_scope.add(target.id)
+            elif isinstance(target, ast.Tuple):
+                # Handle tuple unpacking: foo, bar = fn()
+                for elt in target.elts:
+                    if isinstance(elt, ast.Name):
+                        self.current_scope.add(elt.id)
         self.generic_visit(node)
 
     def visit_NamedExpr(self, node):
@@ -128,6 +133,30 @@ class ReferenceVisitor(ast.NodeVisitor):
         self.visit(node.key)
         self.visit(node.value)
         self.pop_scope()
+
+    def visit_With(self, node):
+        """With statement context managers"""
+        # Visit the context manager expressions first
+        for item in node.items:
+            self.visit(item.context_expr)
+            # Add the 'as' variable to local scope if it exists
+            if item.optional_vars and isinstance(item.optional_vars, ast.Name):
+                self.current_scope.add(item.optional_vars.id)
+        # Then visit the body
+        for stmt in node.body:
+            self.visit(stmt)
+
+    def visit_ExceptHandler(self, node):
+        """Exception handler with 'as' variable"""
+        # Visit the exception type first
+        if node.type:
+            self.visit(node.type)
+        # Add the 'as' variable to local scope if it exists
+        if node.name:
+            self.current_scope.add(node.name)
+        # Then visit the body
+        for stmt in node.body:
+            self.visit(stmt)
 
     def visit_Import(self, node: ast.Import | ast.ImportFrom):
         for alias in node.names:

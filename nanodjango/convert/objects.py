@@ -103,12 +103,17 @@ class AppView(ConverterObject):
         if not app_nodes:
             return
 
-        # Find the ones which are app.render calls
+        # Find the ones which are app.render calls or app decorators
         app_attr_nodes = []
         for node in app_nodes:
             attr_node = getattr(node, "attribute_parent", None)
-
-            if attr_node and attr_node.attr == "render":
+            if attr_node and attr_node.attr in (
+                "render",
+                "route",
+                "re_path",
+                "api",
+                "admin",
+            ):
                 app_attr_nodes.append(attr_node)
             else:
                 dirty = True
@@ -119,6 +124,8 @@ class AppView(ConverterObject):
         elif app_attr_nodes:
             self.visitor.globals_ref.remove(self.converter.app._instance_name)
             del self.visitor.globals_lookup[self.converter.app._instance_name]
+            # Update references after cleanup
+            self.references = self.visitor.globals_ref
 
         if not app_attr_nodes:
             return

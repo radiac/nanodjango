@@ -2,6 +2,18 @@
 Changelog
 =========
 
+0.12.1 - 2025-09-01
+-------------------
+
+Bugfix:
+
+* Fix convert AST unparsing errors by adding missing location information
+* Extend convert import detection to recursively search within nested blocks
+* Extend convert reference tracking for blocks (context manager, exception handlers) and tuple unpacking
+* Add convert urlpatterns regex matching to support type hints in convert templates
+* Fix convert decorator filtering to handle all route decorator types
+
+
 0.12.0 - 2025-08-24
 -------------------
 

@@ -94,22 +94,25 @@ def parse_admin_decorator(obj_ast: ast.AST, app_name: str) -> dict[str, Any]:
     )
 
 
-def mk_app_decorator_filter(attr_name: str) -> Callable:
+def mk_app_decorator_filter(*attr_names: str) -> Callable:
     def filter_fn(obj_ast: ast.AST, app_name: str) -> bool:
         # Match by string - avoids having to deal with AST complexities caused by
         # * calls, eg @app.route(...)
         # * nested decorators, eg @app.api.get(...)
         src = ast.unparse(obj_ast).strip()
-        seek = f"{app_name}.{attr_name}"
-        if src.startswith(seek) and (len(src) == len(seek) or src[len(seek)] in ".("):
-            return True
+        for attr_name in attr_names:
+            seek = f"{app_name}.{attr_name}"
+            if src.startswith(seek) and (
+                len(src) == len(seek) or src[len(seek)] in ".("
+            ):
+                return True
         return False
 
     return filter_fn
 
 
 is_admin_decorator = mk_app_decorator_filter("admin")
-is_view_decorator = mk_app_decorator_filter("route")
+is_view_decorator = mk_app_decorator_filter("route", "re_path", "path")
 is_api_decorator = mk_app_decorator_filter("api")
 is_templatetag_decorator = mk_app_decorator_filter("templatetag")
 

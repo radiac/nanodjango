@@ -46,7 +46,9 @@ then specify its module dot path in the entry point.
 
 For example, if your project is called ``myproject``:
 
-``setup.py``::
+``setup.py``:
+
+.. code-block:: python
 
     setup(
         ...
@@ -57,7 +59,9 @@ For example, if your project is called ``myproject``:
         },
     )
 
-``pyproject.toml``::
+``pyproject.toml``:
+
+.. code-block:: toml
 
     [project.entry-points.nanodjango]
     myproject = "myproject.nanodjango"
@@ -81,6 +85,7 @@ do submit an issue or PR.
 Plugins are defined using the ``nanodjango.hookimpl`` decorator, and registered
 by :ref:`using-a-plugin`.
 
+
 Tutorial: simple
 ----------------
 
@@ -90,15 +95,21 @@ set up and ready to use.
 
 In your project, create a file called ``nanodjango.py``:
 
-... code-block:: python
+.. code-block:: python
 
-    from nanodjango import hookimpl
+    from nanodjango import Django, hookimpl
 
+    # Make changes before nanodjango configures Django
     @hookimpl
-    def django_post_setup(app):
-        # This is called once nanodjango has configured Django.
-        # This hook is passed the app from the Django() instantiation.
+    def django_pre_setup(app: Django):
+        from django.conf import settings
 
+        # Automatically install my_app
+        app_name = "my_app"
+        if app_name not in settings.INSTALLED_APPS:
+            settings.INSTALLED_APPS.append(app_name)
+
+        # Add a route
         @app.route("/ping")
         def pong(request):
             return "pong"
@@ -119,7 +130,9 @@ Create the plugin
 ~~~~~~~~~~~~~~~~~
 
 Importing djano-ninja and working with it directly in nanodjango would look something
-like this::
+like this:
+
+.. code-block:: python
 
     from ninja import NinjaAPI
     api = NinjaAPI()
@@ -143,7 +156,9 @@ For that we need to write a plugin.
 
 Lets create a new plugin file, ``django_ninja.py``. We may need models but are unlikely
 to need views, so we'll build our ``api.py`` right after we've built ``models.py`` using
-the ``convert_build_app_models_done`` hook::
+the ``convert_build_app_models_done`` hook:
+
+.. code-block:: python
 
     from nanodjango import hookimpl
 
@@ -170,7 +185,9 @@ We now want to find all ``NinjaAPI`` instances.
 
 We will go through the root level of the app's AST (its globals), looking for a
 definition of a ``NinjaAPI`` instance. Using ``pp_ast(converter.ast.body)`` on
-``examples/ninja_api.py``, we can see it will look something like::
+``examples/ninja_api.py``, we can see it will look something like:
+
+.. code-block:: python
 
     Assign(
     targets=[
@@ -194,7 +211,9 @@ it will be ``.api``.
 We'll also make an ``api_objs = set()`` to keep track of which ``NinjaAPI`` instances
 we've found, and a ``code`` list to store the code we want in ``api.py``.
 
-Putting all this together, we get::
+Putting all this together, we get:
+
+.. code-block:: python
 
     import ast
     from nanodjango.convert.plugin import Resolver
@@ -217,7 +236,9 @@ Putting all this together, we get::
               # We've found a NinjaAPI instance
 
 It could be assigned to multiple targets, so now we've found it, lets loop over its
-targets and register them with our set and the resolver::
+targets and register them with our set and the resolver:
+
+.. code-block:: python
 
     from nanodjango.convert.utils import collect_references
     ...
@@ -241,7 +262,9 @@ Find endpoints
 
 That's the ``NinjaAPI`` instance found, now for the endpoint functions it decorates.
 
-Using ``pp_ast`` again, the AST object for a decorated function will look like this::
+Using ``pp_ast`` again, the AST object for a decorated function will look like this:
+
+.. code-block:: python
 
     FunctionDef(
       name='add',
@@ -260,7 +283,9 @@ Using ``pp_ast`` again, the AST object for a decorated function will look like t
 You will notice it's an ``ast.FunctionDef``, and that it has a ``decorator_list`` which
 mentions ``api``, one of the ``NinjaAPI`` instances we found previously. That should be
 enough to add to our loop. Lets also use the ``get_decorators`` helper from
-``nanodjango.convert.utils``::
+``nanodjango.convert.utils``:
+
+.. code-block:: python
 
     from nanodjango.convert.utils import get_decorators
     ...
@@ -295,7 +320,9 @@ We've duplicated some logic there, so the final version splits ``resolver.add`` 
 Write the file
 ~~~~~~~~~~~~~~
 
-Now we've collected all the necessary references and source, we can generate our file::
+Now we've collected all the necessary references and source, we can generate our file:
+
+.. code-block:: python
 
     @hookimpl
     def convert_build_app_models_done(converter: Converter):
