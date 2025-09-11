@@ -156,7 +156,7 @@ class Django:
                 settings.WHITENOISE_ROOT = settings.PUBLIC_DIR
 
         # Collect internal values
-        self.app_name = settings.DF_APP_NAME
+        self.app_name = settings.ND_APP_NAME
         self.app_module = app_meta.get_app_module()
         self.app_path = Path(inspect.getfile(self.app_module))
         self._templates = app_meta.get_templates()
