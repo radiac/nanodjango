@@ -11,7 +11,7 @@ class NanodjangoAppConfig(AppConfig):
     AppConfig with a hard-coded path
     """
 
-    path = str(settings.DF_FILEPATH)
+    path = str(settings.ND_FILEPATH)
 
 
 def prepare_apps(app_name: str, app_module: ModuleType):

@@ -11,14 +11,14 @@ from nanodjango.app_meta import get_app_conf, get_app_module, get_templates
 app_conf = get_app_conf()
 
 # Find paths
-DF_APP_MODULE: ModuleType = get_app_module()
-if not DF_APP_MODULE or not DF_APP_MODULE.__file__:
+ND_APP_MODULE: ModuleType = get_app_module()
+if not ND_APP_MODULE or not ND_APP_MODULE.__file__:
     raise ValueError("Invalid app module - incorrect initialisation")
-DF_FILEPATH: Path = Path(DF_APP_MODULE.__file__).absolute()
-DF_APP_NAME: str = DF_FILEPATH.stem
-BASE_DIR: Path = DF_FILEPATH.parent
+ND_FILEPATH: Path = Path(ND_APP_MODULE.__file__).absolute()
+ND_APP_NAME: str = ND_FILEPATH.stem
+BASE_DIR: Path = ND_FILEPATH.parent
 
-MIGRATION_MODULES = {DF_APP_NAME: app_conf.get("MIGRATIONS_DIR", "migrations")}
+MIGRATION_MODULES = {ND_APP_NAME: app_conf.get("MIGRATIONS_DIR", "migrations")}
 
 # Standard Django settings
 SECRET_KEY = getenv("DJANGO_SECRET_KEY", "not-a-secret")
