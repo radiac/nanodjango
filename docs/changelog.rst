@@ -2,8 +2,12 @@
 Changelog
 =========
 
-0.12.2 - TBC
-------------
+0.12.2 - 2025-09-11
+-------------------
+
+Bugfix:
+
+* Fixed module resolution error blocking scripts from running directly
 
 Internal:
 

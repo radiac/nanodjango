@@ -158,6 +158,7 @@ class Django:
         # Collect internal values
         self.app_name = settings.ND_APP_NAME
         self.app_module = app_meta.get_app_module()
+        sys.modules[self.app_name] = self.app_module
         self.app_path = Path(inspect.getfile(self.app_module))
         self._templates = app_meta.get_templates()
 
