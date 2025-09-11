@@ -145,6 +145,9 @@ class Django:
 
         # Update Django settings with ours
         for key, value in _settings.items():
+            if callable(value):
+                settings_value = getattr(settings, key)
+                value = value(settings_value)
             setattr(settings, key, value)
 
         # Set WHITENOISE_ROOT if public dir exists

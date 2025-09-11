@@ -23,6 +23,13 @@ def test_runserver__fbv_with_model():
         assert response.getcode() == 200
         assert "Number of page loads" in response.read().decode("utf-8")
 
+        # Assert that a callable setting gets set correctly.
+        response = urllib.request.urlopen(
+            f"http://{TEST_BIND}/middleware_settings/", timeout=10
+        )
+        assert response.getcode() == 200
+        # The SimpleMiddleware should get added at the end of the MIDDLEWARE setting.
+        assert "'scale.SimpleMiddleware']</p>" in response.read().decode("utf-8")
 
 def test_manage_flag_passthrough():
     result = cmd("manage", TEST_SCRIPT, "makemigrations", TEST_APP, "--empty")
