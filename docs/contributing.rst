@@ -83,8 +83,7 @@ Then run examples by adding your ``nanodjango`` dir to the ``PYTHONPATH``, and c
 the repo module directly::
 
     (.venv) nanodjango$ cd examples
-    (.venv) examples$ PYTHONPATH=..
-    (.venv) examples$ python -m nanodjango run counter.py migrate
+    (.venv) examples$ PYTHONPATH=.. python -m nanodjango run counter.py migrate
 
 
 Running tests
