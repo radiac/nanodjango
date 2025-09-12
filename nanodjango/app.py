@@ -742,4 +742,16 @@ class Django:
         application = get_wsgi_application()
         return application(environ, start_response)
 
+    async def create_server(self, host, port):
+        """
+        Initalizes nanodjango and returns a ASGI server instance
+        """
+        self._has_async_view = True 
+        type(self).__call__ = type(self).asgi # Same hacky solution in wrapped()
+
+        import uvicorn
+        config = uvicorn.Config(self, host=host, port=port)
+        server = uvicorn.Server(config)
+        await server.serve()
+
     __call__ = wsgi
