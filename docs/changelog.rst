@@ -2,6 +2,23 @@
 Changelog
 =========
 
+0.12.2 - 2025-09-11
+-------------------
+
+Bugfix:
+
+* Fixed module resolution error blocking scripts from running directly
+
+Internal:
+
+* Rename legacy ``DF_*`` settings to ``ND_*`` (#55)
+
+Thanks to:
+
+* Bryan Ponce (bponce02) for ``DF*`` fix (#55)
+
+
+
 0.12.1 - 2025-09-01
 -------------------
 
