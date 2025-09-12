@@ -147,6 +147,10 @@ class Django:
         for key, value in _settings.items():
             setattr(settings, key, value)
 
+        # Remove DATABASES configuration if there is no dn name
+        if not 'SQLITE_DATABASE' in _settings:
+            settings.DATABASES = {}
+
         # Set WHITENOISE_ROOT if public dir exists
         # Do it this way instead of setting WHITENOISE_ROOT directly, because if the dir
         # does not exist, Whitenoise will raise warnings when run in production
@@ -684,11 +688,14 @@ class Django:
         elif not host:
             host = "0"
 
-        exec_manage("makemigrations", self.app_name)
-        exec_manage("migrate")
-        User = get_user_model()
-        if User.objects.count() == 0:
-            exec_manage("createsuperuser")
+        # Check if we have db before running migrations
+        has_db_name = self.settings.DATABASES.get('default', {}).get('NAME', None)
+        if has_db_name:
+            exec_manage("makemigrations", self.app_name)
+            exec_manage("migrate")
+            User = get_user_model()
+            if User.objects.count() == 0:
+                exec_manage("createsuperuser")
 
         return host, port
 
