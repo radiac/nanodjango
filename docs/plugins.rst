@@ -16,6 +16,7 @@ nanodjango.
 
 
 .. _using-a-plugin:
+
 Using a plugin
 ==============
 

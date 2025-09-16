@@ -2,6 +2,15 @@
 Changelog
 =========
 
+0.12.3 - TBC
+------------
+
+Docs:
+
+* Replaced theme
+* Swapped to build using dirhtml for nicer urls
+
+
 0.12.2 - 2025-09-11
 -------------------
 
@@ -80,7 +89,7 @@ Bugfix:
 Features:
 
 * Added support for :doc:`deferred imports <defer>`
-* Added :doc:`new plugin system <plugins` using pluggy
+* Added :doc:`new plugin system <plugins>` using pluggy
 * Added contrib plugin for django-distill for support in ``Django.route()``.
 * Added django-nanopages and django-distill as optional dependencies under ``[static]``
 * Install all optional dependencies with ``[full]``
@@ -90,7 +99,7 @@ Features:
 Breaking changes:
 
 * The ``convert`` plugin system has been replaced with the pluggy-based plugin system -
-  see :ref:`_upgrade_0_11_0__plugins` below
+  see :ref:`upgrade_0_11_0__plugins` below
 * The ``--plugin`` option has moved from ``nanodjango convert --plugin=...`` to
   ``nanodjango --plugin=... <command>``
 * Plugins are no longer registered on import - plugins now need to be added via
@@ -102,7 +111,7 @@ Bugs:
 * Fix admin site URL priority so it is still served with a catch-all route.
 
 
-.. _upgrade_0_11_0__plugins
+.. _upgrade_0_11_0__plugins:
 
 Upgrading convert plugins
 ~~~~~~~~~~~~~~~~~~~~~~~~~

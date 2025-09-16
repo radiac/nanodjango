@@ -9,7 +9,6 @@
 import re
 from pathlib import Path
 
-
 project = "nanodjango"
 copyright = "2024, Richard Terry"
 author = "Richard Terry"
@@ -32,7 +31,7 @@ release = find_version("..", "nanodjango", "__init__.py")
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx_radiac_theme",
+    "furo_nanodjango",
 ]
 
 templates_path = ["_templates"]
@@ -42,22 +41,13 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_radiac_theme"
+html_theme = "furo_nanodjango"
 html_static_path = ["_static"]
-
+html_title = ""
 html_theme_options = {
-    "logo_only": False,
-    "display_version": True,
-    # Toc options
-    "collapse_navigation": True,
-    "sticky_navigation": True,
-    "navigation_depth": 4,
-    "includehidden": True,
-    "titles_only": False,
-    # radiac.net theme
-    "radiac_project_slug": "nanodjango",
-    "radiac_project_name": "nanodjango",
-    "radiac_subsite_links": [
-        # ("https://radiac.net/projects/nanodjango/demo/", "Demo"),
-    ],
+    "light_css_variables": {
+        "font-stack": "Barlow, sans-serif;",
+        "font-stack--monospace": "Fira Mono, monospace",
+        "font-stack--headings": "Barlow, sans-serif;",
+    },
 }

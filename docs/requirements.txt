@@ -1,6 +1,6 @@
 # Core build requirements
 sphinx
--e git+https://github.com/radiac/sphinx_radiac_theme.git#egg=sphinx_radiac_theme
+git+https://github.com/radiac/furo-nanodjango.git
 
 # Optional
 # sphinx-autobuild

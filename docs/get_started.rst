@@ -51,6 +51,7 @@ project:
 or you could run each step manually using Django management commands:
 
 .. code-block:: bash
+
     nanodjango manage counter.py makemigrations counter
     nanodjango manage counter.py migrate
     nanodjango manage counter.py createsuperuser
@@ -59,6 +60,7 @@ or you could run each step manually using Django management commands:
 Serve it in production using gunicorn:
 
 .. code-block:: bash
+
     nanodjango serve counter.py
 
 

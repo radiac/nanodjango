@@ -113,7 +113,7 @@ To help with this, the ``defer.is_installed(name)`` function will return ``True`
 named package is installed, or ``False`` if it is not, without actually trying to import
 it.
 
-For example::
+For example:
 
 .. code-block:: python
 
