@@ -1,6 +1,3 @@
-# Core build requirements
-sphinx
-git+https://github.com/radiac/furo-nanodjango.git
 
-# Optional
-# sphinx-autobuild
+-r requirements-core.txt
+sphinx-autobuild

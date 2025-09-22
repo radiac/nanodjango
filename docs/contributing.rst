@@ -147,9 +147,20 @@ To build a local copy of the documentation:
 
     (.venv) nanodjango$ pip install -r docs/requirements.txt
     (.venv) nanodjango$ cd docs
+
+You can then either do a one-off build of the docs in  ``docs/_build/html/``:
+
     (.venv) docs$ make html
 
-You'll find a set of freshly-generated HTML files in ``docs/_build/html/``.
+or if you're working on the docs, you may prefer to use ``sphinx-autobuild``, which will
+run a web server (on port 8000 by default) to rebuild and show your changes as you make
+them:
+
+.. code-block:: bash
+
+    (.venv) docs$ make nd
+    # Run it on a different port:
+    (.venv) docs$ make nd SPHINXOPTS="--port=8001"
 
 
 Getting help
