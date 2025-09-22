@@ -9,6 +9,12 @@ Docs:
 
 * Replaced theme
 * Swapped to build using dirhtml for nicer urls
+* Fixed uwsgi instructions (#58)
+
+Thanks to:
+
+* Emmanuelle Delescolle (nanuxbe) for uwsgi fix (#58)
+
 
 
 0.12.2 - 2025-09-11
