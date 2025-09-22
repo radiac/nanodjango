@@ -193,7 +193,7 @@ server directly:
 .. code-block:: bash
 
     gunicorn -w 4 counter:app
-    uwsgi --wsgi-file counter.py --callable app --processes 4
+    uwsgi --module counter:app --processes 4
     uvicorn counter:app
 
 
