@@ -27,19 +27,27 @@ Create a new file, ``counter.py`` with the following:
 
     @app.admin
     class CountLog(models.Model):
+        # Standard Django model, registered with the admin site
         timestamp = models.DateTimeField(auto_now_add=True)
 
     @app.route("/")
     def count(request):
-        # Standard Django function view
+        # Standard Django function view, or class-based view
         CountLog.objects.create()
-        return f"<p>Number of requests: {CountLog.objects.count()}</p>"
+        return f"<p>Number of page loads: {CountLog.objects.count()}</p>"
 
     @app.api.get("/add")
-    def count(request):
-        # Django Ninja API
+    def add(request):
+        # Django Ninja API support built in
         CountLog.objects.create()
         return {"count": CountLog.objects.count()}
+
+    @app.route("/slow/")
+    async def slow(request):
+        import asyncio
+        await asyncio.sleep(10)
+        return "Async views supported"
+
 
 Now use the ``run`` command to create the migrations, apply them, and run your
 project:
