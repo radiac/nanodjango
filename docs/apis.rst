@@ -28,6 +28,11 @@ This gives you an easy way to define your API endpoints:
 See the `Django Ninja documentation <https://django-ninja.dev/>`_ for more details of
 how to use the ``NinjaAPI`` instance at ``@app.api``.
 
+See also
+========
+For CRUD examples, see:
+
+- :doc:`howto_api` — a complete CRUD Todo API
 
 Other Ninja features
 ====================
