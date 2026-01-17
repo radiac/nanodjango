@@ -124,7 +124,7 @@ standard class-based views:
 
 .. code-block:: python
 
-    @django.route("/counts/")
+    @app.path("/counts/")
     class Counts(ListView):
         model = CountLog
 

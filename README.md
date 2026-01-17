@@ -1,15 +1,18 @@
 # nanodjango
 
 [![PyPI](https://img.shields.io/pypi/v/nanodjango.svg)](https://pypi.org/project/nanodjango/)
-[![Documentation](https://readthedocs.org/projects/nanodjango/badge/?version=latest)](https://nanodjango.readthedocs.io/en/latest/)
+[![Documentation](https://readthedocs.org/projects/nanodjango/badge/?version=latest)](https://docs.nanodjango.dev/)
 [![Tests](https://github.com/radiac/nanodjango/actions/workflows/ci.yml/badge.svg)](https://github.com/radiac/nanodjango/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/radiac/nanodjango/branch/main/graph/badge.svg?token=BCNM45T6GI)](https://codecov.io/gh/radiac/nanodjango)
 
 - Write a Django site in a single file, using views, models and admin
 - Run it locally or in production, or share it as a standalone script
 - Automatically convert it to a full Django project when you're ready for it to grow
+- **Try it out in your browser at the [nanodjango playground](https://nanodjango.dev/play/)**
 
-You may like to [watch a lighting talk](https://www.youtube.com/watch?v=ctCnTz8B32c&t=20s) or [read a blog post](https://lincolnloop.com/blog/single-file-apps-with-nanodjango/) to get a high level overview of what nanodjango can do.
+Head to [nanodjango.dev](https://nanodjango.dev/) to
+get a high level overview of what nanodjango can do, or you may like
+to [watch a lighting talk](https://www.youtube.com/watch?v=ctCnTz8B32c&t=20s).
 
 ## Quickstart
 
@@ -59,7 +62,7 @@ nanodjango run counter.py
 
 This will create migrations and a database, and run your project in development mode.
 
-- See [Command usage](https://nanodjango.readthedocs.io/en/latest/usage.html)
+- See [Command usage](https://docs.nanodjango.dev/en/latest/usage/)
   for more options
 
 ### Convert it to a full site
@@ -71,7 +74,7 @@ nanodjango convert counter.py path/to/site --name=counter
 ```
 
 - See
-  [Converting to a full Django project](https://nanodjango.readthedocs.io/en/latest/convert.html)
+  [Converting to a full Django project](https://docs.nanodjango.dev/en/latest/convert/)
   for more information
 
 ### Share an app
@@ -138,15 +141,16 @@ gunicorn -w 4 counter:app
 uvicorn counter:app
 ```
 
-- See [Command usage](https://nanodjango.readthedocs.io/en/latest/usage.html)
+- See [Command usage](https://docs.nanodjango.dev/en/latest/usage/)
   for more options
 
 ### Further reading
 
 For more details, see
 
-- [Getting started](https://nanodjango.readthedocs.io/en/latest/get_started.html)
-- [Tutorial](https://nanodjango.readthedocs.io/en/latest/tutorial.html)
-- [Full Documentation](https://nanodjango.readthedocs.io/en/latest/index.html)
-- [Changelog](https://nanodjango.readthedocs.io/en/latest/changelog.html)
+- [nanodjango.dev](https://nanodjango.dev/) and the [online playground](https://nanodjango.dev/play/)
+- [Getting started](https://docs.nanodjango.dev/en/latest/get_started/)
+- [Tutorial](https://docs.nanodjango.dev/en/latest/tutorial/)
+- [Full Documentation](https://docs.nanodjango.dev/)
+- [Changelog](https://docs.nanodjango.dev/en/latest/changelog/)
 - [Examples](https://github.com/radiac/nanodjango/tree/main/examples)
