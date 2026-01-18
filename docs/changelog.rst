@@ -2,13 +2,17 @@
 Changelog
 =========
 
-0.13.0 - TBC
-------------
+0.13.0 - 2026-01-18
+-------------------
 
 Features:
 
 * Add ``app.create_server()`` to run nanodjango as an async task (#68, #78), and
   ``examples/hello_async_server.py`` to demonstrate it.
+
+Bugfix:
+
+* Fix ``HttpResponseBase`` subclass support in ``string_view`` wrapper (#87)
 
 Docs:
 
@@ -23,7 +27,7 @@ Thanks to:
 * Emmanuelle Delescolle (nanuxbe) for uwsgi fix (#58)
 * Bryan Ponce (bponce02) for ``app.create_server()`` (#68, #78)
 * Sadegh (Old6Man6) for API example and howto (#70, #83)
-
+* Chris Beaven (SmileyChris) for ``string_view`` fix (#87)
 
 
 0.12.2 - 2025-09-11
