@@ -1,3 +1,7 @@
+"""
+Async views
+"""
+
 import asyncio
 import random
 

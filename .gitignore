@@ -26,6 +26,7 @@ examples/scale/*.sqlite3
 examples/scale/*migrations*
 examples/scale/media
 examples/scale/static-collected
+examples/static-collected
 
 # OS-specific
 .DS_Store

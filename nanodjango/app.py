@@ -43,6 +43,22 @@ def exec_manage(*args):
 class Django:
     """
     The main Django app
+
+    This class manages the single-file Django application lifecycle,
+    from initial configuration through to serving requests.
+
+    Only one ``Django()`` instance is allowed per script. Creating a second
+    instance will raise a ``ConfigurationError``.
+
+    Example::
+
+        from nanodjango import Django
+
+        app = Django(SECRET_KEY="my-secret", ALLOWED_HOSTS=["*"])
+
+        @app.route("/")
+        def index(request):
+            return "Hello World"
     """
 
     # Class attribute: list of plugin modules to load - set by click
@@ -107,7 +123,7 @@ class Django:
             app = Django()
             app = Django(SECRET_KEY="some-secret", ALLOWED_HOSTS=["my.example.com"])
         """
-        self.init_plugin_manager()
+        self._init_plugin_manager()
 
         self.has_admin = False
         self._settings = {}
@@ -115,7 +131,7 @@ class Django:
         self._config(_settings)
         self._prepared = False
 
-    def init_plugin_manager(self):
+    def _init_plugin_manager(self):
         self.pm = pluggy.PluginManager("nanodjango")
         self.pm.add_hookspecs(hookspecs)
 
@@ -421,7 +437,19 @@ class Django:
     @property
     def api(self):
         """
-        Ninja integration
+        NinjaAPI instance for django-ninja integration
+
+        Registered paths will be under settings.API_URL, default ``/api/``
+
+        Usage::
+
+            @app.api.get("/path/")
+            def view_fn(request):
+                ...
+
+            @app.api.get("/async/")
+            async def async_view(request):
+                ...
         """
         if not self._api:
             api = self.ninja.NinjaAPI()
@@ -466,6 +494,18 @@ class Django:
 
     @property
     def templates(self) -> dict[str, str]:
+        """
+        In-memory template storage.
+
+        Dictionary mapping template names to template content strings.
+
+        Example::
+
+            app.templates = {
+                "index.html": "<h1>Hello {{ name }}</h1>",
+                "about.html": "<h1>About</h1>"
+            }
+        """
         return self._templates
 
     @templates.setter
@@ -576,14 +616,47 @@ class Django:
 
     def manage(self, args: list[str] | tuple[str] | None = None):
         """
-        Run a Django management command, passing all arguments
+        Run Django management commands.
+
+        Args:
+            args: Command and arguments to pass to Django's management command
+
+        Example::
+
+            # Run migrations
+            app.manage(["migrate"])
+
+            # Create a superuser
+            app.manage(["createsuperuser"])
+
+            # Shell
+            app.manage(["shell"])
         """
         self._prepare(is_prod=False)
         exec_manage(*(args or []))
 
     def run(self, host: str | None = None):
         """
-        Perform app setup commands and run the server in development mode
+        Run the development server.
+
+        This method:
+
+        * Runs migrations (``makemigrations`` and ``migrate``)
+        * Prompts to create a superuser if none exists
+        * Starts the development server with auto-reload
+        * Uses uvicorn for async views, Django's runserver otherwise
+
+        Args:
+            host: Host and port in format ``"host:port"`` (default: ``"0:8000"``)
+
+        Example::
+
+            if __name__ == "__main__":
+                app.run()
+
+            # Or with custom host
+            if __name__ == "__main__":
+                app.run("localhost:3000")
         """
         self._prepare(is_prod=False)
         host, port = self._prestart(host)
@@ -594,7 +667,7 @@ class Django:
                 raise UsageError("Install uvicorn to use async views")
 
             uvicorn.run(
-                f"{self.app_name}:{self.instance_name}.asgi_dev",
+                f"{self.app_name}:{self.instance_name}._asgi_dev",
                 host=host,
                 port=port,
                 log_level="info",
@@ -606,7 +679,25 @@ class Django:
 
     def serve(self, host: str | None = None):
         """
-        Perform app setup and run the server in production mode
+        Run the production server.
+
+        This method:
+
+        * Runs migrations
+        * Runs ``collectstatic``
+        * Starts a production-ready server (gunicorn for WSGI, uvicorn for ASGI)
+        * Sets ``DEBUG=False`` if not explicitly configured
+
+        Args:
+            host: Host and port in format ``"host:port"`` (default: ``"0:8000"``)
+
+        Raises:
+            UsageError: If gunicorn (for WSGI) or uvicorn (for ASGI) is not installed
+
+        Example::
+
+            if __name__ == "__main__":
+                app.serve()
         """
         self._prepare(is_prod=True)
         host, port = self._prestart(host)
@@ -653,6 +744,30 @@ class Django:
             wsgi.run()
 
     def convert(self, path: Path, name: str, template: str | None = None):
+        """
+        Convert the single-file app to a full Django project structure.
+
+        Args:
+            path: Destination path for the new project (must not exist)
+            name: Name for the Django project
+            template: Optional project template to use
+
+        Raises:
+            UsageError: If the destination path already exists
+
+        Example::
+
+            from pathlib import Path
+
+            app.convert(
+                path=Path("/tmp/myproject"),
+                name="myproject"
+            )
+
+        Note:
+            This is typically called via the CLI:
+            ``nanodjango convert app.py /path/to/project``
+        """
         from .convert import Converter
 
         if path.exists():
@@ -711,11 +826,31 @@ class Django:
 
     async def asgi(self, scope, receive, send, is_prod=True):
         """
-        ASGI handler
+        ASGI application.
 
-        Swapped into __call__ when an async view is found
+        When async views are detected, this is available as the ``__call__`` method,
+        making the Django instance directly usable as an ASGI application.
 
-        Alternatively run with uvicorn script:app.asgi
+        Args:
+            scope: ASGI scope dictionary
+            receive: ASGI receive callable
+            send: ASGI send callable
+            is_prod: Whether to run in production mode (default: True)
+
+        Returns:
+            ASGI response
+
+        Example with uvicorn::
+
+            # In counter.py with async views:
+            app = Django()
+
+            @app.route("/")
+            async def index(request):
+                return "Hello async"
+
+            # Command line:
+            uvicorn counter:app
         """
         from django.core.asgi import get_asgi_application
 
@@ -724,17 +859,36 @@ class Django:
         application = get_asgi_application()
         return await application(scope, receive, send)
 
-    async def asgi_dev(self, scope, receive, send):
+    async def _asgi_dev(self, scope, receive, send):
         """
-        ASGI handler for development mode
+        ASGI application callable for development mode.
 
-        Used by uvicorn when called from ``run``
+        This is used internally by ``run()`` when serving async applications.
+        Sets ``is_prod=False`` to enable development features.
         """
         return await self.asgi(scope, receive, send, is_prod=False)
 
     def wsgi(self, environ, start_response):
         """
-        WSGI handler
+        WSGI application.
+
+        When async views are not detected, this is available as the ``__call__`` method,
+        making the Django instance directly usable as a WSGI application.
+
+        Args:
+            environ: WSGI environment dictionary
+            start_response: WSGI start_response callable
+
+        Returns:
+            WSGI response iterable
+
+        Example with gunicorn::
+
+            # In counter.py:
+            app = Django()
+
+            # Command line:
+            gunicorn counter:app
         """
         from django.core.wsgi import get_wsgi_application
 
@@ -742,15 +896,39 @@ class Django:
         application = get_wsgi_application()
         return application(environ, start_response)
 
-    async def create_server(self, host, port):
+    async def create_server(
+        self, host: str, port: int, log_level: str = "info", is_prod: bool = True
+    ):
         """
-        Initalizes nanodjango and returns a ASGI server instance
-        """
-        self._has_async_view = True 
-        type(self).__call__ = type(self).asgi # Same hacky solution in wrapped()
+        Initialise and run nanodjango as a task in an existing async loop.
 
-        import uvicorn
-        config = uvicorn.Config(self, host=host, port=port)
+        This will not call the prestart sequence, so will not call makemigrations,
+        migrate or createsuperuser. Run these steps manually using
+        ``nanodjango manage``.
+
+        This is useful for running a Django server alongside other async code in a
+        single process.
+
+        Args:
+            host: Host to bind to
+            port: Port to bind to
+            log_level: Uvicorn log level (default: "info")
+            is_prod: Whether to run in production mode (default: True)
+        """
+        self._has_async_view = True
+        type(self).__call__ = type(self).asgi  # Same hacky solution in wrapped()
+
+        try:
+            import uvicorn
+        except ImportError:
+            raise UsageError("Install uvicorn to use async server")
+
+        # Prepare the app (but skip prestart migrations/superuser setup)
+        self._prepare(is_prod=is_prod)
+
+        config = uvicorn.Config(
+            self, host=host, port=port, log_level=log_level, interface="asgi3"
+        )
         server = uvicorn.Server(config)
         await server.serve()
 
