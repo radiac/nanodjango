@@ -1,3 +1,11 @@
+"""
+Deferred import system for nanodjango.
+
+This module provides the infrastructure to defer Django imports until after
+Django is configured, solving the circular dependency problem in single-file
+applications.
+"""
+
 from __future__ import annotations
 
 import ast
@@ -102,7 +110,20 @@ class DeferredAttributeError(DeferredImportErrorMixin, AttributeError):
 
 class ImportDeferrer:
     """
-    Manages deferred imports by intercepting imports
+    Manages deferred imports by intercepting Python's import mechanism.
+
+    This class is used as a context manager to defer imports until after Django
+    is configured. Use the global ``defer`` instance rather than creating your own.
+
+    Example::
+
+        from nanodjango.defer import defer
+
+        with defer:
+            from django.db import models
+
+        # Later, after Django setup
+        defer.apply()
     """
 
     #: Whether the deferrer is currently intercepting imports
@@ -130,7 +151,18 @@ class ImportDeferrer:
     @contextmanager
     def optional(self) -> Generator[None, None, None]:
         """
-        Context manager for optional imports
+        Context manager for optional imports that won't raise errors if unavailable.
+
+        Use this for conditional features that depend on optional packages.
+
+        Example::
+
+            with defer:
+                with defer.optional:
+                    from django_extensions.models import TimeStampedModel
+
+            # After defer.apply(), TimeStampedModel will be None if
+            # django-extensions is not installed
         """
         was_active = self.active
         if not was_active:
@@ -147,7 +179,12 @@ class ImportDeferrer:
 
     def __enter__(self) -> ImportDeferrer:
         """
-        Start deferring imports
+        Start deferring imports.
+
+        Returns the deferrer instance and begins intercepting all import statements.
+
+        Returns:
+            Self
         """
         if self.active:
             return self
@@ -172,7 +209,18 @@ class ImportDeferrer:
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
         """
-        Stop deferring imports but don't execute them
+        Stop deferring imports.
+
+        Restores the original import function but does not execute deferred
+        imports yet. Call ``apply()`` to execute them.
+
+        Args:
+            exc_type: Exception type (if any)
+            exc_val: Exception value (if any)
+            exc_tb: Exception traceback (if any)
+
+        Returns:
+            False (does not suppress exceptions)
         """
         if not self.active:
             return False
@@ -186,7 +234,22 @@ class ImportDeferrer:
 
     def apply(self) -> None:
         """
-        Execute all deferred imports
+        Execute all deferred imports.
+
+        This must be called after exiting the context manager and after Django
+        is configured. It executes all imports that were deferred and then clears
+        the deferred import list.
+
+        Raises:
+            RuntimeError: If called while still deferring imports
+
+        Example::
+
+            with defer:
+                from django.db import models
+
+            # Django is now configured
+            defer.apply()  # Imports are executed here
         """
         if self.active:
             raise RuntimeError(
@@ -455,18 +518,24 @@ class ImportDeferrer:
     @classmethod
     def is_installed(cls, package_name: str) -> bool:
         """
-        Check if a package is installed in the system.
+        Check if a package is available for import.
 
         Args:
-            package_name: The name of the package as installed (e.g. 'requests', 'django')
-                         Same name used with 'pip install package_name'
+            package_name: The name of the package as installed (e.g. 'requests',
+                         'django'). Same name used with 'pip install package_name'
 
         Returns:
             True if the package is installed and can be imported, False otherwise
 
-        Example:
-            defer.is_installed("requests")  # True if requests is installed
-            defer.is_installed("nonexistent")  # False
+        Example::
+
+            if defer.is_installed("requests"):
+                # Use requests features
+                pass
+
+            if defer.is_installed("django-ninja"):
+                # Use django-ninja features
+                pass
         """
         spec = find_spec(package_name)
         return spec is not None

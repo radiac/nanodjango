@@ -2,18 +2,25 @@
 Changelog
 =========
 
-0.12.3 - TBC
+0.13.0 - TBC
 ------------
+
+Features:
+
+* Add ``app.create_server()`` to run nanodjango as an async task (#68, #78), and
+  ``examples/hello_async_server.py`` to demonstrate it.
 
 Docs:
 
 * Replaced theme
 * Swapped to build using dirhtml for nicer urls
 * Fixed uwsgi instructions (#58)
+* Added :doc:` internal API docs <internal_api>`
 
 Thanks to:
 
 * Emmanuelle Delescolle (nanuxbe) for uwsgi fix (#58)
+* Bryan Ponce (bponce02) for ``app.create_server()`` (#78)
 
 
 

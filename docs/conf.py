@@ -6,8 +6,13 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
 import re
+import sys
 from pathlib import Path
+
+# Make sure sphinx can find the source
+sys.path.insert(0, os.path.abspath("../"))
 
 project = "nanodjango"
 copyright = "2024, Richard Terry"
@@ -32,6 +37,8 @@ release = find_version("..", "nanodjango", "__init__.py")
 
 extensions = [
     "furo_nanodjango",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
 ]
 
 templates_path = ["_templates"]

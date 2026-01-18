@@ -24,6 +24,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     convert
     defer
     plugins
+    internal_api
     troubleshooting
     contributing
     changelog
