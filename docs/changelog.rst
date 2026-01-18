@@ -15,12 +15,14 @@ Docs:
 * Replaced theme
 * Swapped to build using dirhtml for nicer urls
 * Fixed uwsgi instructions (#58)
-* Added :doc:` internal API docs <internal_api>`
+* Added :doc:`internal API docs <internal_api>`
+* Added :doc:`API howto <howto_api>` (#70, #83)
 
 Thanks to:
 
 * Emmanuelle Delescolle (nanuxbe) for uwsgi fix (#58)
-* Bryan Ponce (bponce02) for ``app.create_server()`` (#78)
+* Bryan Ponce (bponce02) for ``app.create_server()`` (#68, #78)
+* Sadegh (Old6Man6) for API example and howto (#70, #83)
 
 
 
