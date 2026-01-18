@@ -30,3 +30,21 @@ examples/static-collected
 
 # OS-specific
 .DS_Store
+
+# Chromium / Electron cache
+.org.chromium.*
+Cache/
+CachedData/
+CachedProfilesData/
+Code Cache/
+Crashpad/
+DIPS*
+Dawn*
+GPUCache/
+Local Storage/
+Preferences
+Trust Tokens*
+User/
+code.lock
+languagepacks.json
+machineid
