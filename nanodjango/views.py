@@ -1,7 +1,7 @@
 import inspect
 from functools import wraps
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBase
 
 
 def string_view(fn):
@@ -14,7 +14,7 @@ def string_view(fn):
         @wraps(fn)
         async def django_view(request, *args, **kwargs):
             response = await fn(request, *args, **kwargs)
-            if isinstance(response, HttpResponse):
+            if isinstance(response, HttpResponseBase):
                 return response
             return HttpResponse(response)
 
@@ -23,7 +23,7 @@ def string_view(fn):
         @wraps(fn)
         def django_view(request, *args, **kwargs):
             response = fn(request, *args, **kwargs)
-            if isinstance(response, HttpResponse):
+            if isinstance(response, HttpResponseBase):
                 return response
             return HttpResponse(response)
 
