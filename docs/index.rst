@@ -19,13 +19,13 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     templates
     template_tags
     apis
-    howto_api
     admin
     integrations
     convert
     defer
     plugins
     internal_api
+    howto_api
     troubleshooting
     contributing
     changelog

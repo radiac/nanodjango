@@ -1,8 +1,8 @@
-Build a Simple API(CRUD)
-=================
+Howto: Build a Simple API
+=========================
 
 This example demonstrates how to build a simple CRUD (Create, Read, Update, Delete)
-API using NanoDjango’s built-in `Django Ninja <https://django-ninja.dev/>`_ support.
+API using nanodjango’s built-in `Django Ninja <https://django-ninja.dev/>`_ support.
 
 We implement a minimal in-memory "Todo" database with endpoints for creating,
 listing, retrieving, updating, and deleting items.
@@ -15,7 +15,7 @@ Example code
     # hello_api.py
     from nanodjango.app import Django
 
-    # Initialise NanoDjango
+    # Initialise nanodjango
     app = Django()
 
     # Fake in-memory database
@@ -93,13 +93,13 @@ All endpoints are available under ``/api/``:
 
     curl -X POST http://127.0.0.1:8000/api/todos \
       -H "Content-Type: application/json" \
-      -d '{"title": "Learn NanoDjango", "done": false}'
+      -d '{"title": "Learn nanodjango", "done": false}'
 
 Response:
 
 .. code-block:: json
 
-    {"id": 1, "title": "Learn NanoDjango", "done": false}
+    {"id": 1, "title": "Learn nanodjango", "done": false}
 
 
 **2. List all Todos (GET)**
@@ -114,7 +114,7 @@ Response:
 
 .. code-block:: json
 
-    [{"id": 1, "title": "Learn NanoDjango", "done": false}]
+    [{"id": 1, "title": "Learn nanodjango", "done": false}]
 
 
 **3. Get a Todo by ID (GET)**
@@ -129,7 +129,7 @@ Response:
 
 .. code-block:: json
 
-    {"id": 1, "title": "Learn NanoDjango", "done": false}
+    {"id": 1, "title": "Learn nanodjango", "done": false}
 
 
 **4. Update a Todo (PUT)**
