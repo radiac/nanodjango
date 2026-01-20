@@ -33,24 +33,29 @@ if TYPE_CHECKING:
 
 def _format_with_ruff(code: str) -> str:
     """Format code and sort imports using ruff."""
-    # Format with ruff
-    result = subprocess.run(
-        ["ruff", "format", "-"],
-        input=code,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    formatted = result.stdout
+    try:
+        # Format with ruff
+        result = subprocess.run(
+            ["ruff", "format", "-"],
+            input=code,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        formatted = result.stdout
 
-    # Sort imports with ruff
-    result = subprocess.run(
-        ["ruff", "check", "--select", "I", "--fix", "--stdout", "-"],
-        input=formatted,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout if result.stdout else formatted
+        # Sort imports with ruff
+        result = subprocess.run(
+            ["ruff", "check", "--select", "I", "--fix", "--stdout", "-"],
+            input=formatted,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout if result.stdout else formatted
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            "Could not find ruff: pip install nanodjango[convert]"
+        )
 
 
 class Resolver:
