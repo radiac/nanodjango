@@ -2,6 +2,15 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+Features:
+
+* Add ``BARE`` setting to run with ephemeral database and no auth, admin or contenttypes
+  apps (#89)
+
+
 0.13.0 - 2026-01-18
 -------------------
 
