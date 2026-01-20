@@ -18,9 +18,8 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 keywords = ["django"]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
-    "black",
     "click",
     "Django>=5.2",
     "django-ninja",
