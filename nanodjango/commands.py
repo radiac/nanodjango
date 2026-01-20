@@ -96,11 +96,17 @@ def manage(ctx: click.Context, app: Django):
 @cli.command()
 @click.argument("app", type=str, required=True, callback=load_app)
 @click.argument("host", type=str, required=False, default="")
-def run(app: Django, host: str):
+@click.option(
+    "--no-db/--nodb",
+    is_flag=True,
+    default=False,
+    help="Run without a database",
+)
+def run(app: Django, host: str, no_db: bool):
     """
     Start the app in development mode on the specified IP and port
     """
-    app.run(host)
+    app.run(host, no_db=no_db)
 
 
 @cli.command()
