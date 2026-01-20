@@ -5,6 +5,20 @@ import pytest
 from nanodjango import Django
 
 
+def pytest_configure(config):
+    """Register custom markers for optional dependency tests."""
+    config.addinivalue_line(
+        "markers", "requires_extra: mark test as requiring a specific extra"
+    )
+    config.addinivalue_line("markers", "requires_api: mark test as requiring [api]")
+    config.addinivalue_line(
+        "markers", "requires_serve: mark test as requiring [serve]"
+    )
+    config.addinivalue_line(
+        "markers", "requires_convert: mark test as requiring [convert]"
+    )
+
+
 @pytest.fixture(scope="session")
 def nanodjango_app():
     app = Django()

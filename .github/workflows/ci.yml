@@ -6,33 +6,31 @@ on:
 
 jobs:
   test:
-    name: py-${{ matrix.python }}
+    name: py-${{ matrix.python }}${{ matrix.extras && format('[{0}]', matrix.extras) || '' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        python: ["3.11", "3.12", "3.13"]
+        extras: ["all"]
         include:
-          - python: "3.11"
           - python: "3.12"
-          - python: "3.13"
+            extras: ""
 
     steps:
       - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r tests/requirements.txt
-      - name: Set Python path
-        run: |
-            echo "PYTHONPATH=." >> $GITHUB_ENV
-      - name: Test
-        run: |
-          pytest
+        run: uv python install ${{ matrix.python }}
+      - name: Test (all extras)
+        if: matrix.extras == 'all'
+        run: uv run --all-extras pytest
+      - name: Test (minimal)
+        if: matrix.extras == ''
+        run: uv run pytest -m "not requires_api and not requires_serve and not requires_convert"
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        if: matrix.extras == 'all'
         with:
           name: ${{ matrix.python }}
         env:

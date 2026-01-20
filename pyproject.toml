@@ -89,3 +89,6 @@ section-order = ["future", "standard-library", "django", "third-party", "first-p
 
 [tool.ruff.lint.isort.sections]
 django = ["django"]
+
+[dependency-groups]
+dev = ["pytest", "pytest-cov"]
