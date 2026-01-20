@@ -40,3 +40,24 @@ to configure itself and to simplify configuring Django:
 ``PUBLIC_DIR``
   If set, nanodjango will use it to set ``WHITENOISE_ROOT``, so any files inside are
   served from the site root. Useful for ``favicon.ico``, ``robots.txt`` etc.
+
+
+Settings callbacks
+==================
+
+You can use callbacks to modify nanodjango's default settings rather than replacing
+them entirely. If you pass a callable for a setting that already exists in
+nanodjango's defaults, it will be called with the current value and the return
+value will be used::
+
+    app = Django(
+        MIDDLEWARE=lambda m: [MyPreMiddleware] + m + [MyPostMiddleware],
+        INSTALLED_APPS=lambda apps: [a for a in apps if "admin" not in a],
+    )
+
+This is useful for prepending or appending to list settings like ``MIDDLEWARE`` or
+``INSTALLED_APPS``, or for filtering out unwanted defaults.
+
+Note that this only applies to settings that already exist in nanodjango's defaults.
+For new settings that don't exist yet, callable values are stored as-is (this allows
+you to pass callable settings like ``WHITENOISE_ADD_HEADERS_FUNCTION``).
