@@ -120,7 +120,7 @@ Anything you would normally do with `manage.py` you can do with `nanodjango mana
 ```sh
 nanodjango manage script.py check
 nanodjango manage script.py makemigrations script
-nanodjango manage script.py runserver 0:8000
+nanodjango manage script.py runserver 0.0.0.0:8000
 ```
 
 ### Run in production
