@@ -7,10 +7,10 @@ Regression test for https://github.com/radiac/nanodjango/issues/40
 import inspect
 
 
-def test_getsource_empty_module_causes_index_error():
+def test_getsource_module_package_fails():
     """
     Demonstrate the bug: inspect.getsource on a package with empty __init__.py
-    returns minimal source that causes IndexError when accessing AST body[0].
+    either raises OSError or returns empty source (depending on Python version).
 
     This is the root cause of issue #40 - when 'import urllib.parse' is used,
     'urllib' ends up in the module namespace, and the converter tries to get
@@ -19,20 +19,19 @@ def test_getsource_empty_module_causes_index_error():
     import ast
     import urllib
 
-    # This succeeds but returns essentially empty source
-    src = inspect.getsource(urllib)
-    assert src.strip() == ""  # Just whitespace
-
-    # Parsing empty source gives empty body
-    parsed = ast.parse(src)
-    assert len(parsed.body) == 0
-
-    # This is where the converter fails - trying to access body[0]
+    # Depending on Python version, this either:
+    # - Raises OSError directly (Python 3.11+)
+    # - Returns empty/whitespace source (older versions)
     try:
-        _ = parsed.body[0]
-        raise AssertionError("Expected IndexError")
-    except IndexError:
-        pass  # This is the bug we're fixing
+        src = inspect.getsource(urllib)
+    except OSError:
+        # Python 3.11+ raises OSError for empty __init__.py
+        pass
+    else:
+        # Older versions return empty source, which causes IndexError on body[0]
+        assert src.strip() == ""  # Just whitespace
+        parsed = ast.parse(src)
+        assert len(parsed.body) == 0
 
 
 def test_converter_handles_submodule_imports(tmp_path):
