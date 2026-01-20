@@ -6,6 +6,18 @@ default:
 test *ARGS:
     uv run --all-extras --group dev pytest --no-cov {{ ARGS }}
 
+# Run tests for specific environment
+# Usage: just test-env [3.10|3.11|3.12|3.13] [all|minimal]
+test-env python="3.12" extras="all":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ "{{ extras }}" = "minimal" ]; then
+        uv run --python {{ python }} --group dev \
+            pytest --no-cov -m "not requires_api and not requires_serve and not requires_convert" "$@"
+    else
+        uv run --python {{ python }} --all-extras --group dev pytest --no-cov "$@"
+    fi
+
 # Run full test matrix (multiple Python versions + minimal deps)
 test-matrix:
     #!/usr/bin/env bash
@@ -13,7 +25,7 @@ test-matrix:
     rm -f .coverage .coverage.* 2>/dev/null || true
     FAILED=0
     echo "Running test matrix:"
-    for PY in 3.11 3.12 3.13; do
+    for PY in 3.10 3.11 3.12 3.13; do
         printf "  Python $PY [all] ... "
         if uv run --python $PY --all-extras --group dev pytest -q --tb=no 2>&1 | tail -1; then
             true
