@@ -4,28 +4,35 @@ default:
 
 # Run tests with all extras
 test *ARGS:
-    uv run --all-extras pytest --no-cov {{ ARGS }}
+    uv run --all-extras --group dev pytest --no-cov {{ ARGS }}
 
 # Run full test matrix (multiple Python versions + minimal deps)
 test-matrix:
     #!/usr/bin/env bash
     set -uo pipefail
-    rm -f .coverage .coverage.*
+    rm -f .coverage .coverage.* 2>/dev/null || true
     FAILED=0
+    echo "Running test matrix:"
     for PY in 3.11 3.12 3.13; do
-        echo ""
-        echo "=== Python $PY ==="
-        uv run --python $PY --all-extras coverage run -p -m pytest || FAILED=1
+        printf "  Python $PY [all] ... "
+        if uv run --python $PY --all-extras --group dev pytest -q --tb=no 2>&1 | tail -1; then
+            true
+        else
+            FAILED=1
+        fi
     done
+    printf "  Python 3.12 [minimal] ... "
+    if uv run --python 3.12 --group dev \
+        pytest -q --tb=no -m "not requires_api and not requires_serve and not requires_convert" 2>&1 | tail -1; then
+        true
+    else
+        FAILED=1
+    fi
     echo ""
-    echo "=== Python 3.12 (minimal deps) ==="
-    uv run --python 3.12 --with pytest --with pytest-cov --with coverage \
-        coverage run -p -m pytest -m "not requires_api and not requires_serve and not requires_convert" || FAILED=1
-    echo ""
-    echo "=== Coverage Report ==="
-    uv run --all-extras coverage combine
-    uv run --all-extras coverage report
-    uv run --all-extras coverage html
+    echo "Running coverage (Python 3.12 [all])..."
+    uv run --all-extras --group dev coverage run -m pytest -q --tb=no 2>&1 | grep -E "passed|failed" | tail -1
+    uv run --all-extras --group dev coverage report
+    uv run --all-extras --group dev coverage html
     echo "Coverage report saved to htmlcov/index.html"
     exit $FAILED
 

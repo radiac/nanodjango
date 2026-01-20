@@ -66,6 +66,7 @@ pythonpath = ["."]
 
 [tool.coverage.run]
 source = ["nanodjango"]
+parallel = true
 
 [tool.mypy]
 follow_imports = "skip"
@@ -91,4 +92,4 @@ section-order = ["future", "standard-library", "django", "third-party", "first-p
 django = ["django"]
 
 [dependency-groups]
-dev = ["pytest", "pytest-cov"]
+dev = ["pytest", "pytest-cov", "coverage"]
