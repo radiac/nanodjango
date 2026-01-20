@@ -141,13 +141,13 @@ commands on your app::
     nanodjango manage <script.py> [<command>]
 
 
-If the management command is left out, it will default to ``runserver 0:8000`` - these
+If the management command is left out, it will default to ``runserver 0.0.0.0:8000`` - these
 two commands are equivalent:
 
 .. code-block:: bash
 
     nanodjango manage counter.py
-    nanodjango manage counter.py runserver 0:8000
+    nanodjango manage counter.py runserver 0.0.0.0:8000
 
 
 You can perform any management command:

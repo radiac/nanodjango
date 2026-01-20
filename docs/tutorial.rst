@@ -217,6 +217,6 @@ many cases it should run straight away:
 .. code-block:: bash
 
     cd /path/to/site
-    ./manage.py runserver 0:8000
+    ./manage.py runserver 0.0.0.0:8000
 
 For full details on how to use nanodjango's ``convert`` command, see :doc:`convert`.

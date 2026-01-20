@@ -11,7 +11,7 @@ Usage::
 
     nanodjango convert scale.py /path/to/site --name=myproject
     cd /path/to/site
-    ./manage.py runserver 0:8000
+    ./manage.py runserver 0.0.0.0:8000
 """
 # /// script
 # dependencies = ["nanodjango"]
