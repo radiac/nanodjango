@@ -24,8 +24,8 @@ dependencies = [
     "Django>=5.2",
     "django-ninja",
     "gunicorn",
-    "isort",
     "pluggy",
+    "ruff>=0.14.13",
     "uvicorn",
     "whitenoise",
 ]
@@ -72,20 +72,6 @@ pythonpath = ["."]
 [tool.coverage.run]
 source = ["nanodjango"]
 
-[tool.black]
-line-length = 88
-target-version = ["py311"]
-include = "\\.pyi?$"
-
-[tool.isort]
-multi_line_output = 3
-line_length = 88
-known_django = "django"
-sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
-include_trailing_comma = true
-lines_after_imports = 2
-skip = [".git"]
-
 [tool.mypy]
 follow_imports = "skip"
 ignore_missing_imports = true
@@ -96,11 +82,15 @@ ignore-path = ["*.txt"]
 
 [tool.ruff]
 line-length = 88
-lint.select = ["E", "F"]
-lint.ignore = [
-    "E501",  # line length
-]
-exclude = [
-    ".git",
-    "dist",
-]
+exclude = [".git", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["nanodjango"]
+section-order = ["future", "standard-library", "django", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+django = ["django"]
