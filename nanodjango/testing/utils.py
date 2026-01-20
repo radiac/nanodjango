@@ -39,6 +39,7 @@ from pathlib import Path
 from typing import Generator
 
 import django
+
 import pytest
 
 RUNSERVER_TIMEOUT = 10  # seconds
@@ -170,7 +171,7 @@ def cmd(
 
         if not fail_ok and result.returncode != 0:
             error_msg = (
-                f"Test subprocess returned a non-zero result when fail_ok is False"
+                "Test subprocess returned a non-zero result when fail_ok is False"
             )
 
     except subprocess.TimeoutExpired as e:

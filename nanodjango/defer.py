@@ -14,7 +14,7 @@ import inspect
 import traceback
 from contextlib import contextmanager
 from importlib.util import find_spec
-from types import FrameType, ModuleType
+from types import FrameType
 from typing import Any, Generator
 
 

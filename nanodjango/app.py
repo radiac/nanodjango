@@ -9,7 +9,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence
 
-import pluggy
 from django import setup
 from django import urls as django_urls
 from django.contrib import admin
@@ -18,6 +17,8 @@ from django.db.models import Model
 from django.shortcuts import render
 from django.template import engines
 from django.views import View
+
+import pluggy
 
 from . import app_meta, hookspecs
 from .defer import defer
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from django.http import HttpRequest, HttpResponse
+
     from ninja import NinjaAPI
 
 
@@ -430,7 +432,7 @@ class Django:
             import ninja
         except ImportError as e:
             raise ImportError(
-                "Could not find django-ninja - try: pip install django-ninja"
+                "Could not find django-ninja: pip install nanodjango[api]"
             ) from e
         return ninja
 
@@ -664,7 +666,9 @@ class Django:
             try:
                 import uvicorn
             except ImportError:
-                raise UsageError("Install uvicorn to use async views")
+                raise UsageError(
+                    "Install uvicorn to use async views: pip install nanodjango[serve]"
+                )
 
             uvicorn.run(
                 f"{self.app_name}:{self.instance_name}._asgi_dev",
@@ -706,7 +710,9 @@ class Django:
             try:
                 import uvicorn
             except ImportError:
-                raise UsageError("Install uvicorn to use async views")
+                raise UsageError(
+                    "Install uvicorn to use async views: pip install nanodjango[serve]"
+                )
 
             port = 8000
             if ":" in host:
@@ -724,7 +730,9 @@ class Django:
             try:
                 from gunicorn.app.base import BaseApplication
             except ImportError:
-                raise UsageError("Install gunicorn to serve WSGI")
+                raise UsageError(
+                    "Install gunicorn to serve WSGI: pip install nanodjango[serve]"
+                )
 
             class LoadedApplication(BaseApplication):
                 def __init__(self, app, host="127.0.0.1", port=8000):
@@ -921,7 +929,9 @@ class Django:
         try:
             import uvicorn
         except ImportError:
-            raise UsageError("Install uvicorn to use async server")
+            raise UsageError(
+                "Install uvicorn to use async server: pip install nanodjango[serve]"
+            )
 
         # Prepare the app (but skip prestart migrations/superuser setup)
         self._prepare(is_prod=is_prod)
