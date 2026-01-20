@@ -160,7 +160,12 @@ class Django:
         self.settings = settings
 
         # Update Django settings with ours
+        # If a value is callable and the setting already exists, treat it as a callback
+        # that receives the current value and returns the new value. This allows users
+        # to modify default settings (e.g. MIDDLEWARE=lambda m: [MyMiddleware] + m)
         for key, value in _settings.items():
+            if callable(value) and hasattr(settings, key):
+                value = value(getattr(settings, key))
             setattr(settings, key, value)
 
         # Set WHITENOISE_ROOT if public dir exists
