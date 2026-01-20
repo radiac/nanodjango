@@ -12,8 +12,6 @@ from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence
 import pluggy
 from django import setup
 from django import urls as django_urls
-from django.contrib import admin
-from django.contrib.auth import get_user_model
 from django.db.models import Model
 from django.shortcuts import render
 from django.template import engines
@@ -410,6 +408,8 @@ class Django:
         self.has_admin = True
 
         def wrap(model: type[Model]):
+            from django.contrib import admin
+
             admin.site.register(model, **options)
             return model
 
@@ -568,6 +568,8 @@ class Django:
         # Register the admin site
         admin_url = self.settings.ADMIN_URL
         if admin_url or self.has_admin:
+            from django.contrib import admin
+
             if admin_url is None:
                 admin_url = "admin/"
             if not isinstance(admin_url, str) or not admin_url.endswith("/"):
@@ -800,11 +802,25 @@ class Django:
         elif not host:
             host = "0"
 
-        exec_manage("makemigrations", self.app_name)
-        exec_manage("migrate")
-        User = get_user_model()
-        if User.objects.count() == 0:
-            exec_manage("createsuperuser")
+        # Only run migrations if contenttypes is installed (not in BARE mode)
+        if "django.contrib.contenttypes" in self.settings.INSTALLED_APPS:
+            # Check if this app has models
+            has_models = any(
+                isinstance(obj, type) and issubclass(obj, Model)
+                for obj in self.app_module.__dict__.values()
+                if getattr(obj, "__module__", None) == self.app_name
+            )
+            if has_models:
+                exec_manage("makemigrations", self.app_name)
+            exec_manage("migrate")
+
+            # Only create superuser if auth is installed
+            if "django.contrib.auth" in self.settings.INSTALLED_APPS:
+                from django.contrib.auth import get_user_model
+
+                User = get_user_model()
+                if User.objects.count() == 0:
+                    exec_manage("createsuperuser")
 
         return host, port
 
