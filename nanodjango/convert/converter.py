@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, cast
@@ -327,7 +328,8 @@ class Converter:
         env.pop("DJANGO_SETTINGS_MODULE", None)
 
         # Build the django-admin command with optional template
-        cmd = ["django-admin", "startproject"]
+        # Use sys.executable to ensure we use the same Python/venv
+        cmd = [sys.executable, "-m", "django", "startproject"]
         if self.project_template:
             cmd.extend(["--template", self.project_template])
         cmd.extend([self.project_name, str(self.root_path)])
