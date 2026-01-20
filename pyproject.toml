@@ -22,22 +22,17 @@ requires-python = ">=3.10"
 dependencies = [
     "click",
     "Django>=5.2",
-    "django-ninja",
-    "gunicorn",
     "pluggy",
-    "ruff>=0.14.13",
-    "uvicorn",
     "whitenoise",
 ]
 
 [project.optional-dependencies]
-static = [
-    "django-nanopages",
-    "django-distill",
-]
-full = [
-    "django-nanopages",
-    "django-distill",
+api = ["django-ninja"]
+serve = ["gunicorn", "uvicorn"]
+convert = ["ruff>=0.14.13"]
+static = ["django-nanopages", "django-distill"]
+all = [
+    "nanodjango[api,serve,convert,static]",
 ]
 
 [project.scripts]
