@@ -30,6 +30,16 @@ from nanodjango import Django
 
 domain = "scale.example.com"
 
+
+class SimpleMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        return response
+
+
 django = Django(
     ADMIN_URL="secret-admin/",
     ALLOWED_HOSTS=["localhost", "127.0.0.1", domain],
@@ -37,6 +47,7 @@ django = Django(
     SQLITE_DATABASE="scale.sqlite3",
     MIGRATIONS_DIR="scale_migrations",
     EXTRA_APPS=["django.contrib.sites", "django.contrib.flatpages"],
+    MIDDLEWARE=lambda m: m + ["scale.SimpleMiddleware"],
 )
 
 
@@ -91,6 +102,13 @@ def count(request):
     CountLog.objects.create()
 
     return f"<p>Number of page loads: {CountLog.objects.count()}</p>"
+
+
+# A view to show the value of the MIDDLEWARE setting; used for tests to verify
+# the ability to have a callable for a setting.
+@django.route("/middleware_settings/", name="middleware_settings")
+def middleware_settings(request):
+    return f"<p>MIDDLEWARE setting: {django.settings.MIDDLEWARE}</p>"
 
 
 @django.api.get("/add")
