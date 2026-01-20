@@ -4,6 +4,17 @@ import builtins
 
 import pytest
 
+from nanodjango.defer import (
+    DeferredAttributeError,
+    DeferredImport,
+    DeferredImportError,
+    DeferredModuleNotFoundError,
+    DeferredUsageError,
+    DummyObject,
+    ImportDeferrer,
+    defer,
+)
+
 
 @pytest.fixture
 def safe_globals():
@@ -15,18 +26,6 @@ def safe_globals():
         # Restore original globals
         globals().clear()
         globals().update(orig_globals)
-
-
-from nanodjango.defer import (
-    DeferredAttributeError,
-    DeferredImport,
-    DeferredImportError,
-    DeferredModuleNotFoundError,
-    DeferredUsageError,
-    DummyObject,
-    ImportDeferrer,
-    defer,
-)
 
 
 class TestDeferredImport:
@@ -426,15 +425,15 @@ class TestImportDeferrer:
         assert mimetext_import is not None, "MIMEText import should exist"
 
         # Check the modules are correct (this is where the bug would manifest)
-        assert (
-            urlparse_import.module_name == "urllib.parse"
-        ), f"Expected urllib.parse, got {urlparse_import.module_name}"
-        assert (
-            element_import.module_name == "xml.etree.ElementTree"
-        ), f"Expected xml.etree.ElementTree, got {element_import.module_name}"
-        assert (
-            mimetext_import.module_name == "email.mime.text"
-        ), f"Expected email.mime.text, got {mimetext_import.module_name}"
+        assert urlparse_import.module_name == "urllib.parse", (
+            f"Expected urllib.parse, got {urlparse_import.module_name}"
+        )
+        assert element_import.module_name == "xml.etree.ElementTree", (
+            f"Expected xml.etree.ElementTree, got {element_import.module_name}"
+        )
+        assert mimetext_import.module_name == "email.mime.text", (
+            f"Expected email.mime.text, got {mimetext_import.module_name}"
+        )
 
     def test_django_shortcuts_integration(self, safe_globals):
         """Test that Django shortcuts imports work correctly"""
@@ -523,12 +522,12 @@ class TestImportDeferrer:
         from django.shortcuts import get_object_or_404 as actual_get_object_or_404
         from django.shortcuts import redirect as actual_redirect
 
-        assert (
-            test_globals["redirect"] is actual_redirect
-        ), "redirect was not properly replaced after defer.apply()"
-        assert (
-            test_globals["get_object_or_404"] is actual_get_object_or_404
-        ), "get_object_or_404 was not properly replaced after defer.apply()"
+        assert test_globals["redirect"] is actual_redirect, (
+            "redirect was not properly replaced after defer.apply()"
+        )
+        assert test_globals["get_object_or_404"] is actual_get_object_or_404, (
+            "get_object_or_404 was not properly replaced after defer.apply()"
+        )
 
 
 class TestDeferredErrors:

@@ -10,7 +10,7 @@ todos = {}
 
 # ---- Schema for Todo ----
 class Todo(app.ninja.Schema):
-    id: int | None = None   # Auto-assigned
+    id: int | None = None  # Auto-assigned
     title: str
     done: bool = False
 

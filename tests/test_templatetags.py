@@ -1,5 +1,4 @@
 from django.template import Context, Template
-from django.template.library import InvalidTemplateLibrary
 
 
 def test_simple_tag(nanodjango_app):

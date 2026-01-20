@@ -9,7 +9,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence
 
-import pluggy
 from django import setup
 from django import urls as django_urls
 from django.contrib import admin
@@ -18,6 +17,8 @@ from django.db.models import Model
 from django.shortcuts import render
 from django.template import engines
 from django.views import View
+
+import pluggy
 
 from . import app_meta, hookspecs
 from .defer import defer
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from django.http import HttpRequest, HttpResponse
+
     from ninja import NinjaAPI
 
 
