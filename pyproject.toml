@@ -18,7 +18,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 keywords = ["django"]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "black",
     "click",
@@ -39,6 +39,10 @@ static = [
 full = [
     "django-nanopages",
     "django-distill",
+]
+test = [
+    "pytest",
+    "pytest-cov",
 ]
 
 [project.scripts]

@@ -13,7 +13,11 @@ Sample error message::
 
     django.core.exceptions.ImproperlyConfigured: Requested setting DEBUG, but settings are not configured.
 
-You will see this when something is trying to access a Django setting before you've
-called ``app = Django()`` to configure Django.
+When running your script directly (``python counter.py``), Django is configured during
+``from nanodjango import Django``, so this error is unlikely to occur.
+
+However, when running via CLI (``nanodjango run counter.py``), Django is configured later.
+If you see this error, something is trying to access a Django setting before Django is
+configured.
 
 This can usually be fixed with :doc:`defer`.

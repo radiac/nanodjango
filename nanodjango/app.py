@@ -21,6 +21,7 @@ from django.views import View
 
 from . import app_meta, hookspecs
 from .defer import defer
+from .early import EarlyConfigurator
 from .exceptions import ConfigurationError, UsageError
 from .templatetags import TemplateTagLibrary
 from .urls import urlpatterns
@@ -149,52 +150,147 @@ class Django:
 
     def _config(self, _settings):
         """
-        Configure settings and patch Django ready for model definitions
-        """
-        self._settings = app_meta._app_conf = _settings
+        Configure settings and patch Django ready for model definitions.
 
-        # Settings
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nanodjango.settings")
+        If early configuration was performed (during `from nanodjango import Django`),
+        Django is already setup and we just need to apply any additional runtime settings.
+        """
         from django.conf import settings
 
         self.settings = settings
+        early_configured = EarlyConfigurator.is_configured()
 
-        # Update Django settings with ours
-        for key, value in _settings.items():
-            setattr(settings, key, value)
+        if early_configured:
+            # Early config already called django.setup()
+            # Get app info from early config
+            source_file, app_name, base_dir = EarlyConfigurator.get_app_info()
+            self.app_name = app_name
+            self.app_path = source_file
+            self.app_module = app_meta.get_app_module()
 
-        # Set WHITENOISE_ROOT if public dir exists
-        # Do it this way instead of setting WHITENOISE_ROOT directly, because if the dir
-        # does not exist, Whitenoise will raise warnings when run in production
-        if not getattr(settings, "WHITENOISE_ROOT", None):
-            public_dir = settings.PUBLIC_DIR
-            if public_dir.is_dir():
-                settings.WHITENOISE_ROOT = settings.PUBLIC_DIR
+            # Merge early settings with runtime settings
+            self._settings = {**EarlyConfigurator.get_settings(), **_settings}
+            app_meta._app_conf = self._settings
 
-        # Collect internal values
-        self.app_name = settings.ND_APP_NAME
-        self.app_module = app_meta.get_app_module()
-        sys.modules[self.app_name] = self.app_module
-        self.app_path = Path(inspect.getfile(self.app_module))
-        self._templates = app_meta.get_templates()
+            # Handle EXTRA_APPS - merge into INSTALLED_APPS and load them
+            if "EXTRA_APPS" in _settings:
+                from django.apps import apps as apps_registry
 
-        # Import and apply glue after django.conf has its settings
-        from .django_glue.apps import prepare_apps
-        from .django_glue.db import patch_db
+                current_apps = list(settings.INSTALLED_APPS)
+                new_apps = []
+                for app in _settings["EXTRA_APPS"]:
+                    if app not in current_apps:
+                        current_apps.append(app)
+                        new_apps.append(app)
+                settings.INSTALLED_APPS = current_apps
 
-        patch_db(self.app_name)
-        prepare_apps(self.app_name, self.app_module)
+                # Load the new apps into the registry
+                # We can't use populate() because apps_registry.ready=True already
+                # Instead, manually create and register each app config
+                if new_apps:
+                    from django.apps.config import AppConfig
+                    from importlib import import_module
 
-        # Ready for Django's standard setup
-        self.pm.hook.django_pre_setup(app=self)
-        setup()
+                    for app_name in new_apps:
+                        # Import the app module
+                        try:
+                            app_module = import_module(app_name)
+                        except ImportError:
+                            continue
 
-        # Import any deferred imports
-        defer.apply()
-        self.pm.hook.django_post_setup(app=self)
+                        # Create app config
+                        app_config = AppConfig.create(app_name)
+                        app_config.apps = apps_registry
+                        app_config.models = {}
 
-        # Register template tag library with Django's template engine
-        self._register_template_library()
+                        # Register with the registry
+                        apps_registry.app_configs[app_config.label] = app_config
+
+                        # Import models to register them
+                        try:
+                            app_config.import_models()
+                        except Exception:
+                            pass
+
+            # Apply any additional runtime settings (except EXTRA_APPS)
+            for key, value in _settings.items():
+                if key != "EXTRA_APPS":
+                    setattr(settings, key, value)
+
+            # Now that the module has fully executed, grab any settings that
+            # couldn't be extracted via AST (conditionals, function calls, etc.)
+            early_settings = EarlyConfigurator.get_settings()
+            for key, value in self.app_module.__dict__.items():
+                # Only uppercase names that look like settings
+                if not key.isupper() or key.startswith("_"):
+                    continue
+                # Skip non-setting types (classes, functions, modules)
+                if isinstance(value, type) or callable(value) or isinstance(value, type(sys)):
+                    continue
+                # Skip if already set by constructor args
+                if key in _settings:
+                    continue
+                # Skip utilities we injected
+                if key in ("Path",):
+                    continue
+                # Update if different from early config extraction
+                if key not in early_settings or early_settings[key] != value:
+                    setattr(settings, key, value)
+                    self._settings[key] = value
+
+            # Set up templates
+            self._templates = app_meta.get_templates()
+
+            # Register module
+            sys.modules[self.app_name] = self.app_module
+
+            # Apply deferred imports (if any were used)
+            defer.apply()
+
+            # Register template tag library
+            self._register_template_library()
+
+        else:
+            # Traditional configuration path
+            self._settings = app_meta._app_conf = _settings
+
+            # Settings
+            os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nanodjango.settings")
+
+            # Update Django settings with ours
+            for key, value in _settings.items():
+                setattr(settings, key, value)
+
+            # Set WHITENOISE_ROOT if public dir exists
+            if not getattr(settings, "WHITENOISE_ROOT", None):
+                public_dir = settings.PUBLIC_DIR
+                if public_dir.is_dir():
+                    settings.WHITENOISE_ROOT = settings.PUBLIC_DIR
+
+            # Collect internal values
+            self.app_name = settings.ND_APP_NAME
+            self.app_module = app_meta.get_app_module()
+            sys.modules[self.app_name] = self.app_module
+            self.app_path = Path(inspect.getfile(self.app_module))
+            self._templates = app_meta.get_templates()
+
+            # Import and apply glue after django.conf has its settings
+            from .django_glue.apps import prepare_apps
+            from .django_glue.db import patch_db
+
+            patch_db(self.app_name)
+            prepare_apps(self.app_name, self.app_module)
+
+            # Ready for Django's standard setup
+            self.pm.hook.django_pre_setup(app=self)
+            setup()
+
+            # Import any deferred imports
+            defer.apply()
+            self.pm.hook.django_post_setup(app=self)
+
+            # Register template tag library with Django's template engine
+            self._register_template_library()
 
     @property
     def instance_name(self):
@@ -563,7 +659,8 @@ class Django:
         ):
             from django.conf import settings
 
-            del settings.MIGRATION_MODULES[self.app_name]
+            if self.app_name in settings.MIGRATION_MODULES:
+                del settings.MIGRATION_MODULES[self.app_name]
 
         # Register the admin site
         admin_url = self.settings.ADMIN_URL

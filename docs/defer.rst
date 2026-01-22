@@ -2,20 +2,24 @@
 Deferred Imports
 ================
 
-Nanodjango configures Django to run from a single file when ``app = Django()`` is
-called.
+.. note::
 
-This can be a problem for packages which expect that Django will be configured and ready
-to access settings as soon as they are imported, or if they define models. Placing these
-imports before ``Django()`` is called can result in unexpected behaviour or errors.
+   As of version 0.14, nanodjango configures Django during
+   ``from nanodjango import Django``, which means Django imports usually work without
+   any special handling. This works in both direct mode (``python script.py``) and
+   CLI mode (``nanodjango run script.py``).
 
-For example, if we want to import Django's standard ``auth.User`` model, it will fail
-because Django hasn't been configured yet:
+   Deferred imports are now only needed for unusual third-party packages that perform
+   initialization at import time in ways that conflict with early configuration.
+
+Django is configured as soon as you import the ``Django`` class from nanodjango.
+This means Django imports work naturally:
 
 .. code-block:: python
 
-    from nanodjango import Django
-    from django.contrib.auth.models import User  # this line will fail to import
+    from nanodjango import Django  # isort: skip
+    from django.db import models
+    from django.contrib.auth.models import User
 
     app = Django()
 
@@ -23,11 +27,8 @@ because Django hasn't been configured yet:
     def home(request):
         print(f"There are {User.objects.count()} users")
 
-
-To solve this, we need to make the ``Django()`` call *before* the module is imported,
-but this is often inconvenient and can violate PEP8.
-
-Nanodjango solves this by providing support for **deferred imports**.
+Nanodjango provides support for **deferred imports** to handle edge cases with
+third-party packages.
 
 
 ``nanodjango.defer``
@@ -37,20 +38,21 @@ Deferred imports are controlled with ``nanodjango.defer`` - a context manager wh
 captures any imports, replaces the imported symbols with placeholders, and delays the
 actual import until after Django has been set up.
 
-To fix the script above we move the import into a ``defer`` context:
+For example, if a third-party package requires Django to be fully configured at import
+time, you can use ``defer``:
 
 .. code-block:: python
 
     from nanodjango import Django, defer
 
     with defer:
-        from django.contrib.auth.models import User
+        from some_django_package import SomeClass  # imported after Django setup
 
     app = Django()
 
     @app.route("/")
     def home(request):
-        print(f"There are {User.objects.count()} users")
+        return SomeClass.do_something()
 
 You can have multiple imports in a single ``defer``, and multiple ``defer`` sections
 before ``Django()`` is instantiated - but none after.

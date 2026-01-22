@@ -95,7 +95,11 @@ class Resolver:
         while self.global_refs:
             # Collect the source for the reference, and grab any references it may have
             global_ref = self.global_refs.pop()
-            src, references = self.converter.collect_definition(global_ref)
+            try:
+                src, references = self.converter.collect_definition(global_ref)
+            except ValueError:
+                # Skip symbols not found in source (e.g. injected settings)
+                continue
             all_src.append(src)
 
             # Record references from this
@@ -905,7 +909,11 @@ class Converter:
                 continue
 
             # Collect the source and objects it references
-            obj_src, references = self.collect_definition(obj_name)
+            # Skip symbols not found in source (e.g. injected settings from early config)
+            try:
+                obj_src, references = self.collect_definition(obj_name)
+            except ValueError:
+                continue
             all_src.append(obj_src)
             resolver.add(obj_name, references)
 
