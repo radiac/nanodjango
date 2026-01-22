@@ -78,10 +78,13 @@ Create a model
 ==============
 
 Django models work exactly the same way as in Django, except you define them in the same
-file, and they must be defined after ``app = Django()``:
+file. When running your script directly (``python counter.py``), Django is configured
+as soon as you ``from nanodjango import Django``, so you can define models anywhere after
+that import:
 
 .. code-block:: python
 
+    from nanodjango import Django  # isort: skip
     from django.db import models
 
     app = Django()

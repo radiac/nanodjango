@@ -1,13 +1,21 @@
+from __future__ import annotations
+
 import shutil
 import sys
 from importlib import import_module
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 
-from .app import Django
 from .hookspecs import get_contrib_plugins
+
+if TYPE_CHECKING:
+    from .app import Django
+
+# Plugins loaded from CLI, registered after Django class is imported
+_cli_plugins: list = []
 
 
 def load_module(module_name: str, path: str | Path):
@@ -37,6 +45,13 @@ def load_app(ctx: click.Context, param: str, value: str) -> Django:
             module = import_module(script_name)
         except ModuleNotFoundError:
             raise click.UsageError(f"App {value} is not a file or module")
+
+    # Import Django class lazily (after user script is loaded)
+    from .app import Django
+
+    # Register any plugins from CLI (now that Django is imported)
+    for plugin_module in _cli_plugins:
+        Django._plugins.append(plugin_module)
 
     # Find the Django instance to use - first try the app name provided
     if app_name and (app := getattr(module, app_name, None)):
@@ -69,7 +84,8 @@ def load_app(ctx: click.Context, param: str, value: str) -> Django:
     help="Plugin path - either a filesystem path or a Python module",
 )
 def cli(plugin: list[str]):
-    # Load plugins
+    # Store plugins for later registration
+    # (Django class not imported yet to allow early config in user scripts)
     for index, plugin_path in enumerate(plugin):
         if plugin_path.endswith(".py"):
             plugin_name = Path(plugin_path).stem
@@ -78,7 +94,7 @@ def cli(plugin: list[str]):
             )
         else:
             module = import_module(plugin_path)
-        Django._plugins.append(module)
+        _cli_plugins.append(module)
 
 
 @cli.command(
@@ -167,4 +183,4 @@ def plugins():
 
 
 def invoke():
-    cli(obj={})
+    cli()

@@ -2,6 +2,26 @@
 Changelog
 =========
 
+0.14.0 - unreleased
+-------------------
+
+Features:
+
+* Early Django configuration - Django is now configured during
+  ``from nanodjango import Django``. This works in both direct mode
+  (``python script.py``) and CLI mode (``nanodjango run script.py``).
+  This enables PEP8-compliant import ordering and module-level settings.
+  (#34, #43, #85)
+
+* Module-level settings - Define Django settings as uppercase variables
+  at module level instead of (or in addition to) passing them to the
+  ``Django()`` constructor. ``BASE_DIR`` and ``Path`` are automatically
+  available.
+
+* Deferred imports (``nanodjango.defer``) are now rarely needed since
+  early configuration works in all modes.
+
+
 0.13.0 - 2026-01-18
 -------------------
 
