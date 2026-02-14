@@ -33,6 +33,7 @@ import inspect
 import os
 import subprocess
 import sys
+import tempfile
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -310,3 +311,74 @@ def runserver(server: subprocess.Popen) -> Generator[subprocess.Popen, None, Non
     except Exception:
         print("".join([out] + stdout.readlines() + stderr.readlines()))
         raise
+
+
+def run_app_code(
+    code: str,
+    *,
+    tmp_path: Path | None = None,
+    timeout: float = SUBPROCESS_TIMEOUT,
+) -> subprocess.CompletedProcess:
+    """
+    Create a temporary nanodjango app file, run it, and return the result.
+
+    This is useful for testing nanodjango behavior where you need to create
+    a fresh app with specific settings or code.
+
+    Args:
+        code (str):
+            Python code for the nanodjango app. Should include the Django() call
+            and any routes/models needed.
+
+        tmp_path (Path):
+            Optional path to use for the temporary file. If not provided,
+            a temporary directory will be created.
+
+        timeout (float):
+            Timeout in seconds. Default: SUBPROCESS_TIMEOUT
+
+    Returns:
+        result (subprocess.CompletedProcess): the result from subprocess.run
+
+    Example::
+
+        def test_my_feature():
+            result = run_app_code('''
+                from nanodjango import Django
+                app = Django()
+
+                @app.route("/")
+                def index(request):
+                    return "Hello"
+
+                from django.conf import settings
+                print("DEBUG:", settings.DEBUG)
+            ''')
+
+            assert result.returncode == 0
+            assert "DEBUG: True" in result.stdout
+    """
+    if tmp_path is None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            return _run_app_code_in_dir(code, Path(tmpdir), timeout)
+    else:
+        return _run_app_code_in_dir(code, tmp_path, timeout)
+
+
+def _run_app_code_in_dir(
+    code: str,
+    tmp_path: Path,
+    timeout: float,
+) -> subprocess.CompletedProcess:
+    """Internal helper to run app code in a specific directory."""
+    app_file = tmp_path / "test_app.py"
+    app_file.write_text(code)
+
+    return subprocess.run(
+        [sys.executable, str(app_file)],
+        env=_get_nanodjango_env(),
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+        timeout=timeout,
+    )
