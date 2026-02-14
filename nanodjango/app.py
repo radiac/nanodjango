@@ -640,7 +640,7 @@ class Django:
         self._prepare(is_prod=False)
         exec_manage(*(args or []))
 
-    def run(self, host: str | None = None):
+    def run(self, host: str | None = None, no_db: bool = False):
         """
         Run the development server.
 
@@ -663,6 +663,16 @@ class Django:
             if __name__ == "__main__":
                 app.run("localhost:3000")
         """
+        if no_db:
+            self._settings["NO_DB"] = True
+            from django.conf import settings
+
+            settings.DATABASES = {
+                "default": {
+                    "ENGINE": "django.db.backends.sqlite3",
+                    "NAME": ":memory:",
+                }
+            }
         self._prepare(is_prod=False)
         host, port = self._prestart(host)
         if self.has_async:
@@ -805,11 +815,12 @@ class Django:
         elif not host:
             host = "0.0.0.0"
 
-        exec_manage("makemigrations", self.app_name)
-        exec_manage("migrate")
-        User = get_user_model()
-        if User.objects.count() == 0:
-            exec_manage("createsuperuser")
+        if not self.settings.DATABASES["default"]["NAME"] == ":memory:":
+            exec_manage("makemigrations", self.app_name)
+            exec_manage("migrate")
+            User = get_user_model()
+            if User.objects.count() == 0:
+                exec_manage("createsuperuser")
 
         return host, port
 
