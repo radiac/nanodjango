@@ -647,7 +647,7 @@ class Django:
         * Uses uvicorn for async views, Django's runserver otherwise
 
         Args:
-            host: Host and port in format ``"host:port"`` (default: ``"0:8000"``)
+            host: Host and port in format ``"host:port"`` (default: ``"0.0.0.0:8000"``)
 
         Example::
 
@@ -689,7 +689,7 @@ class Django:
         * Sets ``DEBUG=False`` if not explicitly configured
 
         Args:
-            host: Host and port in format ``"host:port"`` (default: ``"0:8000"``)
+            host: Host and port in format ``"host:port"`` (default: ``"0.0.0.0:8000"``)
 
         Raises:
             UsageError: If gunicorn (for WSGI) or uvicorn (for ASGI) is not installed
@@ -791,14 +791,14 @@ class Django:
             elif len(sys.argv) == 2:
                 host = sys.argv[1]
             else:
-                host = "0:8000"
+                host = "0.0.0.0:8000"
 
         port = 8000
         if ":" in host:
             host, _port = host.split(":")
             port = int(_port)
         elif not host:
-            host = "0"
+            host = "0.0.0.0"
 
         exec_manage("makemigrations", self.app_name)
         exec_manage("migrate")
