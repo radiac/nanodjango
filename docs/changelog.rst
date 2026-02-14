@@ -2,6 +2,23 @@
 Changelog
 =========
 
+0.14.0 - TBC
+------------
+
+Features:
+
+* Add settings callback support (#74, #77, #90)
+
+Bugfix:
+
+* Make runserver Windows-compatible (#45, #91)
+
+Thanks to:
+
+* D Chukhin (dchukhin) for early work on settings callbacks (#77)
+* Chris Beaven (SmileyChris) for windows fix (#91), settings callbacks (#90)
+
+
 0.13.0 - 2026-01-18
 -------------------
 
