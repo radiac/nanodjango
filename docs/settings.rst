@@ -18,6 +18,19 @@ Extra settings
 In addition to the standard Django settings, nanodjango provides some special settings
 to configure itself and to simplify configuring Django:
 
+``BARE``
+  Set to ``True`` for a minimal setup that requires no database. This configures:
+
+  * Cookie-based sessions (``signed_cookies`` backend)
+  * Cookie-based messages (``CookieStorage``)
+  * In-memory SQLite database (can be overridden with ``SQLITE_DATABASE``)
+  * No auth, admin, or contenttypes apps
+  * Static files still work via whitenoise
+
+  Useful for simple apps that don't need user authentication or persistent storage::
+
+      app = Django(BARE=True)
+
 ``ADMIN_URL``
   The URL to serve the admin site from. If not set, the admin site will only be served
   if there are models registered with ``@app.admin``.
@@ -32,6 +45,7 @@ to configure itself and to simplify configuring Django:
 ``SQLITE_DATABASE``
   The path to the SQLite database file. This is a shortcut to configure the default
   ``DATABASES`` setting. If ``DATABASES`` is set, it will override this value.
+  Set to ``:memory:`` to use an in-memory ephemeral database.
 
 ``MIGRATIONS_DIR``
   The directory name for migrations. Useful if you have more than one app script in the

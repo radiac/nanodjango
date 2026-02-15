@@ -27,40 +27,66 @@ ALLOWED_HOSTS = ["*"]
 SITE_ID = 1
 
 # Application definition
-INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "whitenoise.runserver_nostatic",
-    "django.contrib.staticfiles",
-] + app_conf.get("EXTRA_APPS", [])
+if app_conf.get("BARE"):
+    # Minimal setup - no database required
+    # Sessions and messages use cookie-based backends
+    INSTALLED_APPS = [
+        "django.contrib.sessions",
+        "django.contrib.messages",
+        "whitenoise.runserver_nostatic",
+        "django.contrib.staticfiles",
+    ]
+    SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+    MESSAGE_STORAGE = "django.contrib.messages.storage.cookie.CookieStorage"
+else:
+    INSTALLED_APPS = app_conf.get(
+        "INSTALLED_APPS",
+        [
+            "django.contrib.admin",
+            "django.contrib.auth",
+            "django.contrib.contenttypes",
+            "django.contrib.sessions",
+            "django.contrib.messages",
+            "whitenoise.runserver_nostatic",
+            "django.contrib.staticfiles",
+        ],
+    )
+INSTALLED_APPS = INSTALLED_APPS + app_conf.get("EXTRA_APPS", [])
 
-MIDDLEWARE = [
+# Build middleware list based on installed apps
+_middleware = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+if "django.contrib.sessions" in INSTALLED_APPS:
+    _middleware.append("django.contrib.sessions.middleware.SessionMiddleware")
+_middleware.append("django.middleware.common.CommonMiddleware")
+_middleware.append("django.middleware.csrf.CsrfViewMiddleware")
+if "django.contrib.auth" in INSTALLED_APPS:
+    _middleware.append("django.contrib.auth.middleware.AuthenticationMiddleware")
+if "django.contrib.messages" in INSTALLED_APPS:
+    _middleware.append("django.contrib.messages.middleware.MessageMiddleware")
+_middleware.append("django.middleware.clickjacking.XFrameOptionsMiddleware")
+
+MIDDLEWARE = _middleware
 
 ROOT_URLCONF = "nanodjango.urls"
+
+_context_processors = [
+    "django.template.context_processors.debug",
+    "django.template.context_processors.request",
+]
+if "django.contrib.auth" in INSTALLED_APPS:
+    _context_processors.append("django.contrib.auth.context_processors.auth")
+if "django.contrib.messages" in INSTALLED_APPS:
+    _context_processors.append("django.contrib.messages.context_processors.messages")
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [str(BASE_DIR / "templates")],
         "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
+            "context_processors": _context_processors,
             "loaders": [
                 ("django.template.loaders.locmem.Loader", get_templates()),
                 "django.template.loaders.filesystem.Loader",
@@ -72,10 +98,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "nanodjango.wsgi.application"
 
+_sqlite_database = app_conf.get("SQLITE_DATABASE", ":memory:" if app_conf.get("BARE") else "db.sqlite3")
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / app_conf.get("SQLITE_DATABASE", "db.sqlite3"),
+        "NAME": _sqlite_database if _sqlite_database == ":memory:" else BASE_DIR / _sqlite_database,
     }
 }
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -99,9 +126,8 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+_static_dir = BASE_DIR / "static"
+STATICFILES_DIRS = [_static_dir] if _static_dir.is_dir() else []
 STATIC_ROOT = BASE_DIR / "static-collected"
 
 # Media files
