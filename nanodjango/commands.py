@@ -96,21 +96,53 @@ def manage(ctx: click.Context, app: Django):
 @cli.command()
 @click.argument("app", type=str, required=True, callback=load_app)
 @click.argument("host", type=str, required=False, default="")
-def run(app: Django, host: str):
+@click.option(
+    "--username",
+    "--user",
+    is_flag=False,
+    flag_value="",
+    default=None,
+    help="Username for superuser creation (prompts if flag used without value)",
+)
+@click.option(
+    "--password",
+    "--pass",
+    is_flag=False,
+    flag_value="",
+    default=None,
+    help="Password for superuser creation (prompts if flag used without value)",
+)
+def run(app: Django, host: str, username: str | None, password: str | None):
     """
     Start the app in development mode on the specified IP and port
     """
-    app.run(host)
+    app.run(host, username=username, password=password)
 
 
 @cli.command()
 @click.argument("app", type=str, required=True, callback=load_app)
 @click.argument("host", type=str, required=False, default="")
-def serve(app: Django, host: str):
+@click.option(
+    "--username",
+    "--user",
+    is_flag=False,
+    flag_value="",
+    default=None,
+    help="Username for superuser creation (prompts if flag used without value)",
+)
+@click.option(
+    "--password",
+    "--pass",
+    is_flag=False,
+    flag_value="",
+    default=None,
+    help="Password for superuser creation (prompts if flag used without value)",
+)
+def serve(app: Django, host: str, username: str | None, password: str | None):
     """
     Serve the app in production mode on the specified IP and port
     """
-    app.serve(host)
+    app.serve(host, username=username, password=password)
 
 
 @cli.command()

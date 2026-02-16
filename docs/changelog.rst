@@ -8,6 +8,7 @@ Changelog
 Features:
 
 * Add settings callback support (#74, #77, #90)
+* Automatic superuser creation and command line arguments (experimental, see #94)
 
 Bugfix:
 

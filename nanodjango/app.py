@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import ast
+import getpass
 import importlib
 import inspect
 import os
+import secrets
+import string
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -640,7 +643,12 @@ class Django:
         self._prepare(is_prod=False)
         exec_manage(*(args or []))
 
-    def run(self, host: str | None = None):
+    def run(
+        self,
+        host: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+    ):
         """
         Run the development server.
 
@@ -653,6 +661,8 @@ class Django:
 
         Args:
             host: Host and port in format ``"host:port"`` (default: ``"0.0.0.0:8000"``)
+            username: Username for superuser creation (optional)
+            password: Password for superuser creation (optional)
 
         Example::
 
@@ -664,7 +674,7 @@ class Django:
                 app.run("localhost:3000")
         """
         self._prepare(is_prod=False)
-        host, port = self._prestart(host)
+        host, port = self._prestart(host, username=username, password=password)
         if self.has_async:
             try:
                 import uvicorn
@@ -682,7 +692,12 @@ class Django:
         else:
             exec_manage("runserver", f"{host}:{port}")
 
-    def serve(self, host: str | None = None):
+    def serve(
+        self,
+        host: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+    ):
         """
         Run the production server.
 
@@ -695,6 +710,8 @@ class Django:
 
         Args:
             host: Host and port in format ``"host:port"`` (default: ``"0.0.0.0:8000"``)
+            username: Username for superuser creation (optional)
+            password: Password for superuser creation (optional)
 
         Raises:
             UsageError: If gunicorn (for WSGI) or uvicorn (for ASGI) is not installed
@@ -705,7 +722,7 @@ class Django:
                 app.serve()
         """
         self._prepare(is_prod=True)
-        host, port = self._prestart(host)
+        host, port = self._prestart(host, username=username, password=password)
 
         if self.has_async:
             try:
@@ -782,9 +799,106 @@ class Django:
         converter = Converter(app=self, path=path, name=name, template=template)
         converter.build()
 
-    def _prestart(self, host: str | None = None) -> tuple[str, int]:
+    def create_superuser(self, username: str | None, password: str | None):
+        """
+        Create a superuser with the given username and password.
+
+        Args:
+            username: ``None`` to use system username, ``""`` to prompt, or a value
+            password: ``None`` to use ``DJANGO_SUPERUSER_PASSWORD`` env var or
+                generate random, ``""`` to prompt, or a value
+        """
+        prompt_username = username == ""
+        prompt_password = password == ""
+
+        # Resolve username
+        if username is None:
+            username = getpass.getuser()
+
+        if username:
+            User = get_user_model()
+            if User.objects.filter(username=username).count() > 0:
+                print(f"Superuser {username!r} already exists, skipping creation")
+                return
+
+        # Generate a password
+        generated_password = None
+        if password is None and os.environ.get("DJANGO_SUPERUSER_PASSWORD") is None:
+            password = "".join(
+                secrets.choice(string.ascii_letters + string.digits) for _ in range(16)
+            )
+            generated_password = password
+
+        # Save and restore DJANGO_SUPERUSER_PASSWORD around management commands
+        old_env_password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
+
+        try:
+            # If username needs prompting, use interactive createsuperuser
+            if prompt_username:
+                if not prompt_password and password is not None:
+                    os.environ["DJANGO_SUPERUSER_PASSWORD"] = password
+                exec_manage("createsuperuser")
+
+            # If password needs prompting, create without password then prompt
+            elif prompt_password:
+                os.environ.pop("DJANGO_SUPERUSER_PASSWORD", None)
+                exec_manage(
+                    "createsuperuser",
+                    "--no-input",
+                    "--username",
+                    username,
+                    "--email",
+                    "",
+                )
+                exec_manage("changepassword", username)
+
+            # Non-interactive
+            else:
+                if password is not None:
+                    os.environ["DJANGO_SUPERUSER_PASSWORD"] = password
+                exec_manage(
+                    "createsuperuser",
+                    "--no-input",
+                    "--username",
+                    username,
+                    "--email",
+                    "",
+                )
+
+        finally:
+            if old_env_password is None:
+                os.environ.pop("DJANGO_SUPERUSER_PASSWORD", None)
+            else:
+                os.environ["DJANGO_SUPERUSER_PASSWORD"] = old_env_password
+
+        # Show summary of what was created
+        lines = ["Created superuser"]
+        if not prompt_username:
+            lines.append(f"  Username: {username}")
+        if generated_password:
+            lines.append(f"  Password: {generated_password}")
+        if len(lines) > 1:
+            width = max(len(line) for line in lines) + 4
+            print()
+            print(f"+{'-' * width}+")
+            for line in lines:
+                print(f"|  {line:<{width - 4}}  |")
+            print(f"+{'-' * width}+")
+            print()
+
+    def _prestart(
+        self,
+        host: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+    ) -> tuple[str, int]:
         """
         Common steps before start() and serve()
+
+        Args:
+            host: Host and port string
+            username: Username for superuser creation
+            password: Password for superuser creation
 
         Returns:
             (host: str, port: int)
@@ -807,9 +921,8 @@ class Django:
 
         exec_manage("makemigrations", self.app_name)
         exec_manage("migrate")
-        User = get_user_model()
-        if User.objects.count() == 0:
-            exec_manage("createsuperuser")
+
+        self.create_superuser(username, password)
 
         return host, port
 

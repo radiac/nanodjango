@@ -56,6 +56,43 @@ In both development and production, nanodjango will also look for a ``PUBLIC_DIR
 Note: ``PUBLIC_DIR`` will be ignored if ``WHITENOISE_ROOT`` is set.
 
 
+Run and serve options
+---------------------
+
+The ``run`` and ``serve`` commands take the following options:
+
+``--user``, ``--user=username`` (or ``--username``) (`experimental <https://github.com/radiac/nanodjango/issues/94>`_):
+  When nanodjango runs ``createsuperuser`` it will try to create a superuser.
+
+  If this is provided with a username (eg ``--user=myuser``), it will create a user if
+  they don't already exist in the database.
+
+  If specified without a username (eg ``--user``), it will run ``createsuperuser``
+  interactively and prompt for a username.
+
+  If not specified, it will use the current system user without prompting.
+
+``--pass``, ``--pass=password`` (or ``--password``) (`experimental <https://github.com/radiac/nanodjango/issues/94>`_):
+  When creating a superuser, set the password to the given value.
+
+  If this is provided with a password, it will create a user if they don't already exist
+  in the database.
+
+  If specified without a password, it will prompt for a password.
+
+  If not specified, it will generate a random password and print it to the console.
+
+  This option will be ignored if ``--user`` is specified without a username.
+
+  Note: this will not update the password for existing users - to do that, run
+  ``nanodjango manage script.py changepassword <username>``
+
+``host:port``:
+  Specify the host and port to bind to, eg ``nanodjango run script.py 0.0.0.0:3000``
+
+  Default: ``0.0.0.0:8000``
+
+
 .. _run_script:
 
 Running your script directly
