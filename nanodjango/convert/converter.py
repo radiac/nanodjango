@@ -10,8 +10,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, cast
 
-import isort
-from black import FileMode, format_str
 from django.db.models import Model
 
 from ..exceptions import ConversionError
@@ -31,6 +29,33 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from ..app import Django
+
+
+def _format_with_ruff(code: str) -> str:
+    """Format code and sort imports using ruff."""
+    try:
+        # Format with ruff
+        result = subprocess.run(
+            ["ruff", "format", "-"],
+            input=code,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        formatted = result.stdout
+
+        # Sort imports with ruff
+        result = subprocess.run(
+            ["ruff", "check", "--select", "I", "--fix", "--stdout", "-"],
+            input=formatted,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout if result.stdout else formatted
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            "Could not find ruff: pip install nanodjango[convert]"
+        )
 
 
 class Resolver:
@@ -182,7 +207,7 @@ class Converter:
 
     def write_file(self, filename: str | Path, *content):
         path = Path(filename)
-        formatted = isort.code(format_str("\n".join(content), mode=FileMode()))
+        formatted = _format_with_ruff("\n".join(content))
         path.write_text(formatted)
 
     def collect_definition(self, obj_name) -> tuple[str, set[str]]:
@@ -284,7 +309,7 @@ class Converter:
         """
         Collect a lookup for imported names
 
-        Values are the import strings - we'll use isort to merge modules later
+        Values are the import strings - we'll use ruff to merge modules later
         """
         self.imports = {}
 

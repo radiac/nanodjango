@@ -1,6 +1,10 @@
 import urllib.request
 
+import pytest
+
 from nanodjango.testing.utils import cmd, django_process, runserver
+
+pytestmark = pytest.mark.requires_convert
 
 TEST_APP = "scale"
 TEST_SCRIPT = f"../examples/scale/{TEST_APP}.py"
