@@ -23,6 +23,7 @@ from django.template import engines
 from django.views import View
 
 from . import app_meta, hookspecs
+from .conf import Conf
 from .defer import defer
 from .exceptions import ConfigurationError, UsageError
 from .templatetags import TemplateTagLibrary
@@ -63,6 +64,9 @@ class Django:
         def index(request):
             return "Hello World"
     """
+
+    # Class attribute: Conf helper for modifying settings
+    conf = Conf
 
     # Class attribute: list of plugin modules to load - set by click
     _plugins = []
@@ -163,13 +167,8 @@ class Django:
         self.settings = settings
 
         # Update Django settings with ours
-        # If a value is callable and the setting already exists, treat it as a callback
-        # that receives the current value and returns the new value. This allows users
-        # to modify default settings (e.g. MIDDLEWARE=lambda m: [MyMiddleware] + m)
-        for key, value in _settings.items():
-            if callable(value) and hasattr(settings, key):
-                value = value(getattr(settings, key))
-            setattr(settings, key, value)
+        conf = Conf(**_settings)
+        conf(settings)
 
         # Set WHITENOISE_ROOT if public dir exists
         # Do it this way instead of setting WHITENOISE_ROOT directly, because if the dir
