@@ -33,6 +33,11 @@ to configure itself and to simplify configuring Django:
   The path to the SQLite database file. This is a shortcut to configure the default
   ``DATABASES`` setting. If ``DATABASES`` is set, it will override this value.
 
+  To use an in-memory database, you can use the constant ``Django.SQLITE_MEMORY``, ie:
+  ```
+  app = Django(SQLITE_DATABASE=Django.SQLITE_MEMORY)
+  ```
+
 ``MIGRATIONS_DIR``
   The directory name for migrations. Useful if you have more than one app script in the
   same dir - such as the examples dir for this project.

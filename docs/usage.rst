@@ -169,6 +169,47 @@ found. If you want to override this behaviour, you can specify the handler:
     uvicorn counter:app.asgi
 
 
+Run as an async task
+====================
+
+If you want to run nanodjango alongside other async code in the same process, you can
+use ``app.create_server()`` to run it as a task in an existing async event loop:
+
+.. code-block:: python
+
+    async def main():
+        await asyncio.gather(
+            app.create_server(),
+            other_task(),
+        )
+
+    if __name__ == "__main__":
+        asyncio.run(main())
+
+The ``create_server()`` method accepts the following optional arguments:
+
+``host``:
+  Host and port in format ``"host:port"`` (default: ``"0.0.0.0:8000"``)
+
+``username``:
+  Username for superuser creation. Pass ``None`` to use system username, ``""`` to
+  prompt, or a specific username value.
+
+``password``:
+  Password for superuser creation. Pass ``None`` to use ``DJANGO_SUPERUSER_PASSWORD``
+  env var or generate random, ``""`` to prompt, or a specific password value.
+
+``log_level``:
+  Uvicorn log level (default: ``"info"``)
+
+``is_prod``:
+  Whether to run in production mode (default: ``True``)
+
+Note that because it's running async, ``makemigrations`` will be run with the
+``--no-input`` option, so may fail if the migration cannot be created without user help.
+If this happens, run ``nanodjango manage script.py makemigrations``.
+
+
 Management commands
 ===================
 
