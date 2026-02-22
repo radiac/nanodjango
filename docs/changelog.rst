@@ -2,6 +2,27 @@
 Changelog
 =========
 
+0.15.0 - 2026-02-22
+-------------------
+
+Features:
+
+* ``Django.create_server`` now makes and applies migrations in ``--no-input`` mode, and
+  creates a super user using the logic from #94
+* ``Django.create_server`` supports binding to different hosts
+
+
+Breaking changes:
+
+* ``Django.create_server`` arguments are now standardised to match ``run`` and ``serve``
+* ``Django.create_server`` default behaviour has changed (see Features)
+* ``Django.create_server`` drops the ``port`` argument, and now takes a single ``host``
+  argument to specify the host and port in the format ``"host:port"``
+  (default: ``"0.0.0.0:8000"``)
+* ``Django.create_server`` now takes an optional ``username`` and ``password`` for the
+  non-interactive ``createsuperuser``.
+
+
 0.14.0 - 2026-02-16
 -------------------
 

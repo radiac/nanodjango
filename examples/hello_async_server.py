@@ -1,5 +1,13 @@
+# /// script
+# dependencies = ["nanodjango"]
+# ///
 """
 Running nanodjango as an async task alongside another async task
+
+Usage:
+
+    uv run hello_async_server.py
+    uvx nanodjango manage hello_async_server.py
 """
 
 import asyncio
@@ -27,12 +35,12 @@ async def say_hello():
         print("Hello!")
 
 
+async def main():
+    await asyncio.gather(
+        app.create_server("0.0.0.0:8080"),
+        say_hello(),
+    )
+
+
 if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    tasks = []
-    tasks.append(loop.create_task(app.create_server("0.0.0.0", 8080)))
-    tasks.append(loop.create_task(say_hello()))
-
-    loop.run_forever()
+    asyncio.run(main())

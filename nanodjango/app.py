@@ -13,6 +13,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence
 
 import pluggy
+from asgiref.sync import sync_to_async
 from django import setup
 from django import urls as django_urls
 from django.contrib import admin
@@ -891,6 +892,7 @@ class Django:
         host: str | None = None,
         username: str | None = None,
         password: str | None = None,
+        noinput: bool = False,
     ) -> tuple[str, int]:
         """
         Common steps before start() and serve()
@@ -899,6 +901,7 @@ class Django:
             host: Host and port string
             username: Username for superuser creation
             password: Password for superuser creation
+            noinput: Run makemigrations without input
 
         Returns:
             (host: str, port: int)
@@ -919,7 +922,7 @@ class Django:
         elif not host:
             host = "0.0.0.0"
 
-        exec_manage("makemigrations", self.app_name)
+        exec_manage("makemigrations", "--no-input" if noinput else "", self.app_name)
         exec_manage("migrate")
 
         self.create_superuser(username, password)
@@ -1015,21 +1018,26 @@ class Django:
         return application(environ, start_response)
 
     async def create_server(
-        self, host: str, port: int, log_level: str = "info", is_prod: bool = True
+        self,
+        host: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        log_level: str = "info",
+        is_prod: bool = True,
     ):
         """
         Initialise and run nanodjango as a task in an existing async loop.
 
-        This will not call the prestart sequence, so will not call makemigrations,
-        migrate or createsuperuser. Run these steps manually using
-        ``nanodjango manage``.
+        This will call the prestart sequence (makemigrations, migrate, and
+        optionally createsuperuser) before starting the server.
 
         This is useful for running a Django server alongside other async code in a
         single process.
 
         Args:
-            host: Host to bind to
-            port: Port to bind to
+            host: Host and port in format ``"host:port"`` (default: ``"0.0.0.0:8000"``)
+            username: Username for superuser creation (optional)
+            password: Password for superuser creation (optional)
             log_level: Uvicorn log level (default: "info")
             is_prod: Whether to run in production mode (default: True)
         """
@@ -1041,8 +1049,14 @@ class Django:
         except ImportError:
             raise UsageError("Install uvicorn to use async server")
 
-        # Prepare the app (but skip prestart migrations/superuser setup)
+        # Prepare the app
         self._prepare(is_prod=is_prod)
+        host, port = await sync_to_async(self._prestart)(
+            host,
+            username=username,
+            password=password,
+            noinput=True,
+        )
 
         config = uvicorn.Config(
             self, host=host, port=port, log_level=log_level, interface="asgi3"
