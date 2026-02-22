@@ -1,0 +1,1 @@
+SQLITE_MEMORY = ":memory:"

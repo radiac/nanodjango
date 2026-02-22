@@ -6,7 +6,8 @@ from os import getenv
 from pathlib import Path
 from types import ModuleType
 
-from nanodjango.app_meta import get_app_conf, get_app_module, get_templates
+from .app_meta import get_app_conf, get_app_module, get_templates
+from .constants import SQLITE_MEMORY
 
 app_conf = get_app_conf()
 
@@ -72,10 +73,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "nanodjango.wsgi.application"
 
+db_name = BASE_DIR / "db.sqlite3"
+if "SQLITE_DATABASE" in app_conf:
+    db_name = app_conf["SQLITE_DATABASE"]
+    if db_name != SQLITE_MEMORY:
+        db_name = BASE_DIR / db_name
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / app_conf.get("SQLITE_DATABASE", "db.sqlite3"),
+        "NAME": db_name,
     }
 }
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

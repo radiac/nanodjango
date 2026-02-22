@@ -8,8 +8,7 @@ import random
 from nanodjango import Django
 
 app = Django(
-    # Avoid clashes with other examples
-    SQLITE_DATABASE="hello_async.sqlite3",
+    SQLITE_DATABASE=Django.SQLITE_MEMORY,
     MIGRATIONS_DIR="hello_async_migrations",
 )
 

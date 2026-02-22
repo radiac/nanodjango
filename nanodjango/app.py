@@ -23,7 +23,7 @@ from django.shortcuts import render
 from django.template import engines
 from django.views import View
 
-from . import app_meta, hookspecs
+from . import app_meta, constants, hookspecs
 from .defer import defer
 from .exceptions import ConfigurationError, UsageError
 from .templatetags import TemplateTagLibrary
@@ -64,6 +64,8 @@ class Django:
         def index(request):
             return "Hello World"
     """
+
+    SQLITE_MEMORY = constants.SQLITE_MEMORY
 
     # Class attribute: list of plugin modules to load - set by click
     _plugins = []
@@ -922,7 +924,11 @@ class Django:
         elif not host:
             host = "0.0.0.0"
 
-        exec_manage("makemigrations", "--no-input" if noinput else "", self.app_name)
+        args = ["makemigrations"]
+        if noinput:
+            args.append("--no-input")
+        args.append(self.app_name)
+        exec_manage(*args)
         exec_manage("migrate")
 
         self.create_superuser(username, password)

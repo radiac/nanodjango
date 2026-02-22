@@ -10,7 +10,7 @@ Features:
 * ``Django.create_server`` now makes and applies migrations in ``--no-input`` mode, and
   creates a super user using the logic from #94
 * ``Django.create_server`` supports binding to different hosts
-
+* Add constant ``Django.SQLITE_MEMORY`` to avoid magic string for in-memory sqlite db
 
 Breaking changes:
 
@@ -21,6 +21,10 @@ Breaking changes:
   (default: ``"0.0.0.0:8000"``)
 * ``Django.create_server`` now takes an optional ``username`` and ``password`` for the
   non-interactive ``createsuperuser``.
+
+Bugfix:
+
+* Fix support for ``:memory:`` sqlite database name
 
 
 0.14.0 - 2026-02-16
