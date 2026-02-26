@@ -33,10 +33,22 @@ to configure itself and to simplify configuring Django:
   The path to the SQLite database file. This is a shortcut to configure the default
   ``DATABASES`` setting. If ``DATABASES`` is set, it will override this value.
 
-  To use an in-memory database, you can use the constant ``Django.SQLITE_MEMORY``, ie:
-  ```
-  app = Django(SQLITE_DATABASE=Django.SQLITE_MEMORY)
-  ```
+  **In-memory database** - Use ``Django.SQLITE_MEMORY``::
+
+    app = Django(SQLITE_DATABASE=Django.SQLITE_MEMORY)
+
+  However, note that because both gunicorn (production sync) and uvicorn's auto-reload
+  (async) spawn new processes which cannot access the database.
+
+  This is therefore only recommended for sync apps used with ``nanodjango run``, or
+  where databases are not needed. In other cases, consider a temporary file database.
+
+  **Temporary file database** - Use ``Django.SQLITE_TMP``::
+
+    app = Django(SQLITE_DATABASE=Django.SQLITE_TMP)
+
+  This creates a temporary SQLite file in your system's temp directory that works with
+  all run modes, so is the recommended option for ephemeral databases.
 
 ``MIGRATIONS_DIR``
   The directory name for migrations. Useful if you have more than one app script in the

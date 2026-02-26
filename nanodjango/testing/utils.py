@@ -45,6 +45,11 @@ import pytest
 RUNSERVER_TIMEOUT = 10  # seconds
 SUBPROCESS_TIMEOUT = 5  # seconds
 
+# Server type constants for runserver() helper
+EXPECT_RUNSERVER = "runserver"
+EXPECT_UVICORN = "uvicorn"
+EXPECT_GUNICORN = "gunicorn"
+
 
 def _get_caller_cwd() -> Path:
     """
@@ -264,7 +269,10 @@ def django_process(path: Path, *args) -> Generator[subprocess.Popen, None, None]
 
 
 @contextmanager
-def runserver(server: subprocess.Popen) -> Generator[subprocess.Popen, None, None]:
+def runserver(
+    server: subprocess.Popen,
+    expect: str = EXPECT_RUNSERVER,
+) -> Generator[subprocess.Popen, None, None]:
     """
     Context manager to read the output header from a ``runserver`` subprocess to check
     it started correctly, and print any failure output to the console.
@@ -272,6 +280,8 @@ def runserver(server: subprocess.Popen) -> Generator[subprocess.Popen, None, Non
     Args:
         server (subprocess.Popen):
             The return value from a ``nanodjango_process`` or ``django_process`` call
+        expect (str):
+            Expected server type - use EXPECT_RUNSERVER, EXPECT_UVICORN, or EXPECT_GUNICORN
 
     Returns:
         server (subprocess.Popen)
@@ -282,11 +292,18 @@ def runserver(server: subprocess.Popen) -> Generator[subprocess.Popen, None, Non
     if not stdout or not stderr:
         pytest.fail(f"Server did not start correctly: {stdout=} {stderr=}")
 
-    # Wait for server to start
-    if django.VERSION < (5, 0, 0):
-        expecting = "Starting development server at"
+    # Determine what startup message to expect
+    if expect == EXPECT_RUNSERVER:
+        if django.VERSION < (5, 0, 0):
+            expecting = ["Starting development server at"]
+        else:
+            expecting = ["Watching for file changes"]
+    elif expect == EXPECT_UVICORN:
+        expecting = ["Uvicorn running on"]
+    elif expect == EXPECT_GUNICORN:
+        expecting = ["Listening at:"]
     else:
-        expecting = "Watching for file changes"
+        raise ValueError(f"Unknown expect value: {expect}")
     timeout = time.time() + (RUNSERVER_TIMEOUT * 2)
     out = ""
     os.set_blocking(stdout.fileno(), False)
@@ -295,7 +312,7 @@ def runserver(server: subprocess.Popen) -> Generator[subprocess.Popen, None, Non
     while time.time() < timeout:
         out += stdout.readline() + stderr.readline()
 
-        if "Error" in out or expecting in out:
+        if "Error" in out or any(exp in out for exp in expecting):
             # Wait long enough for errors or completion
             time.sleep(5)
             out += stdout.readline() + stderr.readline()
@@ -303,7 +320,7 @@ def runserver(server: subprocess.Popen) -> Generator[subprocess.Popen, None, Non
         else:
             time.sleep(0.1)
 
-    if "Error" in out or expecting not in out:
+    if "Error" in out or not any(exp in out for exp in expecting):
         pytest.fail(f"Server did not start correctly: {out}")
 
     try:

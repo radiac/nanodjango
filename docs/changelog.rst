@@ -2,6 +2,24 @@
 Changelog
 =========
 
+0.15.1 - 2026-02-26
+-------------------
+
+Features:
+
+* Add ``Django.SQLITE_TMP`` for temporary file-based sqlite database
+
+Bugfix:
+
+* ``Django.SQLITE_MEMORY`` now works with async
+* ``serve`` now correctly uses specified port
+
+Docs:
+
+* Add warnings about in-memory database limitations, and recommend temporary file
+  database for most use cases
+
+
 0.15.0 - 2026-02-22
 -------------------
 

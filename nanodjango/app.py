@@ -18,6 +18,7 @@ from django import setup
 from django import urls as django_urls
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.core.management.color import color_style
 from django.db.models import Model
 from django.shortcuts import render
 from django.template import engines
@@ -66,6 +67,7 @@ class Django:
     """
 
     SQLITE_MEMORY = constants.SQLITE_MEMORY
+    SQLITE_TMP = constants.SQLITE_TMP
 
     # Class attribute: list of plugin modules to load - set by click
     _plugins = []
@@ -684,12 +686,28 @@ class Django:
             except ImportError:
                 raise UsageError("Install uvicorn to use async views")
 
+            # Disable reload for in-memory databases since uvicorn's reloader
+            # spawns a new process which can't share the in-memory database
+            use_reload = True
+            if self._settings.get("SQLITE_DATABASE") == constants.SQLITE_MEMORY:
+                use_reload = False
+                style = color_style()
+                sys.stderr.write(
+                    style.WARNING(
+                        "\nWARNING:\n"
+                        "  Auto-reload disabled when using in-memory database.\n"
+                        "  For development with auto-reload, use Django.SQLITE_TMP instead.\n"
+                    )
+                    + "\n"
+                )
+                sys.stderr.flush()
+
             uvicorn.run(
                 f"{self.app_name}:{self.instance_name}._asgi_dev",
                 host=host,
                 port=port,
                 log_level="info",
-                reload=True,
+                reload=use_reload,
                 interface="asgi3",
             )
         else:
@@ -733,11 +751,6 @@ class Django:
             except ImportError:
                 raise UsageError("Install uvicorn to use async views")
 
-            port = 8000
-            if ":" in host:
-                host, port = host.split(":")
-                port = int(port)
-
             uvicorn.run(
                 f"{self.app_name}:{self.instance_name}",
                 host=host,
@@ -746,6 +759,19 @@ class Django:
                 interface="asgi3",
             )
         else:
+            # Warn about in-memory database with gunicorn
+            if self._settings.get("SQLITE_DATABASE") == constants.SQLITE_MEMORY:
+                style = color_style()
+                sys.stderr.write(
+                    style.WARNING(
+                        "\nWARNING:\n"
+                        "  In-memory database incompatible with gunicorn (uses multiple workers).\n"
+                        "  For production with in-memory data, use Django.SQLITE_TMP instead.\n"
+                    )
+                    + "\n"
+                )
+                sys.stderr.flush()
+
             try:
                 from gunicorn.app.base import BaseApplication
             except ImportError:

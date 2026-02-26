@@ -7,7 +7,7 @@ from pathlib import Path
 from types import ModuleType
 
 from .app_meta import get_app_conf, get_app_module, get_templates
-from .constants import SQLITE_MEMORY
+from .constants import SQLITE_MEMORY, SQLITE_TMP
 
 app_conf = get_app_conf()
 
@@ -74,14 +74,38 @@ TEMPLATES = [
 WSGI_APPLICATION = "nanodjango.wsgi.application"
 
 db_name = BASE_DIR / "db.sqlite3"
+db_options = {}
+
 if "SQLITE_DATABASE" in app_conf:
     db_name = app_conf["SQLITE_DATABASE"]
-    if db_name != SQLITE_MEMORY:
+    if db_name == SQLITE_MEMORY:
+        # Use named shared-memory database so migrations persist
+        # across multiple connections. This allows the database to exist
+        # as long as at least one connection is open.
+        db_name = "file:nanodjango_memdb?mode=memory&cache=shared"
+        db_options = {"uri": True}
+    elif db_name == SQLITE_TMP:
+        # Use a temporary file unique to this process tree
+        # Check env var first so reloader children inherit the same path
+        import os
+        import tempfile
+
+        db_path = os.environ.get("NANODJANGO_SQLITE_TMP")
+        if not db_path:
+            db_path = str(
+                Path(tempfile.gettempdir())
+                / f"nanodjango_{ND_APP_NAME}_{os.getpid()}.sqlite3"
+            )
+            os.environ["NANODJANGO_SQLITE_TMP"] = db_path
+        db_name = db_path
+    else:
         db_name = BASE_DIR / db_name
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": db_name,
+        "OPTIONS": db_options,
     }
 }
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
