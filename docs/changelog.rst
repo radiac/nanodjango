@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.15.2 - 2026-03-18
+-------------------
+
+Internal:
+
+* Added ``is_prod`` argument to ``Django.wsgi()`` for consistency with ``Django.asgi()``
+
+
 0.15.1 - 2026-02-26
 -------------------
 

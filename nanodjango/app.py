@@ -1021,7 +1021,7 @@ class Django:
         """
         return await self.asgi(scope, receive, send, is_prod=False)
 
-    def wsgi(self, environ, start_response):
+    def wsgi(self, environ, start_response, is_prod=True):
         """
         WSGI application.
 
@@ -1045,7 +1045,7 @@ class Django:
         """
         from django.core.wsgi import get_wsgi_application
 
-        self._pre_xsgi()
+        self._pre_xsgi(is_prod)
         application = get_wsgi_application()
         return application(environ, start_response)
 
