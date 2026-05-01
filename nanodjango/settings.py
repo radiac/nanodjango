@@ -17,6 +17,8 @@ if not ND_APP_MODULE or not ND_APP_MODULE.__file__:
     raise ValueError("Invalid app module - incorrect initialisation")
 ND_FILEPATH: Path = Path(ND_APP_MODULE.__file__).absolute()
 ND_APP_NAME: str = ND_FILEPATH.stem
+if ND_APP_NAME == "__init__":  # support a nanodjango script as part of a bigger project
+    ND_APP_NAME: str = ND_FILEPATH.parent.stem
 BASE_DIR: Path = ND_FILEPATH.parent
 
 MIGRATION_MODULES = {ND_APP_NAME: app_conf.get("MIGRATIONS_DIR", "migrations")}

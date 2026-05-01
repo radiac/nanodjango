@@ -32,7 +32,7 @@ See also
 ========
 For CRUD examples, see:
 
-- :doc:`howto_api` - a complete CRUD Todo API
+- :doc:`howto/api_service` - a complete CRUD Todo API
 
 Other Ninja features
 ====================

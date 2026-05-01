@@ -58,6 +58,11 @@ to configure itself and to simplify configuring Django:
   If set, nanodjango will use it to set ``WHITENOISE_ROOT``, so any files inside are
   served from the site root. Useful for ``favicon.ico``, ``robots.txt`` etc.
 
+``APP_NAME``
+  **Experimental**: change the app name. You almost certainly don't need this feature,
+  and it will break things if you don't know what you're doing. See :doc:`howto/package`
+  for the rare occasion you might actually want this.
+
 
 Settings callbacks
 ==================

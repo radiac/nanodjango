@@ -2,6 +2,20 @@
 Changelog
 =========
 
+0.16.1 - 2026-05-01
+-------------------
+
+Features:
+
+* Add special ``APP_NAME`` setting to support packaging nanodjango scripts
+
+Docs:
+
+* Add ``APP_NAME`` setting docs, making it clear it's for advanced users only
+* Create new howto section
+* Add howto package a nanodjango script
+
+
 0.16.0 - 2026-03-22
 -------------------
 
@@ -103,7 +117,7 @@ Docs:
 * Swapped to build using dirhtml for nicer urls
 * Fixed uwsgi instructions (#58)
 * Added :doc:`internal API docs <internal_api>`
-* Added :doc:`API howto <howto_api>` (#70, #83)
+* Added :doc:`API howto <howto/api_service>` (#70, #83)
 
 Thanks to:
 

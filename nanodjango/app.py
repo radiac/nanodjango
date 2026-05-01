@@ -131,6 +131,13 @@ class Django:
             app = Django()
             app = Django(SECRET_KEY="some-secret", ALLOWED_HOSTS=["my.example.com"])
         """
+        # The special APP_NAME argument is undocumented and unsupported, and
+        # only for advanced users. It is a hook to override app name detection
+        # when a nanodjango script is used as part of a larger project, but should be
+        # used with care.
+        if "APP_NAME" in _settings:
+            app_meta._app_module = sys.modules[_settings.pop("APP_NAME")]
+
         self._init_plugin_manager()
 
         self.has_admin = False
@@ -1012,7 +1019,7 @@ class Django:
         application = get_asgi_application()
         return await application(scope, receive, send)
 
-    async def _asgi_dev(self, scope, receive, send):
+    async def _asgi_dev(self, scope, receive, send, is_prod=False):
         """
         ASGI application callable for development mode.
 

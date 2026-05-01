@@ -25,7 +25,8 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     defer
     plugins
     internal_api
-    howto_api
+    howto/api_service
+    howto/package
     troubleshooting
     playground/index
     contributing
