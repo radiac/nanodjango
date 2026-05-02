@@ -135,8 +135,15 @@ class Django:
         # only for advanced users. It is a hook to override app name detection
         # when a nanodjango script is used as part of a larger project, but should be
         # used with care.
-        if "APP_NAME" in _settings:
-            app_meta._app_module = sys.modules[_settings.pop("APP_NAME")]
+        if OVERRIDE_APP_NAME := _settings.pop("APP_NAME", ""):
+            _settings["ND_APP_MODULE"] = app_meta._app_module = sys.modules[
+                OVERRIDE_APP_NAME
+            ]
+            _settings["MIGRATION_MODULES"] = {
+                OVERRIDE_APP_NAME: _settings.get(
+                    "MIGRATIONS_DIR", f"{OVERRIDE_APP_NAME}.migrations"
+                )
+            }
 
         self._init_plugin_manager()
 
@@ -576,13 +583,11 @@ class Django:
             sys.modules[self.app_name] = sys.modules["__main__"]
 
         # If there are no models in this app, remove it from the migrations
-        if not any(
-            isinstance(obj, type) and issubclass(obj, Model)
-            for obj in self.app_module.__dict__.values()
-            if getattr(obj, "__module__", None) == self.app_name
-        ):
-            from django.conf import settings
+        from django.apps import apps as django_apps
+        from django.conf import settings
 
+        app_config = django_apps.get_app_config(self.app_name)
+        if not app_config.models:
             del settings.MIGRATION_MODULES[self.app_name]
 
         # Register the admin site

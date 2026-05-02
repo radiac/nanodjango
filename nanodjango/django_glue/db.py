@@ -15,7 +15,7 @@ def patch_modelbase(app_name):
 
     def new_new(cls, name, bases, attrs, **kwargs):
         module = attrs["__module__"]
-        if module == "__main__":
+        if module in ("__main__", settings.ND_APP_MODULE.__name__):
             attrs["__module__"] = app_name
             attr_meta = attrs.get("Meta")
             if attr_meta:
@@ -45,9 +45,12 @@ def patch_migrations(app_name):
             return old_basedir(self)
 
         # Ensure migrations directory exists
-        migrations_dir = settings.BASE_DIR / settings.MIGRATION_MODULES[app_name]
-        migrations_dir.mkdir(parents=True, exist_ok=True)
-        return str(migrations_dir)
+        migrations_dir = settings.MIGRATION_MODULES[app_name]
+        if migrations_dir.startswith(f"{app_name}."):
+            migrations_dir = migrations_dir[len(f"{app_name}.") :]
+        migrations_path = settings.BASE_DIR / migrations_dir
+        migrations_path.mkdir(parents=True, exist_ok=True)
+        return str(migrations_path)
 
     def new_init(self, connection, load=True, ignore_no_migrations=False):
         # Allow MigrationLoader to initialise if the init migration module is missing

@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.16.2 - 2026-05-02
+-------------------
+
+Bugfix:
+
+* Fix migrations for custom ``APP_NAME`` setting
+
+
 0.16.1 - 2026-05-01
 -------------------
 
