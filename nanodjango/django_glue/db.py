@@ -40,22 +40,27 @@ def patch_migrations(app_name):
     old_basedir = MigrationWriter.basedir.fget
     old_init = MigrationLoader.__init__
 
+    def _migrations_path():
+        # Convert dotted module path (e.g. "myapp.migrations") to a filesystem path
+        # by stripping the app_name prefix, then resolve relative to BASE_DIR
+        migration_module = settings.MIGRATION_MODULES.get(app_name, "migrations")
+        if migration_module and migration_module.startswith(f"{app_name}."):
+            migration_module = migration_module[len(f"{app_name}.") :]
+        return settings.BASE_DIR / migration_module
+
     def new_basedir(self):
         if self.migration.app_label != app_name:
             return old_basedir(self)
 
         # Ensure migrations directory exists
-        migrations_dir = settings.MIGRATION_MODULES[app_name]
-        if migrations_dir.startswith(f"{app_name}."):
-            migrations_dir = migrations_dir[len(f"{app_name}.") :]
-        migrations_path = settings.BASE_DIR / migrations_dir
+        migrations_path = _migrations_path()
         migrations_path.mkdir(parents=True, exist_ok=True)
         return str(migrations_path)
 
     def new_init(self, connection, load=True, ignore_no_migrations=False):
         # Allow MigrationLoader to initialise if the init migration module is missing
         our_migration_module = settings.MIGRATION_MODULES.get(app_name, "migrations")
-        migrations_dir = settings.BASE_DIR / our_migration_module
+        migrations_dir = _migrations_path()
 
         has_migrations = migrations_dir.exists() and any(
             f.endswith(".py") and f != "__init__.py" for f in os.listdir(migrations_dir)
