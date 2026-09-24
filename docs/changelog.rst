@@ -9,6 +9,14 @@ Bugfix:
 
 * Update django-distill integration to support version 4
 
+Docs:
+
+* Correct ``convert`` command example (#100)
+
+Thanks to:
+
+* Richard Shea (@shearichard) for the ``convert`` docs fix (#100)
+
 
 0.16.3 - 2026-05-02
 -------------------
