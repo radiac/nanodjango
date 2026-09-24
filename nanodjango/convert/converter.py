@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, cast
@@ -211,14 +212,17 @@ class Converter:
         # Try to build src from the object
         try:
             obj_src = inspect.getsource(obj)
-        except TypeError:
-            # Not a class, method, function, or code object
+        except (TypeError, OSError):
+            # TypeError: Not a class, method, function, or code object
+            # OSError: Source code not available (C extensions, zip imports, etc.)
             pass
         else:
-            self.used.add(obj_name)
             obj_ast = ast.parse(obj_src)
-            references = collect_references(obj_ast.body[0])
-            return obj_src, references
+            # Handle empty source (e.g., empty __init__.py for packages)
+            if obj_ast.body:
+                self.used.add(obj_name)
+                references = collect_references(obj_ast.body[0])
+                return obj_src, references
 
         # Look for an assignment
         for node in self.ast.body:
@@ -327,7 +331,8 @@ class Converter:
         env.pop("DJANGO_SETTINGS_MODULE", None)
 
         # Build the django-admin command with optional template
-        cmd = ["django-admin", "startproject"]
+        # Use sys.executable to ensure we use the same Python/venv
+        cmd = [sys.executable, "-m", "django", "startproject"]
         if self.project_template:
             cmd.extend(["--template", self.project_template])
         cmd.extend([self.project_name, str(self.root_path)])
@@ -902,6 +907,12 @@ class Converter:
         all_src = []
         for obj_name in unused:
             if obj_name.startswith("_"):
+                continue
+
+            # Skip module objects - they're imports, not user definitions
+            # (e.g., 'import urllib.parse' adds 'urllib' to namespace)
+            obj = self.module.__dict__.get(obj_name)
+            if isinstance(obj, ModuleType):
                 continue
 
             # Collect the source and objects it references
