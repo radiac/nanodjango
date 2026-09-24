@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.16.4 - 2026-09-24
+-------------------
+
+Bugfix:
+
+* Update django-distill integration to support version 4
+
+
 0.16.3 - 2026-05-02
 -------------------
 

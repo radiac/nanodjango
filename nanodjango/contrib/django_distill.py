@@ -27,12 +27,22 @@ def django_route_path_fn(app, pattern: str, include, re: bool, kwargs: dict):
 
     if distill:
         try:
-            from django_distill import distill_path, distill_re_path
+            import django_distill
         except ImportError as e:
             raise ImportError(
                 "Could not find django-distill - try: pip install django-distill"
             ) from e
-        return distill_re_path if re else distill_path
+
+        path_fn = django_distilldistill_re_path if re else django_distill.distill_path
+
+        if int(django_distill.__version__.split(".")[0]) >= 4:
+
+            def path_fn(*args, _build_pattern=path_fn, **inner_kwargs):
+                url_pattern = _build_pattern(*args, **inner_kwargs)
+                django_distill.add_distilled_url(url_pattern)
+                return url_pattern
+
+        return path_fn
 
     # Not using distill, allow other plugins to handle
     return None
