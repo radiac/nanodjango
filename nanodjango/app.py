@@ -6,6 +6,7 @@ import importlib
 import inspect
 import os
 import secrets
+import shlex
 import string
 import sys
 from pathlib import Path
@@ -726,6 +727,36 @@ class Django:
             )
         else:
             exec_manage("runserver", f"{host}:{port}")
+
+    def invoke(self, default: str = ""):
+        """
+        Run a ``nanodjango`` command for this script, using the script's own arguments.
+
+        Lets the script run its own commands, so it can be run directly with
+        ``uv run``, which installs the dependencies in its PEP 723 header::
+
+            uv run website.py run 0:8000
+            uv run website.py manage makemigrations
+
+        Args:
+            default: Command line to use when no arguments are given, e.g.
+                ``"run 0:8000"``
+
+        Example::
+
+            if __name__ == "__main__":
+                app.invoke(default="run 0:8000")
+        """
+        from .commands import cli
+
+        args = sys.argv[1:] or shlex.split(default)
+        if not args:
+            cli.main(args=["--help"], obj={})
+
+        # The first argument is the command, the script path is the app
+        command, *rest = args
+        script = str(self.app_path)
+        cli.main(args=[command, script, *rest], obj={"app": self})
 
     def serve(
         self,

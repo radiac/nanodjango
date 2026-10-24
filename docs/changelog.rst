@@ -7,6 +7,7 @@ Changelog
 
 Features:
 
+* New ``app.invoke()`` to give full nanodjango command access when run with ``uv run``
 * ``app.path()`` and ``app.re_path()`` now accept a module path string for ``include``
 * Testing helpers are now available on ``nanodjango.testing`` - see testing docs
 

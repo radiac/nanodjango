@@ -17,6 +17,11 @@ def load_module(module_name: str, path: str | Path):
 
 
 def load_app(ctx: click.Context, param: str, value: str) -> Django:
+    # Called from Django.invoke(), which has already loaded the app
+    root_obj = ctx.find_root().obj or {}
+    if "app" in root_obj:
+        return root_obj["app"]
+
     path = Path(value).absolute()
 
     # Look for the app name

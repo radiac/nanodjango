@@ -109,16 +109,23 @@ bottom of your script, eg:
     if __name__ == "__main__":
         app.run()
 
-You can then run the script directly to launch the Django development server::
+You can then run the script directly to launch the Django development server:
+
+.. code-block:: bash
 
     python hello.py
+    python hello.py 0:7000
 
 
 Running it as a standalone script
 ---------------------------------
 
 You can take it a step further and add a `PEP 723 <https://peps.python.org/pep-0723/>`_
-comment to the top to specify ``nanodjango`` as a dependency:
+comment to the top to specify ``nanodjango`` as a dependency.
+
+If you're doing this, you may prefer to use ``app.invoke()`` which passes the command
+and arguments through to nanodjango's command processor, as if you'd called
+``nanodjango <command> myscript.py <args>`` directly:
 
 .. code-block:: python
 
@@ -129,18 +136,28 @@ comment to the top to specify ``nanodjango`` as a dependency:
     app = Django()
     ...
     if __name__ == "__main__":
-        app.run()
+        app.invoke(default="run 0:3000")
+
+The optional ``app.invoke(default=...)`` argument overrides nanodjango's default
+behaviour when no argument is passed - here it will run the dev server on port 3000 if
+no args are passed.
 
 This will allow you to pass it to ``uv run`` or ``pipx run``, to run your development
 server without installing anything first:
 
 .. code-block:: bash
 
-    # Create a temporary venv with ``nanodjango`` installed, then run the script
+    # Create a temporary venv with ``nanodjango`` installed
+    # No arguments uses the ``default`` if provided - in this case, ``run 0:3000``
     uv run ./script.py
 
     # Same, but using pipx:
     pipx run ./script.py
+
+    # Run nanodjango commands:
+    uv run ./script.py serve 0:5000
+    uv run ./script.py manage migrate
+    uv run ./script.py manage distill-local output/  # needs django-distill in the deps
 
 
 Run using WSGI or ASGI
