@@ -9,12 +9,12 @@ tool).
 
 To do this, you may want to put your nanodjango script inside a package - for example:
 
-```
+.. code-block:: text
+
     myproject/
       __init__.py
       __main__.py
       app.py
-```
 
 where ``app.py`` is your nanodjango script, and you want to launch it from
 ``__main__.py`` - but using the name of your package, ``myproject``.
@@ -85,6 +85,7 @@ instantiate it. The easiest pattern for this is probably to set some global vari
 somewhere before you import your app; for example, you could have this setup:
 
 .. code-block:: python
+
     # myproject/config.py
     DEBUG = False
 
