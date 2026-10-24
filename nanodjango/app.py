@@ -14,7 +14,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence
 
 import pluggy
-from asgiref.sync import sync_to_async
+from asgiref.sync import iscoroutinefunction, sync_to_async
 from django import setup
 from django import urls as django_urls
 from django.contrib import admin
@@ -323,7 +323,7 @@ class Django:
                 elif isinstance(item, django_urls.URLResolver):
                     stack.append(item.urlconf_module)
                 elif isinstance(item, django_urls.URLPattern) and (
-                    inspect.iscoroutinefunction(item.callback)
+                    iscoroutinefunction(item.callback)
                 ):
                     self.mark_async()
                     break
@@ -392,7 +392,7 @@ class Django:
                 fn = fn.as_view()
 
             # Detect async view
-            if inspect.iscoroutinefunction(fn):
+            if iscoroutinefunction(fn):
                 self.mark_async()
 
             # Register URL

@@ -8,6 +8,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, cast
 
+from asgiref.sync import iscoroutinefunction
 from django.http import HttpResponse
 
 from .reference import ReferenceVisitor
@@ -121,7 +122,7 @@ def ensure_http_response(view_fn):
     """
     If a view returns a plain string value, convert it into an HttpResponse
     """
-    if inspect.iscoroutinefunction(view_fn):
+    if iscoroutinefunction(view_fn):
 
         @wraps(view_fn)
         async def wrapped(*args, **kwargs):
@@ -147,7 +148,7 @@ setattr(
     ensure_http_response,
     "_dependencies",
     {
-        "inspect": "import inspect",
+        "iscoroutinefunction": "from asgiref.sync import iscoroutinefunction",
         "wraps": "from functools import wraps",
         "HttpResponse": "from django.http import HttpResponse",
     },

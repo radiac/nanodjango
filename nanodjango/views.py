@@ -1,6 +1,6 @@
-import inspect
 from functools import wraps
 
+from asgiref.sync import iscoroutinefunction
 from django.http import HttpResponse, HttpResponseBase
 
 
@@ -9,7 +9,7 @@ def string_view(fn):
     Wrapper to automatically convert the response from a view function into an
     HttpResponse to support returning a string.
     """
-    if inspect.iscoroutinefunction(fn):
+    if iscoroutinefunction(fn):
 
         @wraps(fn)
         async def django_view(request, *args, **kwargs):
