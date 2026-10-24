@@ -93,5 +93,4 @@ generate the static site from your script, collect static files first, then gene
 
 .. code-block:: bash
 
-    uv run ./script.py manage collectstatic --noinput
-    uv run ./script.py manage distill generate --output-directory output/
+    nanodjango manage script.py distill generate --output-directory=output/ --collectstatic

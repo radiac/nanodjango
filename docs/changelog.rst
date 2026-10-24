@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.17.1 - 2026-10-25
+-------------------
+
+Bugfix:
+
+* Fix django-distill integration for path kwarg passthrough
+
+
 0.17.0 - 2026-10-24
 -------------------
 

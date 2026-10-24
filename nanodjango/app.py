@@ -298,7 +298,9 @@ class Django:
         pattern = pattern.removeprefix("/")
 
         # Find if it's a path() or re_path()
-        unknown_kwargs = kwargs
+        # Copy, so plugins popping their kwargs here do not remove them from kwargs,
+        # which is needed by django_route_path_kwargs below
+        unknown_kwargs = dict(kwargs)
         path_fn = self.pm.hook.django_route_path_fn(
             app=self, pattern=pattern, include=include, re=re, kwargs=unknown_kwargs
         )
