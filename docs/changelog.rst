@@ -10,10 +10,13 @@ Features:
 * New ``app.invoke()`` to give full nanodjango command access when run with ``uv run``
 * ``app.path()`` and ``app.re_path()`` now accept a module path string for ``include``
 * Testing helpers are now available on ``nanodjango.testing`` - see testing docs
+* New ``Django(ASYNC=True)`` and ``app.mark_async()`` to force async mode when
+  nanodjango can't detect an async view (#99)
 
 Bugfix:
 
-* Fix async detection for class-based views passed to ``app.path()`` (#99)
+* Fix async detection for class-based views passed to ``app.path()``, and for any
+  ``urlpattern`` included by reference (but not by string) (#99)
 
 
 0.16.3 - 2026-05-02

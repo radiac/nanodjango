@@ -80,6 +80,19 @@ include another urlconf in your urls:
     api = NinjaAPI()
     app.path("api/", api.urls)
 
+There are times when an async view can't be detected - for example, when a urlconf is
+included using a string. When this happens you need to tell nanodjango to run in async
+mode. There are two ways to do that:
+
+.. code-block:: python
+
+    # Either pass ASYNC=True when creating the Django instance
+    app = Django(ASYNC=True)
+
+    ...
+    # or call app.mark_async() after initialisation (but before running/serving)
+    app.mark_async()
+
 
 Return values
 =============

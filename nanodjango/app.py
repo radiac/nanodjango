@@ -146,6 +146,9 @@ class Django:
                 )
             }
 
+        # Remove internal config that's not a setting
+        force_async = _settings.pop("ASYNC", False)
+
         self._init_plugin_manager()
 
         self.has_admin = False
@@ -153,6 +156,9 @@ class Django:
         self._routes = {}
         self._config(_settings)
         self._prepared = False
+
+        if force_async:
+            self.mark_async()
 
     def _init_plugin_manager(self):
         self.pm = pluggy.PluginManager("nanodjango")
@@ -307,6 +313,23 @@ class Django:
             # Being called directly with an include
             if isinstance(include, str):
                 include = django_urls.include(include)
+
+            # Walk the included urlpatterns already in memory to detect async views
+            stack = [include[0] if isinstance(include, tuple) else include]
+            while stack:
+                item = stack.pop()
+                if isinstance(item, list):
+                    stack.extend(item)
+                elif isinstance(item, django_urls.URLResolver):
+                    stack.append(item.urlconf_module)
+                elif isinstance(item, django_urls.URLPattern) and (
+                    inspect.iscoroutinefunction(item.callback)
+                ):
+                    self.mark_async()
+                    break
+                # String includes are not imported yet, ignore them - user will need to
+                # force with Django(ASYNC=True) or app.mark_async()
+
             urlpatterns.append(path_fn(pattern, include))
 
             # If we're converting, we're going to need the source AST node based on the
@@ -370,12 +393,7 @@ class Django:
 
             # Detect async view
             if inspect.iscoroutinefunction(fn):
-                self._has_async_view = True
-
-                # Not ideal that this is changing the global, but it's the only way to
-                # work around whatever uvicorn is doing, and you'd have to work hard for
-                # it to be a problem.
-                type(self).__call__ = type(self).asgi
+                self.mark_async()
 
             # Register URL
             urlpatterns.append(path_fn(pattern, string_view(fn), **path_kwargs))
@@ -641,6 +659,20 @@ class Django:
                         return True
 
         return False
+
+    def mark_async(self) -> None:
+        """
+        Declare that this app serves async views
+
+        This will usually be applied automatically, but it can be called manually when
+        nanodjango cannot find the async views, ie when included in a string module path
+        """
+        self._has_async_view = True
+
+        # Not ideal that this is changing the global, but it's the only way to
+        # work around whatever uvicorn is doing, and you'd have to work hard for
+        # it to be a problem.
+        type(self).__call__ = type(self).asgi
 
     def manage(self, args: list[str] | tuple[str] | None = None):
         """
@@ -1118,8 +1150,7 @@ class Django:
             log_level: Uvicorn log level (default: "info")
             is_prod: Whether to run in production mode (default: True)
         """
-        self._has_async_view = True
-        type(self).__call__ = type(self).asgi  # Same hacky solution in wrapped()
+        self.mark_async()
 
         try:
             import uvicorn
