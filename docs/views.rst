@@ -67,14 +67,18 @@ include another urlconf in your urls:
 
 .. code-block:: python
 
+    # Include an urlpatterns by module path string
+    app.path("__debug__/", include="debug_toolbar.urls")
+
+    # Include an urlpatterns by reference
+    from django.urls import include
+    from debug_toolbar.urls import urlpatterns as debug_toolbar_urlpatterns
+    app.path("__debug__/", include(debug_toolbar_urlpatterns))
+
     # Add a django-ninja API
     from ninja import NinjaAPI
     api = NinjaAPI()
     app.path("api/", api.urls)
-
-    # Add a django-fastview viewgroup
-    from fastview.viewgroups.auth import AuthViewGroup
-    app.re_path("accounts/", AuthViewGroup().include())
 
 
 Return values

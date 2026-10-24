@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.17.0 - TBC
+------------
+
+Features:
+
+* ``app.path()`` and ``app.re_path()`` now accept a module path string for ``include``
+
+
 0.16.3 - 2026-05-02
 -------------------
 

@@ -304,6 +304,8 @@ class Django:
 
         if include is not None:
             # Being called directly with an include
+            if isinstance(include, str):
+                include = django_urls.include(include)
             urlpatterns.append(path_fn(pattern, include))
 
             # If we're converting, we're going to need the source AST node based on the
