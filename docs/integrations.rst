@@ -87,3 +87,11 @@ Nanodjango will detect it and automatically:
 * support Distill arguments to ``@app.route``, ``.path`` and ``.re_path``
 * configure static site generation settings;
 * set up distill URLs during conversion.
+
+django-distill 4 consolidated its commands into a single ``distill`` command, so to
+generate the static site from your script, collect static files first, then generate:
+
+.. code-block:: bash
+
+    uv run ./script.py manage collectstatic --noinput
+    uv run ./script.py manage distill generate --output-directory output/

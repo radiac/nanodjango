@@ -157,7 +157,7 @@ server without installing anything first:
     # Run nanodjango commands:
     uv run ./script.py serve 0:5000
     uv run ./script.py manage migrate
-    uv run ./script.py manage distill-local output/  # needs django-distill in the deps
+    uv run ./script.py manage distill generate --output-directory output/  # needs django-distill in the deps
 
 
 Run using WSGI or ASGI
