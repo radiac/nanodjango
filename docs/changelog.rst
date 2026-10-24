@@ -8,6 +8,7 @@ Changelog
 Features:
 
 * ``app.path()`` and ``app.re_path()`` now accept a module path string for ``include``
+* Testing helpers are now available on ``nanodjango.testing`` - see testing docs
 
 
 0.16.3 - 2026-05-02

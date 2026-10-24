@@ -6,7 +6,7 @@ Recommended usage is through a module-level fixture:
     import urllib.request
 
     import pytest
-    from nanodjango.testing.utils import cmd, nanodjango_process, runserver
+    from nanodjango.testing import cmd, nanodjango_process, runserver
 
     TEST_APP = "myscript"
     TEST_SCRIPT = f"examples/{TEST_APP}.py"

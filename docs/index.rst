@@ -27,6 +27,7 @@ Perfect for experiments, prototypes, tutorials, and small applications.
     internal_api
     howto/api_service
     howto/package
+    testing
     troubleshooting
     playground/index
     contributing
