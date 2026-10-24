@@ -18,6 +18,26 @@ Bugfix:
 * Fix async detection for class-based views passed to ``app.path()``, and for any
   ``urlpattern`` included by reference (but not by string) (#99)
 
+Thanks to:
+
+* Olga Pichuzhkina (@vyhuholl) for flagging the async detection issue (#99)
+
+
+0.16.4 - 2026-09-24
+-------------------
+
+Bugfix:
+
+* Update django-distill integration to support version 4
+
+Docs:
+
+* Correct ``convert`` command example (#100)
+
+Thanks to:
+
+* Richard Shea (@shearichard) for the ``convert`` docs fix (#100)
+
 
 0.16.3 - 2026-05-02
 -------------------
