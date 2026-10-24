@@ -364,6 +364,10 @@ class Django:
                 {"re": re, "include": False, **path_kwargs},
             )
 
+            # Prepare CBVs
+            if inspect.isclass(fn) and issubclass(fn, View):
+                fn = fn.as_view()
+
             # Detect async view
             if inspect.iscoroutinefunction(fn):
                 self._has_async_view = True
@@ -372,10 +376,6 @@ class Django:
                 # work around whatever uvicorn is doing, and you'd have to work hard for
                 # it to be a problem.
                 type(self).__call__ = type(self).asgi
-
-            # Prepare CBVs
-            if inspect.isclass(fn) and issubclass(fn, View):
-                fn = fn.as_view()
 
             # Register URL
             urlpatterns.append(path_fn(pattern, string_view(fn), **path_kwargs))
