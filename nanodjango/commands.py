@@ -1,7 +1,7 @@
+import importlib.util
 import shutil
 import sys
 from importlib import import_module
-from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
 import click
@@ -12,7 +12,10 @@ from .play import Api, ApiError
 
 
 def load_module(module_name: str, path: str | Path):
-    module = SourceFileLoader(module_name, str(path)).load_module()
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
     return module
 
 

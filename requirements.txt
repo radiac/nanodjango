@@ -4,7 +4,7 @@ black
 click
 gunicorn
 isort
-django>=3.2.0
+django>=5.2
 django-ninja
 pluggy
 uvicorn

@@ -2,6 +2,19 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+Features:
+
+* Add support for Python 3.15 and Django 6.1
+
+Breaking changes:
+
+* Drop support for Python and Django versions which have reached end of life;
+  nanodjango now requires Python 3.11+ and Django 5.2+
+
+
 0.17.1 - 2026-10-25
 -------------------
 
