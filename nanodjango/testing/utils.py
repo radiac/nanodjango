@@ -39,7 +39,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
 
-import django
 import pytest
 
 RUNSERVER_TIMEOUT = 10  # seconds
@@ -294,10 +293,7 @@ def runserver(
 
     # Determine what startup message to expect
     if expect == EXPECT_RUNSERVER:
-        if django.VERSION < (5, 0, 0):
-            expecting = ["Starting development server at"]
-        else:
-            expecting = ["Watching for file changes"]
+        expecting = ["Watching for file changes"]
     elif expect == EXPECT_UVICORN:
         expecting = ["Uvicorn running on"]
     elif expect == EXPECT_GUNICORN:
